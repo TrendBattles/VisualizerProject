@@ -20,6 +20,15 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 	${CMAKE_SOURCE_DIR}/include
 )
 
+target_sources(${PROJECT_NAME} PRIVATE
+	"src/Tree/AVL.cpp"
+	"src/IDataStructure.cpp"
+	"src/StateManager.cpp"
+	"src/UIManager.cpp"
+	"src/AppLoop.cpp"
+	"src/RendererCommon.cpp"
+)
+
 # 4. Link the libraries
 # We link raylib and the standard Windows graphics libraries
 target_link_libraries(${PROJECT_NAME} raylib opengl32 gdi32 winmm)
