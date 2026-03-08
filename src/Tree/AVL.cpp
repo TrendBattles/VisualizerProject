@@ -31,6 +31,8 @@ void AVL::insertNode(int value) {
 }
 void AVL::removeNode(int value) {
     root = remove(root, value);
+
+    render();
 }
 void AVL::stepForward() {
 
@@ -44,9 +46,12 @@ void AVL::render() {
         return;
     }
 
-    if (root == nullptr) return;
-
     Snapshot storage;
+    if (root == nullptr) {
+        stateManager -> addSnapshot(storage);
+        return;
+    }
+
     const float radius = 30.0f, outlineSize = 3.0f, maximumHorizontal = (radius + outlineSize) * (1 << getHeight(root)), lengthVertical = 100;
     
     auto Call = [&] (auto self, AVLNode* node, float posX, float posY, float spacingHorizontal) -> void {
@@ -54,51 +59,27 @@ void AVL::render() {
 
         if (node -> leftChild != nullptr) {
             self(self, node -> leftChild, posX - spacingHorizontal / 2, posY + lengthVertical, spacingHorizontal / 2);
+            
+            ShapeState leftLine = createLine(Vector2{posX, posY}, Vector2{posX - spacingHorizontal / 2, posY + lengthVertical}, 3.0f, 1.5f, -1000);
+            leftLine.setColor(GREEN, RED);
 
-            ShapeState leftLine = {
-                Vector2{posX, posY}, 
-                Vector2{posX - spacingHorizontal / 2, posY + lengthVertical}, 
-                ShapeType::LINE, 
-                3.0f, 1.5f,
-                GREEN, RED,
-                -1000,
-                Text()
-            };
             storage.emplace_back(leftLine);
         }
 
         if (node -> rightChild != nullptr) {
             self(self, node -> rightChild, posX + spacingHorizontal / 2, posY + lengthVertical, spacingHorizontal / 2);
 
-            ShapeState rightLine = {
-                Vector2{posX, posY}, 
-                Vector2{posX + spacingHorizontal / 2, posY + lengthVertical}, 
-                ShapeType::LINE, 
-                3.0f, 1.5f, 
-                GREEN, RED,
-                -1000,
-                Text()
-            };
+            ShapeState rightLine = createLine(Vector2{posX, posY}, Vector2{posX + spacingHorizontal / 2, posY + lengthVertical}, 3.0f, 1.5f, -1000);
+            rightLine.setColor(GREEN, RED);
 
             storage.emplace_back(rightLine);
         }
 
-        ShapeState nodeShape = {
-            Vector2{posX, posY}, 
-            Vector2{posX, posY}, 
-            ShapeType::CIRCLE, 
-            radius, outlineSize, 
-            WHITE, YELLOW,
-            0,
-            Text {
-                std::to_string(node -> key), 
-                GetFontDefault(),
-                20.0f, 2.0f,
-                BLACK,
-                Vector2{posX, posY},
-                true,
-            }
-        };
+        ShapeState nodeShape = createCircle(Vector2{posX, posY}, radius, outlineSize, 0);
+        nodeShape.setColor(WHITE, YELLOW);
+        nodeShape.setText(createText(std::to_string(node -> key), GetFontDefault(), 20.0f, 2.0f, Vector2{posX, posY}, BLACK));
+        nodeShape.setTextCenter(true);
+
         storage.emplace_back(nodeShape);
     };
 
