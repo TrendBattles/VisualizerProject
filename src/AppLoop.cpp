@@ -26,32 +26,13 @@ void AppLoop::init() {
 
     SetTargetFPS(60);
 
-
     globalStateManager = new StateManager();
     uiManager = new UIManager(globalStateManager);
     activeDS = new AVL();
     activeDS -> setStateManager(globalStateManager);
-
-    isTextBoxFocused = false;
-    inputHitBox = ShapeState {
-        Vector2{120.0f, (float) GetScreenHeight() - 60.0f},
-        Vector2{220.0f, (float) GetScreenHeight()},
-        ShapeType::RECTANGLE,
-        -100.0f, 5.0f,
-        Color {170, 170, 170, 255}, BLUE,
-        0,
-        Text {
-            std::string(),
-            GetFontDefault(),
-            20.0f, 2.0f,
-            BLACK,
-            Vector2 {0.0f, 0.0f},
-            true
-        }
-    };
-    inputHitBox.content.position = Vector2Lerp(inputHitBox.startPosition, inputHitBox.endPosition, 0.5f);
+    eventManager.init();
 }
-
+    
 /// @brief The main app workflow
 void AppLoop::mainLoop() {
     // --- Update Logic ---
@@ -65,6 +46,10 @@ void AppLoop::mainLoop() {
     // --- Drawing Logic ---
     BeginDrawing();
         ClearBackground(GetColor(0x181818FF)); // Modern Dark Theme
+
+        updateEvent();
+        updateTextBox();
+
         BeginMode2D(camera);
             uiManager -> renderSnapshot();
         EndMode2D();
@@ -73,80 +58,113 @@ void AppLoop::mainLoop() {
         DrawFPS(10, 10);
         DrawText("Right-click to pan | Scroll to zoom", 10, 40, 20, GRAY);
 
-        ShapeState button = {
-            Vector2{0.0f, (float) GetScreenHeight() - 60.0f},
-            Vector2{100.f, (float) GetScreenHeight()},
-            ShapeType::RECTANGLE,
-            -100.0f, 5.0f,
-            Color {170, 170, 170, 255}, BLUE,
-            0,
-            Text {
-                "Insert", 
-                GetFontDefault(),
-                20.0f, 5.0f,
-                RED,
-                Vector2 {0.0f, 0.0f},
-                true
-            }
-        };
-        button.content.position = Vector2Lerp(button.startPosition, button.endPosition, 0.5f);
 
-        updateEvent();
-        updateTextBox();
-
-        uiManager -> drawShape(inputHitBox);
-        uiManager -> drawShape(button);
-
-        if (IsMouseButtonDown(MOUSE_LEFT_BUTTON) && CheckCollisionPointRec(GetMousePosition(), createRaylibRectangle(button.startPosition, button.endPosition))) {
-            if (!inputHitBox.content.label.empty()) activeDS -> insertNode(stoi(inputHitBox.content.label));
-            inputHitBox.content.label.clear();
-        }
     EndDrawing();
 }
 
 
 /// @brief Event Updates on the screen
 void AppLoop::updateEvent() {
-    if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
-        if (CheckCollisionPointRec(GetMousePosition(), createRaylibRectangle(inputHitBox.startPosition, inputHitBox.endPosition))) {
-            isTextBoxFocused = true;
-        } else {
-            isTextBoxFocused = false;
+    for (int eventIdx = 0; eventIdx < eventManager.getSize(); ++eventIdx) {
+        if (eventManager.isHidden(eventIdx)) continue;
+
+        uiManager -> drawShape(eventManager.getEventShape(eventIdx));
+        uiManager -> drawShape(eventManager.getEventTextBox(eventIdx));
+    }
+    
+    bool hoveredTextBox = false;
+    for (int eventIdx = 0; eventIdx < eventManager.getSize(); ++eventIdx) {
+        if (eventManager.isHidden(eventIdx)) continue;
+        
+        ShapeState currentTextBox = eventManager.getEventTextBox(eventIdx);
+
+        if (CheckCollisionPointRec(GetMousePosition(), createRaylibRectangle(currentTextBox.startPosition, currentTextBox.endPosition))) {
+            hoveredTextBox = true;
+            break;
         }
     }
 
-    // Hovering the text box -> In typing state
-    if (CheckCollisionPointRec(GetMousePosition(), createRaylibRectangle(inputHitBox.startPosition, inputHitBox.endPosition))) {
+    if (hoveredTextBox) {
         SetMouseCursor(MOUSE_CURSOR_IBEAM);
     } else {
         SetMouseCursor(MOUSE_CURSOR_DEFAULT);
     }
+
+    for (int eventIdx = 0; IsMouseButtonDown(MOUSE_LEFT_BUTTON) && eventIdx < eventManager.getSize(); ++eventIdx) {
+        if (eventManager.isHidden(eventIdx)) continue;
+        
+        ShapeState currentTextBox = eventManager.getEventTextBox(eventIdx);
+
+        if (CheckCollisionPointRec(GetMousePosition(), createRaylibRectangle(currentTextBox.startPosition, currentTextBox.endPosition))) {
+            eventManager.setFocused(eventIdx, true);
+        } else {
+            eventManager.setFocused(eventIdx, false);
+        }
+    }
+
+    if (!IsMouseButtonDown(MOUSE_LEFT_BUTTON)) return;
+
+    if (!eventManager.isHidden("Insert")) {
+        ShapeState insertButton = eventManager.getEventShape("Insert");
+        Text insertText = eventManager.getEventTextBox("Insert").content;
+
+        if (CheckCollisionPointRec(GetMousePosition(), createRaylibRectangle(insertButton.startPosition, insertButton.endPosition))) {
+            if (!insertText.label.empty()) activeDS -> insertNode(stoi(insertText.label));
+            
+            eventManager.clearTextBox("Insert");
+        }
+    }  
+
+    if (!eventManager.isHidden("Remove")) {
+        ShapeState removeButton = eventManager.getEventShape("Remove");
+        Text removeText = eventManager.getEventTextBox("Remove").content;
+
+        if (CheckCollisionPointRec(GetMousePosition(), createRaylibRectangle(removeButton.startPosition, removeButton.endPosition))) {
+            if (!removeText.label.empty()) activeDS -> removeNode(stoi(removeText.label));
+
+            eventManager.clearTextBox("Remove");
+        }
+    }   
 }
 
 /// @brief Text Box Behaviors
 void AppLoop::updateTextBox() {
-    if (isTextBoxFocused) {
-        int key = GetCharPressed();
-        while (key > 0) {
-            int currentLen = (int) inputHitBox.content.label.length();
-            if (currentLen > 0 and currentLen >= 5 + (inputHitBox.content.label[0] == '-')) {
-                key = GetCharPressed();
-                continue;
-            }
+    int focusID = -1;
+    for (int eventIdx = 0; eventIdx < eventManager.getSize(); ++eventIdx) {
+        if (eventManager.isHidden(eventIdx)) continue;
 
-            // Only allow numbers for inputs
-            if (key >= '0' && key <= '9') {
-                inputHitBox.content.label.push_back((char) key);
-            }
-            if ((char) key == '-' and inputHitBox.content.label.find('-') == std::string::npos) {
-                inputHitBox.content.label.push_back((char) key);
-            }
-
-            key = GetCharPressed();
-        }
-        
-        if (IsKeyPressed(KEY_BACKSPACE) && !inputHitBox.content.label.empty()) {
-            inputHitBox.content.label.pop_back();
+        if (eventManager.getFocused(eventIdx)) {
+            focusID = eventIdx;
+            break;
         }
     }
+
+    ShapeState inputHitBox = eventManager.getEventTextBox(focusID);
+
+    int key = -1;
+    while ((key = GetCharPressed()) > 0) {
+        if (focusID == -1) {
+            continue;
+        }
+
+        
+        int currentLen = (int) inputHitBox.content.label.length();
+        if (currentLen >= 5) {
+            continue;
+        }
+
+        // Only allow numbers for inputs
+        if (key >= '0' && key <= '9') {
+            inputHitBox.content.label.push_back((char) key);
+        }
+        if ((char) key == '-' and inputHitBox.content.label.find('-') == std::string::npos) {
+            inputHitBox.content.label.push_back((char) key);
+        }
+    }
+        
+    if (IsKeyPressed(KEY_BACKSPACE) && !inputHitBox.content.label.empty()) {
+        inputHitBox.content.label.pop_back();
+    }
+
+    eventManager.setEventTextBox(focusID, inputHitBox);
 }

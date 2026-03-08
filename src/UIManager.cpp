@@ -2,8 +2,14 @@
 #include "raymath.h"
 #include <iostream>
 
+/////////////////////////////////
+///     UI Initialization     ///
+/////////////////////////////////
 UIManager::UIManager(StateManager* source) {
     stateManager = source;   
+
+    options = {"Menu", "AVL Tree", "Trie", "Linked List", "Hash Table", "Graph"};
+    appSignal = "AVL Tree";
 }
 
 /// @brief Shape Drawing
@@ -26,7 +32,7 @@ void UIManager::drawShape(const ShapeState& shape) {
             break;
     }
 
-    drawText(shape.content);
+    if (shape.hasText) drawText(shape.content);
 }
 
 /// @brief Text Drawing
@@ -53,3 +59,17 @@ void UIManager::renderSnapshot() {
         drawShape(shape);
     }
 }
+
+/*
+Animation ?
+Line: Time limit, time elapsed, start Vector, end Vector -> Path
+Circle Path: Time limit, time elapsed, center, radius -> Path
+-> Animate anything on the screen as long as we implement functions and store a list of animations
+in another class. -> Approach solved
+
+Where should we put drawing functions ? UIManager
+UIManager: 
+    + Generalization
+    + Adding duplicate functions
+    -> Time elapsed, time limit -> Treat as a new ShapeState
+*/

@@ -27,6 +27,7 @@ target_sources(${PROJECT_NAME} PRIVATE
 	"src/UIManager.cpp"
 	"src/AppLoop.cpp"
 	"src/RendererCommon.cpp"
+	"src/EventManager.cpp"
 )
 
 # 4. Link the libraries

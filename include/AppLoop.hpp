@@ -5,6 +5,7 @@
 #include "raymath.h"
 #include <DS/Tree/AVL.hpp>
 #include <UIManager.hpp>
+#include <EventManager.hpp>
 #include <iostream>
 
 class AppLoop {
@@ -21,9 +22,7 @@ private:
     StateManager* globalStateManager = nullptr;
     UIManager* uiManager = nullptr;
     AVL* activeDS = nullptr;
-
-    bool isTextBoxFocused;
-    ShapeState inputHitBox;
+    EventManager eventManager;
 };
 
 #endif
