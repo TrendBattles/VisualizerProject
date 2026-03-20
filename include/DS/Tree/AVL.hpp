@@ -3,7 +3,7 @@
 
 #include <DS/IDataStructure.hpp>
 
-/// @brief AVL implementation
+/// @brief AVL Auxiliary Structure
 struct AVLNode {
     int key, height;
     AVLNode* leftChild, * rightChild;
@@ -16,12 +16,11 @@ public:
     AVL();
     ~AVL();
 
-    void insertNode(int value) override;
-    void removeNode(int value) override;
-
-    void stepForward() override;
-    void stepBackward() override;
-    void render() override;
+    bool insertNode(std::string value) override;
+    bool removeNode(std::string value) override;
+    void clearAll() override;
+    
+    void generateSnapshot() override;
 private:
     AVLNode* root;
     void destroyTree(AVLNode* node);
@@ -35,8 +34,10 @@ private:
     AVLNode* rebalance(AVLNode* node);
 
     AVLNode* insert(AVLNode* node, int key);
+    void insertNode(int value);
 
     AVLNode* removeSuccessor(AVLNode* node);
     AVLNode* remove(AVLNode* node, int key);
+    void removeNode(int value);
 };
 #endif

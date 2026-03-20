@@ -2,7 +2,7 @@
 #define EVENTMANAGER_HPP
 
 #include <vector>
-#include <RendererCommon.hpp>
+#include <Graphics/RendererCommon.hpp>
 
 /// @brief Event Management
 class EventManager {
@@ -18,14 +18,20 @@ public:
     ShapeState getEventShape(int idx);
     ShapeState getEventShape(std::string message);
 
+    bool isButtonHidden(int idx);
+    bool isButtonHidden(std::string message);
+    void setButtonVisibility(int idx, bool isTrue);
+    void setButtonVisibility(std::string message, bool isTrue);
+
     void setEventTextBox(int idx, ShapeState newShape);
     void setEventTextBox(std::string message, ShapeState newShape);
-
     ShapeState getEventTextBox(int idx);
     ShapeState getEventTextBox(std::string message);
 
-    bool isHidden(int idx);
-    bool isHidden(std::string message);
+    bool isTextBoxHidden(int idx);
+    bool isTextBoxHidden(std::string message);
+    void setTextBoxVisibility(int idx, bool isTrue);
+    void setTextBoxVisibility(std::string message, bool isTrue);
 
     void setFocused(int idx, int state);
     void setFocused(std::string message, int state);

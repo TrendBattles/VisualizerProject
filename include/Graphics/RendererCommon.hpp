@@ -17,14 +17,17 @@ struct Text {
 };
 
 enum ShapeType { 
-    CIRCLE, //BST
-    LINE, // Graphs
-    RECTANGLE, // Hash Tables
-    TEXT, // Labeling
-    ARROW // Edge direction
+    CIRCLE,
+    LINE,
+    RECTANGLE,
+    TEXT,
+    ARROW
 };
 
 struct ShapeState {
+    //Identity
+    std::string shapeID = "";
+
     //Geometry
     Vector2 startPosition, endPosition;
     float size, outlineSize;
@@ -46,14 +49,4 @@ struct ShapeState {
     void setTextVisibility(bool isTrue);
     void setTextCenter(bool isCentered);
 };  
-
-ShapeState createCircle(Vector2 startPosition, float radius, float outlineSize, int layerID);
-ShapeState createRectangle(Vector2 startPosition, Vector2 endPosition, float outlineSize, int layerID);
-ShapeState createLine(Vector2 startPosition, Vector2 endPosition, float size, float outlineSize, int layerID);
-
-Text createText(std::string label, Font font, float fontSize, float spacing);
-Text createText(std::string label, Font font, float fontSize, float spacing, Vector2 position);
-Text createText(std::string label, Font font, float fontSize, float spacing, Vector2 position, Color color);
-
-Rectangle createRaylibRectangle(Vector2 upperLeft, Vector2 lowerRight);
 #endif

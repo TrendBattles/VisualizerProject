@@ -4,8 +4,8 @@
 #include "raylib.h"
 #include "raymath.h"
 #include <DS/Tree/AVL.hpp>
-#include <UIManager.hpp>
-#include <EventManager.hpp>
+#include <Graphics/UIManager.hpp>
+#include <Core/EventManager.hpp>
 #include <iostream>
 
 class AppLoop {
@@ -21,8 +21,8 @@ private:
     Camera2D camera;
     StateManager* globalStateManager = nullptr;
     UIManager* uiManager = nullptr;
-    AVL* activeDS = nullptr;
-    EventManager eventManager;
+    IDataStructure* activeDS = nullptr;
+    EventManager* eventManager = nullptr;
 };
 
 #endif

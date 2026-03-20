@@ -1,7 +1,8 @@
 #ifndef IDATASTRUCTURE_HPP
 #define IDATASTRUCTURE_HPP
 
-#include <StateManager.hpp>
+#include <Core/StateManager.hpp>
+#include "raymath.h"
 
 /// @brief Data Structure Interface: Representation
 class IDataStructure {
@@ -11,11 +12,10 @@ public:
     void setStateManager(StateManager* source);
 
     virtual ~IDataStructure() = default;
-    virtual void insertNode(int value) = 0;
-    virtual void removeNode(int value) = 0;
+    virtual bool insertNode(std::string value) = 0;
+    virtual bool removeNode(std::string value) = 0;
+    virtual void clearAll() = 0;
 
-    virtual void stepForward() = 0;
-    virtual void stepBackward() = 0;
-    virtual void render() = 0;
+    virtual void generateSnapshot() = 0;
 };
 #endif

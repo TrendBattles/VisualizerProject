@@ -2,15 +2,18 @@
 #define UIMANAGER_HPP
 
 #include "raylib.h"
-#include <StateManager.hpp>
+#include <Core/StateManager.hpp>
 #include <vector>
 
 /// @brief UI Management
 class UIManager {
 public:
-    UIManager(StateManager* source);
+    UIManager();
     ~UIManager() = default;
 
+    void setStateManger(StateManager* source);
+    const std::vector <std::string>& getDSOptions() const;
+    
     void drawShape(const ShapeState& shape);
     void drawText(const Text& text);
     void renderSnapshot();
