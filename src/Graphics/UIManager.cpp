@@ -8,7 +8,7 @@
 /////////////////////////////////
 UIManager::UIManager() {
     options = {"AVL Tree", "Trie", "Linked List", "Hash Table", "Graph"};
-    appSignal = "AVL Tree";
+    appSection = "AVL Tree";
 }
 
 void UIManager::setStateManger(StateManager* source) {
@@ -16,6 +16,12 @@ void UIManager::setStateManger(StateManager* source) {
 }
 const std::vector <std::string>& UIManager::getDSOptions() const {
     return options;
+}
+void UIManager::setScreenSection(const std::string& sectionID) {
+    appSection = sectionID;
+}
+const std::string& UIManager::getScreenSection() const {
+    return appSection;
 }
 
 //////////////////////////
@@ -84,26 +90,13 @@ void UIManager::drawText(const Text& text) {
 }
 
 /// @brief Rendering the data structure
-void UIManager::renderSnapshot() {
-    if (stateManager == nullptr) return;
+void UIManager::renderSnapshot(const Snapshot& modifiedSnapshot) {
+    if (stateManager == nullptr) {
+        std::cerr << "[ERROR]: State Manager not found\n";
+        return;
+    }
 
-    const Snapshot& target = stateManager -> getCurrentSnapShot(appSignal);
-
-    for (const ShapeState& shape : target) {
+    for (const ShapeState& shape : modifiedSnapshot) {
         drawShape(shape);
     }
 }
-
-/*
-Animation ?
-Line: Time limit, time elapsed, start Vector, end Vector -> Path
-Circle Path: Time limit, time elapsed, center, radius -> Path
--> Animate anything on the screen as long as we implement functions and store a list of animations
-in another class. -> Approach solved
-
-Where should we put drawing functions ? UIManager
-UIManager: 
-    + Generalization
-    + Adding duplicate functions
-    -> Time elapsed, time limit -> Treat as a new ShapeState
-*/

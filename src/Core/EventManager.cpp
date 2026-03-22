@@ -76,7 +76,7 @@ bool EventManager::isButtonHidden(std::string message) {
 void EventManager::setButtonVisibility(int idx, bool isTrue) {
     if (idx < 0 || idx >= getSize()) return;
 
-    eventButtons[idx].isHidden = isTrue;
+    eventButtons[idx].isHidden = !isTrue;
 }
 void EventManager::setButtonVisibility(std::string message, bool isTrue) {
     setButtonVisibility(find(eventButtonsID.begin(), eventButtonsID.end(), message) - eventButtonsID.begin(), isTrue);
@@ -107,7 +107,7 @@ bool EventManager::isTextBoxHidden(std::string message) {
 void EventManager::setTextBoxVisibility(int idx, bool isTrue) {
     if (idx < 0 || idx >= getSize()) return;
 
-    eventButtons[idx].isHidden = isTrue;
+    eventButtons[idx].isHidden = !isTrue;
 }
 void EventManager::setTextBoxVisibility(std::string message, bool isTrue) {
     setTextBoxVisibility(find(eventButtonsID.begin(), eventButtonsID.end(), message) - eventButtonsID.begin(), isTrue);

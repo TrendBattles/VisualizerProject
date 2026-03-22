@@ -61,14 +61,96 @@ void AVL::clearAll() {
 }
 
 void AVL::insertNode(int value) {
+    // generateSnapshot(); // snapshot the state before insertion
     root = insert(root, value);
-
-    generateSnapshot();
+    generateSnapshot(); // snapshot the final state after insertion
 }
 void AVL::removeNode(int value) {
+    // generateSnapshot(); // snapshot the state before removal
     root = remove(root, value);
+    generateSnapshot(); // snapshot the final state after removal
+}
 
-    generateSnapshot();
+/// @brief Builds a Snapshot of the current tree state without touching the StateManager.
+///        Separates layout/serialization from persistence so that callers
+///        can decorate the result before committing it.
+Snapshot AVL::buildSnapshot() {
+    if (root == nullptr) return Snapshot();
+
+    const float radius = 30.0f, outlineSize = 3.0f, lengthVertical = 100;
+    const float padding = 5.0f;
+
+    // Calculating the position of the nodes efficiently
+    // Expected time complexity: O(N)
+    // Approach: InOrder Traversal
+    Snapshot storage;
+    auto DrawTree = [&] (auto self, AVLNode* node, int& nodeCnt, int depth) -> Vector2 {
+        if (node == nullptr) return Vector2{0, 0};
+
+        // Drawing edges
+        // A child always has exactly one parent, so this ID is stable across
+        // rotations - the edge will smoothly interpolate its endpoints
+        // rather than blinking out and back in with a new parent-keyed ID.
+        auto DrawEdge = [&] (Vector2 parentVec, Vector2 childVec, int childValue) -> void {
+            Vector2 normVec = Vector2Normalize(childVec - parentVec);
+
+            ShapeState arrow = Helper::createArrow(
+                "arrow_" + std::to_string(childValue),
+                parentVec + normVec * (radius + outlineSize),
+                childVec - normVec * (radius + outlineSize),
+                3.0f, 1.5f, -1000
+            );
+            arrow.setColor(GREEN, RED);
+
+            storage.emplace_back(arrow);
+        };
+
+        //Left Edge
+        Vector2 parentVec = {0, 0};
+        if (node -> leftChild != nullptr) {
+            Vector2 childVec = self(self, node -> leftChild, nodeCnt, depth + 1);
+            parentVec = {nodeCnt * (radius + outlineSize + padding), lengthVertical * depth};
+
+            DrawEdge(parentVec, childVec, node -> leftChild -> key);
+        }
+
+        parentVec = {nodeCnt * (radius + outlineSize + padding), lengthVertical * depth};
+        nodeCnt += 1;
+
+        //Right Edge
+        if (node -> rightChild != nullptr) {
+            Vector2 childVec = self(self, node -> rightChild, nodeCnt, depth + 1);
+            DrawEdge(parentVec, childVec, node -> rightChild -> key);
+        }
+
+        //Node's sprite
+        ShapeState nodeShape = Helper::createCircle(
+            Helper::nodeStringBuffer(std::to_string(node -> key)),
+            parentVec,
+            radius, outlineSize, 
+            0
+        );
+
+        nodeShape.setColor(WHITE, YELLOW);
+        nodeShape.setText(Helper::createText(std::to_string(node -> key), GetFontDefault(), 20.0f, 2.0f, parentVec, BLACK));
+        nodeShape.setTextCenter(true);
+
+        storage.emplace_back(nodeShape);
+        return parentVec;
+    };
+
+    int nodeCnt = 0;
+    // Offset all positions so the root sits near the top-centre of the screen.
+    // Nodes are appended last in the storage, so we can iterate the whole
+    // list once without a second pass.
+    Vector2 rootPosition = {0, -GetScreenHeight() / 2.0f + radius * 2};
+    Vector2 transitDelta = rootPosition - DrawTree(DrawTree, root, nodeCnt, 0);
+
+    for (ShapeState& tempoState : storage) {
+        tempoState.positionTransitAllBy(transitDelta);
+    }
+
+    return storage;
 }
 
 void AVL::generateSnapshot() {
@@ -77,71 +159,7 @@ void AVL::generateSnapshot() {
         return;
     }
 
-    Snapshot storage;
-    if (root == nullptr) {
-        stateManager -> addSnapshot("AVL Tree", storage);
-        return;
-    }
-
-    const float radius = 30.0f, outlineSize = 3.0f, maximumHorizontal = (radius + outlineSize) * (1 << getHeight(root)), lengthVertical = 100;
-    
-    auto DrawTree = [&] (auto self, AVLNode* node, float posX, float posY, float spacingHorizontal) -> void {
-        if (node == nullptr) return;
-
-        if (node -> leftChild != nullptr) {
-            self(self, node -> leftChild, posX - spacingHorizontal / 2, posY + lengthVertical, spacingHorizontal / 2);
-            
-            Vector2 parentVec = {posX, posY};
-            Vector2 childVec = {posX - spacingHorizontal / 2, posY + lengthVertical};
-            Vector2 normVec = Vector2Normalize(childVec - parentVec);
-
-            ShapeState leftArrow = Helper::createArrow(
-                Helper::arrowStringBuffer(std::to_string(node -> key), std::to_string(node -> leftChild -> key)),
-                parentVec + normVec * (radius + outlineSize),
-                childVec - normVec * (radius + outlineSize),
-                3.0f, 1.5f, -1000
-            );
-
-            leftArrow.setColor(GRAY, RED);
-            storage.emplace_back(leftArrow);
-        }
-
-        if (node -> rightChild != nullptr) {
-            self(self, node -> rightChild, posX + spacingHorizontal / 2, posY + lengthVertical, spacingHorizontal / 2);
-            
-            Vector2 parentVec = {posX, posY};
-            Vector2 childVec = {posX + spacingHorizontal / 2, posY + lengthVertical};
-            Vector2 normVec = Vector2Normalize(childVec - parentVec);
-
-            ShapeState rightArrow = Helper::createArrow(
-                Helper::arrowStringBuffer(std::to_string(node -> key), std::to_string(node -> rightChild -> key)),
-                parentVec + normVec * (radius + outlineSize),
-                childVec - normVec * (radius + outlineSize),
-                3.0f, 1.5f, -1000
-            );
-
-            rightArrow.setColor(GRAY, RED);
-
-            storage.emplace_back(rightArrow);
-        }
-
-        ShapeState nodeShape = Helper::createCircle(
-            Helper::nodeStringBuffer(std::to_string(node -> key)),
-            Vector2{posX, posY}, 
-            radius, outlineSize, 
-            0
-        );
-
-        nodeShape.setColor(WHITE, YELLOW);
-        nodeShape.setText(Helper::createText(std::to_string(node -> key), GetFontDefault(), 20.0f, 2.0f, Vector2{posX, posY}, BLACK));
-        nodeShape.setTextCenter(true);
-
-        storage.emplace_back(nodeShape);
-    };
-
-    DrawTree(DrawTree, root, 0, -GetScreenHeight() / 2.0f + radius * 2, maximumHorizontal);
-
-    stateManager -> addSnapshot("AVL Tree", storage);
+    stateManager -> addSnapshot("AVL Tree", buildSnapshot());
 }
 
 
@@ -205,17 +223,19 @@ AVLNode* AVL::rebalance(AVLNode* node) {
     update(node);
 
     int balance = balanceFactor(node);
+    //Only snapshot when a rotation occurred.
+
     if (balance > +1) { // Left-Heavy
         if (balanceFactor(node -> leftChild) < 0) {
             node -> leftChild = rotateLeft(node -> leftChild);
+            generateSnapshot();
         }
 
         node = rotateRight(node);
-    }
-
-    if (balance < -1) { // Right-Heavy
+    } else if (balance < -1) { // Right-Heavy
         if (balanceFactor(node -> rightChild) > 0) {
             node -> rightChild = rotateRight(node -> rightChild);
+            generateSnapshot();
         }
 
         node = rotateLeft(node);
@@ -238,10 +258,18 @@ AVLNode* AVL::insert(AVLNode* node, int key) {
         return node;
     }
 
+    bool recentlyAdded = false;
+
     if (node -> key < key) {
+        recentlyAdded = node -> rightChild == nullptr;
         node -> rightChild = insert(node -> rightChild, key);
     } else {
+        recentlyAdded = node -> leftChild == nullptr;
         node -> leftChild = insert(node -> leftChild, key);
+    }
+
+    if (recentlyAdded) {
+        generateSnapshot();
     }
 
     node = rebalance(node);
@@ -259,7 +287,13 @@ AVLNode* AVL::removeSuccessor(AVLNode* node) {
         return node;
     }
 
+    bool recentlyRemoved = node -> leftChild -> leftChild == nullptr;
     node -> leftChild = removeSuccessor(node -> leftChild);
+
+    if (recentlyRemoved) {
+        generateSnapshot();
+    }
+
     node = rebalance(node);
 
     return node;
@@ -279,7 +313,7 @@ AVLNode* AVL::remove(AVLNode* node, int key) {
 
             delete node;
             node = tmp;
-            
+
             return node;
         }
 
@@ -287,17 +321,54 @@ AVLNode* AVL::remove(AVLNode* node, int key) {
         while (successor -> leftChild != nullptr) successor = successor -> leftChild;
 
         node -> key = successor -> key;
+        bool recentlyRemoved = node -> rightChild -> leftChild == nullptr;
         node -> rightChild = removeSuccessor(node -> rightChild);
+        
+        if (recentlyRemoved) {
+            generateSnapshot();
+        }
 
         node = rebalance(node);
         return node;
     }
 
+    bool recentlyRemoved = false;
+    bool subrootChanged = false;
 
     if (node -> key < key) {
+        recentlyRemoved = 
+            node -> rightChild != nullptr &&
+            node -> rightChild -> key == key &&
+            (
+                node -> rightChild -> leftChild == nullptr ||
+                node -> rightChild -> rightChild == nullptr
+            );
+        
+        subrootChanged = node -> rightChild != nullptr;
+        int tempKey = subrootChanged ? node -> rightChild -> key : 0;
+
         node -> rightChild = remove(node -> rightChild, key);
+        
+        if (subrootChanged) subrootChanged &= node -> rightChild == nullptr || node -> rightChild -> key != tempKey; 
     } else {
+        recentlyRemoved = 
+            node -> leftChild != nullptr &&
+            node -> leftChild -> key == key &&
+            (
+                node -> leftChild -> leftChild == nullptr ||
+                node -> leftChild -> rightChild == nullptr
+            );
+        
+        subrootChanged = node -> leftChild != nullptr;
+        int tempKey = subrootChanged ? node -> leftChild -> key : 0;
+
         node -> leftChild = remove(node -> leftChild, key);
+        
+        if (subrootChanged) subrootChanged &= node -> leftChild == nullptr || node -> leftChild -> key != tempKey; 
+    }
+
+    if (recentlyRemoved || subrootChanged) {
+        generateSnapshot();
     }
 
     node = rebalance(node);

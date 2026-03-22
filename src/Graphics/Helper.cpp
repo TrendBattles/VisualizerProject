@@ -1,4 +1,6 @@
 #include <Graphics/Helper.hpp>
+#include <stdexcept>
+#include "raymath.h"
 
 ///////////////////////////////////
 ///     BUILTIN CONSTRUCTION    ///
@@ -12,6 +14,7 @@ ShapeState Helper::createCircle(std::string tempoID, Vector2 startPosition, floa
     ShapeState tempShape;
     tempShape.shapeID = tempoID;
     tempShape.startPosition = startPosition;
+    tempShape.endPosition = startPosition;
     tempShape.size = radius;
 
     tempShape.sType = ShapeType::CIRCLE;
@@ -30,6 +33,7 @@ ShapeState Helper::createRectangle(std::string tempoID, Vector2 startPosition, V
 
     tempShape.sType = ShapeType::RECTANGLE;
 
+    tempShape.size = 0;
     tempShape.outlineSize = outlineSize;
     tempShape.layerID = layerID;
 
@@ -103,13 +107,56 @@ Text Helper::createText(std::string label, Font font, float fontSize, float spac
 }
 
 ///
+/// Animation Lerps
+///
+ShapeState Helper::shapeTimeLerp(const ShapeState& shapeA, const ShapeState& shapeB, float rate) {
+    if (shapeA.shapeID != shapeB.shapeID) throw std::runtime_error("[ERROR]: Shape Lerps unable to continue because of different IDs.");
+    if (rate < 0 || rate > 1) throw std::runtime_error("[ERROR]: Lerp only accepts rates in [0, 1]");
+
+    //Shape Lerp
+    ShapeState lerpResult = shapeA;
+    lerpResult.startPosition = Vector2Lerp(shapeA.startPosition, shapeB.startPosition, rate);
+    lerpResult.endPosition = Vector2Lerp(shapeA.endPosition, shapeB.endPosition, rate);
+
+    lerpResult.size = Lerp(shapeA.size, shapeB.size, rate);
+    lerpResult.outlineSize = Lerp(shapeA.outlineSize, shapeB.outlineSize, rate);
+
+    lerpResult.color = colorTimeLerp(shapeA.color, shapeB.color, rate);
+    lerpResult.outlineColor = colorTimeLerp(shapeA.outlineColor, shapeB.outlineColor, rate);
+
+    //Text Lerp
+    Text& lerpText = lerpResult.content;
+
+    lerpText.textColor = colorTimeLerp(shapeA.content.textColor, shapeB.content.textColor, rate);
+    lerpText.position = Vector2Lerp(shapeA.content.position, shapeB.content.position, rate);
+
+    return lerpResult;
+} 
+Color Helper::colorTimeLerp(Color colorA, Color colorB, float rate) {
+    if (rate < 0 || rate > 1) throw std::runtime_error("[ERROR]: Lerp only accepts rates in [0, 1]");
+
+    return Color {
+        (unsigned char) (int) Lerp((int) colorA.r, (int) colorB.r, rate),
+        (unsigned char) (int) Lerp((int) colorA.g, (int) colorB.g, rate),
+        (unsigned char) (int) Lerp((int) colorA.b, (int) colorB.b, rate),
+        (unsigned char) (int) Lerp((int) colorA.a, (int) colorB.a, rate),
+    };
+} 
+
+///
 /// Additionals
 ///
 std::string Helper::edgeStringBuffer(std::string objectA, std::string objectB) {
     return "edge_" + objectA + "_" + objectB;
 }
+std::string Helper::edgePointStringBuffer(std::string object) {
+    return "edge_" + object;
+}
 std::string Helper::arrowStringBuffer(std::string objectA, std::string objectB) {
     return "arrow_" + objectA + "_" + objectB;
+}
+std::string Helper::arrowPointStringBuffer(std::string object) {
+    return "arrow_" + object;
 }
 std::string Helper::nodeStringBuffer(std::string value) {
     return "node_" + value;

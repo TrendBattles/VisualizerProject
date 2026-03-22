@@ -24,6 +24,7 @@ target_sources(${PROJECT_NAME} PRIVATE
 	"src/Core/AppLoop.cpp"
 	"src/Core/EventManager.cpp"
 	"src/Core/StateManager.cpp"
+	"src/Core/AnimationManager.cpp"
 )
 
 # Data Structures

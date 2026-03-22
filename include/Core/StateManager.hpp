@@ -26,6 +26,8 @@ public:
 
     const Snapshot& getCurrentSnapShot(const std::string& DSTarget);
     const Snapshot& getSnapshotAt(const std::string& DSTarget, int idx);
+
+    Snapshot snapshotTransition(const std::string& DSTarget, int firstIdx, int secondIdx, float rate);
 private:
     std::map <std::string, std::vector <Snapshot>> historyMap;
     std::map <std::string, int> stepMap;

@@ -3,9 +3,14 @@
 
 #include "raylib.h"
 #include "raymath.h"
-#include <DS/Tree/AVL.hpp>
-#include <Graphics/UIManager.hpp>
+
 #include <Core/EventManager.hpp>
+#include <Core/AnimationManager.hpp>
+
+#include <DS/Tree/AVL.hpp>
+
+#include <Graphics/UIManager.hpp>
+
 #include <iostream>
 
 class AppLoop {
@@ -20,7 +25,9 @@ public:
 private:
     Camera2D camera;
     StateManager* globalStateManager = nullptr;
-    UIManager* uiManager = nullptr;
+    UIManager* globalUIManager = nullptr;
+
+    AnimationManager* animationManager = nullptr;
     IDataStructure* activeDS = nullptr;
     EventManager* eventManager = nullptr;
 };

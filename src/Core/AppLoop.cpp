@@ -4,9 +4,11 @@
 AppLoop::AppLoop() = default;
 AppLoop::~AppLoop() {
     delete activeDS;
-    delete uiManager;
-    delete globalStateManager;
+    delete globalUIManager;
     delete eventManager;
+
+    delete animationManager;
+    delete globalStateManager;
 }
 
 //////////////////////////////
@@ -20,13 +22,17 @@ void AppLoop::init() {
     const int screenHeight = 800;
     InitWindow(screenWidth, screenHeight, "C++ Data Structure Visualizer");
 
-    uiManager = new UIManager();
-    globalStateManager = new StateManager(uiManager -> getDSOptions());
-    uiManager -> setStateManger(globalStateManager);
+    globalUIManager = new UIManager();
+    globalStateManager = new StateManager(globalUIManager -> getDSOptions());
+    globalUIManager -> setStateManger(globalStateManager);
     
     activeDS = new AVL();
     activeDS -> setStateManager(globalStateManager);
     
+    animationManager = new AnimationManager();
+    animationManager -> setStateManager(globalStateManager);
+    animationManager -> setUIManager(globalUIManager);
+
     eventManager = new EventManager();
     eventManager -> init();
 
@@ -48,6 +54,7 @@ void AppLoop::mainLoop() {
         camera.target.y -= delta.y / camera.zoom;
     }
     camera.zoom += ((float)GetMouseWheelMove() * 0.1f);
+    camera.zoom = std::max(std::min(camera.zoom, 3.0f), 0.25f);
 
     // --- Drawing Logic ---
     BeginDrawing();
@@ -57,7 +64,7 @@ void AppLoop::mainLoop() {
         updateTextBox();
 
         BeginMode2D(camera);
-            uiManager -> renderSnapshot();
+            animationManager -> sendAnimationSignals(globalUIManager -> getScreenSection());
         EndMode2D();
 
         // Draw UI (which doesn't move with the camera)
@@ -74,8 +81,8 @@ void AppLoop::updateEvent() {
     for (int eventIdx = 0; eventIdx < eventManager -> getSize(); ++eventIdx) {
         if (eventManager -> isButtonHidden(eventIdx)) continue;
 
-        uiManager -> drawShape(eventManager -> getEventShape(eventIdx));
-        uiManager -> drawShape(eventManager -> getEventTextBox(eventIdx));
+        globalUIManager -> drawShape(eventManager -> getEventShape(eventIdx));
+        globalUIManager -> drawShape(eventManager -> getEventTextBox(eventIdx));
     }
 
     for (int eventIdx = 0; IsMouseButtonDown(MOUSE_LEFT_BUTTON) && eventIdx < eventManager -> getSize(); ++eventIdx) {
@@ -97,7 +104,9 @@ void AppLoop::updateEvent() {
         Text insertText = eventManager -> getEventTextBox("Insert").content;
 
         if (CheckCollisionPointRec(GetMousePosition(), Helper::createRaylibRectangle(insertButton.startPosition, insertButton.endPosition))) {
-            if (!insertText.label.empty()) activeDS -> insertNode(insertText.label);
+            if (!insertText.label.empty() && activeDS -> insertNode(insertText.label)) {
+                animationManager -> setStartAnimation();
+            }
             
             eventManager -> clearTextBox("Insert");
         }
@@ -108,7 +117,9 @@ void AppLoop::updateEvent() {
         Text removeText = eventManager -> getEventTextBox("Remove").content;
 
         if (CheckCollisionPointRec(GetMousePosition(), Helper::createRaylibRectangle(removeButton.startPosition, removeButton.endPosition))) {
-            if (!removeText.label.empty()) activeDS -> removeNode(removeText.label);
+            if (!removeText.label.empty() && activeDS -> removeNode(removeText.label)) {
+                animationManager -> setStartAnimation();
+            } 
 
             eventManager -> clearTextBox("Remove");
         }
@@ -117,22 +128,17 @@ void AppLoop::updateEvent() {
 
 /// @brief Text Box Behaviors
 void AppLoop::updateTextBox() {
-    bool hoveredTextBox = false;
+    SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+    
     for (int eventIdx = 0; eventIdx < eventManager -> getSize(); ++eventIdx) {
         if (eventManager -> isTextBoxHidden(eventIdx)) continue;
         
         ShapeState currentTextBox = eventManager -> getEventTextBox(eventIdx);
 
         if (CheckCollisionPointRec(GetMousePosition(), Helper::createRaylibRectangle(currentTextBox.startPosition, currentTextBox.endPosition))) {
-            hoveredTextBox = true;
+            SetMouseCursor(MOUSE_CURSOR_IBEAM);
             break;
         }
-    }
-
-    if (hoveredTextBox) {
-        SetMouseCursor(MOUSE_CURSOR_IBEAM);
-    } else {
-        SetMouseCursor(MOUSE_CURSOR_DEFAULT);
     }
     
     int focusID = -1;
@@ -163,9 +169,6 @@ void AppLoop::updateTextBox() {
         if (key >= '0' && key <= '9') {
             inputHitBox.content.label.push_back((char) key);
         }
-        // if ((char) key == '-' and inputHitBox.content.label.empty()) {
-        //     inputHitBox.content.label.push_back((char) key);
-        // }
     }
         
     if (IsKeyPressed(KEY_BACKSPACE) && !inputHitBox.content.label.empty()) {

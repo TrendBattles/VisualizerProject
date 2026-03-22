@@ -1,5 +1,7 @@
 #include <Core/StateManager.hpp>
+#include <Graphics/Helper.hpp>
 #include <algorithm>
+#include <cassert>
 
 ///////////////////////////////////////
 ///       MEMBER FUNCTIONS          ///
@@ -8,7 +10,7 @@
 /// @brief Construction
 StateManager::StateManager(const std::vector <std::string>& DSList) {
     for (const std::string& DSName : DSList) {
-        historyMap.insert(std::make_pair(DSName, std::vector <Snapshot> ()));
+        historyMap.insert(std::make_pair(DSName, std::vector <Snapshot> (1, emptySnapshot)));
         stepMap.insert(std::make_pair(DSName, 0));
     }
 }
@@ -19,6 +21,8 @@ StateManager::~StateManager() {
 }
 
 int StateManager::getSize(const std::string& DSTarget) {
+    assert(historyMap.find(DSTarget) != historyMap.end());
+
     return (int) historyMap[DSTarget].size();
 }
 
@@ -26,10 +30,7 @@ int StateManager::getSize(const std::string& DSTarget) {
 /// @param newVersion 
 void StateManager::addSnapshot(const std::string& DSTarget, const Snapshot& newVersion) {
     std::vector <Snapshot>& targetList = historyMap[DSTarget];
-    int& currentStep = stepMap[DSTarget];
-
     targetList.emplace_back(newVersion);
-    currentStep = (int) targetList.size() - 1;
 
     std::sort(targetList.back().begin(), targetList.back().end(), [&] (ShapeState& A, ShapeState& B) {
         return A.layerID < B.layerID;
@@ -46,9 +47,11 @@ void StateManager::setSnapshotIdx(const std::string& DSTarget, int idx) {
     stepMap[DSTarget] = idx;
 }
 void StateManager::clearAllSnapshots(const std::string& DSTarget) {
-    historyMap[DSTarget].clear();
-    historyMap[DSTarget].shrink_to_fit();
-
+    std::vector <Snapshot>& targetList = historyMap[DSTarget];
+    targetList.clear();
+    targetList.shrink_to_fit();
+    targetList.emplace_back(emptySnapshot);
+    
     stepMap[DSTarget] = 0;
 }
 
@@ -82,4 +85,50 @@ const Snapshot& StateManager::getSnapshotAt(const std::string& DSTarget, int idx
     std::vector <Snapshot>& targetList = historyMap[DSTarget];
 
     return idx >= 0 && idx < (int) targetList.size() ? targetList[idx] : emptySnapshot;
+}
+
+Snapshot StateManager::snapshotTransition(const std::string& DSTarget, int firstIdx, int secondIdx, float rate) {
+    const Snapshot& oldSnapshot = getSnapshotAt(DSTarget, firstIdx);
+    const Snapshot& newSnapshot = getSnapshotAt(DSTarget, secondIdx);
+
+    Snapshot mergedSnapshot;
+
+    for (const ShapeState& newShape : newSnapshot) {
+        ShapeState refShape = newShape;
+        refShape.color.a = refShape.outlineColor.a = 0;
+        refShape.content.textColor.a = 0;
+
+        for (const ShapeState& oldShape : oldSnapshot) {
+            if (oldShape.shapeID == newShape.shapeID) {
+                refShape = oldShape;
+                break;
+            }
+        }
+
+        mergedSnapshot.emplace_back(Helper::shapeTimeLerp(refShape, newShape, rate));    
+    }
+
+    for (const ShapeState& oldShape : oldSnapshot) {
+        bool shapeIDFound = false;
+
+        for (const ShapeState& newShape : newSnapshot) {
+            if (oldShape.shapeID == newShape.shapeID) {
+                shapeIDFound = true;
+                break;
+            }
+        }
+
+        if (shapeIDFound) continue;
+
+        ShapeState refShape = oldShape;
+        refShape.color.a = refShape.outlineColor.a = 0;
+        refShape.content.textColor.a = 0;
+        mergedSnapshot.emplace_back(Helper::shapeTimeLerp(oldShape, refShape, rate));    
+    }
+
+    std::sort(mergedSnapshot.begin(), mergedSnapshot.end(), [&] (ShapeState& A, ShapeState& B) {
+        return A.layerID < B.layerID;
+    });
+
+    return mergedSnapshot;
 }

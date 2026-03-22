@@ -1,4 +1,5 @@
 #include <Graphics/RendererCommon.hpp>
+#include "raymath.h"
 
 ///////////////////////////////
 ///     MEMBER FUNCTIONS    ///
@@ -27,4 +28,11 @@ void ShapeState::setTextVisibility(bool isTrue) {
 /// @brief Text Centering settings 
 void ShapeState::setTextCenter(bool isCentered) {
     content.setCenter(isCentered);
+}
+
+/// @brief Transiting the shapes by the same delta vector
+void ShapeState::positionTransitAllBy(Vector2 delta) {
+    startPosition += delta;
+    endPosition += delta;
+    content.position += delta;
 }

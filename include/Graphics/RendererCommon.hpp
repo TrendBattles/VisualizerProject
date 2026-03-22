@@ -43,10 +43,12 @@ struct ShapeState {
     //Content
     Text content;
     bool hasText = true;
-
+    
     void setColor(Color color, Color outlineColor);
     void setText(Text content);
     void setTextVisibility(bool isTrue);
     void setTextCenter(bool isCentered);
+
+    void positionTransitAllBy(Vector2 delta);
 };  
 #endif

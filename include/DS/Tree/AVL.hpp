@@ -25,6 +25,8 @@ private:
     AVLNode* root;
     void destroyTree(AVLNode* node);
 
+    Snapshot buildSnapshot();
+
     int getHeight(AVLNode* node);
     void update(AVLNode* node);
     int balanceFactor(AVLNode* node);

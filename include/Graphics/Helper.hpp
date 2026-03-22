@@ -15,9 +15,15 @@ namespace Helper {
     Text createText(std::string label, Font font, float fontSize, float spacing, Vector2 position);
     Text createText(std::string label, Font font, float fontSize, float spacing, Vector2 position, Color color);
     
+    //Animation Lerps
+    ShapeState shapeTimeLerp(const ShapeState& shapeA, const ShapeState& shapeB, float rate);
+    Color colorTimeLerp(Color colorA, Color colorB, float rate);
+    
     //Additionals
     std::string edgeStringBuffer(std::string objectA, std::string objectB);
+    std::string edgePointStringBuffer(std::string object);
     std::string arrowStringBuffer(std::string objectA, std::string objectB);
+    std::string arrowPointStringBuffer(std::string object);
     std::string nodeStringBuffer(std::string value);
     std::string rectangleStringBuffer(std::string shapeID);
 
