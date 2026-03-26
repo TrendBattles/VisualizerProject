@@ -10,7 +10,7 @@
 /// @brief Construction
 StateManager::StateManager(const std::vector <std::string>& DSList) {
     for (const std::string& DSName : DSList) {
-        historyMap.insert(std::make_pair(DSName, std::vector <Snapshot> (1, emptySnapshot)));
+        historyMap.insert(std::make_pair(DSName, std::vector <HistoryFrame> (1)));
         stepMap.insert(std::make_pair(DSName, 0));
     }
 }
@@ -28,16 +28,17 @@ int StateManager::getSize(const std::string& DSTarget) {
 
 /// @brief Adding snapshots to the container, allowing to render in order of layers
 /// @param newVersion 
-void StateManager::addSnapshot(const std::string& DSTarget, const Snapshot& newVersion) {
-    std::vector <Snapshot>& targetList = historyMap[DSTarget];
+void StateManager::addSnapshot(const std::string& DSTarget, const HistoryFrame& newVersion) {
+    std::vector <HistoryFrame>& targetList = historyMap[DSTarget];
     targetList.emplace_back(newVersion);
 
-    std::sort(targetList.back().begin(), targetList.back().end(), [&] (ShapeState& A, ShapeState& B) {
+    Snapshot& updatedSnapshot = targetList.back().capturedSnapshot;
+    std::sort(updatedSnapshot.begin(), updatedSnapshot.end(), [&] (ShapeState& A, ShapeState& B) {
         return A.layerID < B.layerID;
     });
 }
 
-/// @brief Snapshot Access Functions 
+/// @brief SnapshotIdx requests
 int StateManager::getSnapshotIdx(const std::string& DSTarget) {
     return stepMap[DSTarget];
 }
@@ -46,11 +47,31 @@ void StateManager::setSnapshotIdx(const std::string& DSTarget, int idx) {
 
     stepMap[DSTarget] = idx;
 }
+
+/// @brief Snapshot requests 
+const Snapshot& StateManager::getCurrentSnapShot(const std::string& DSTarget) {
+    return getSnapshotAt(DSTarget, stepMap[DSTarget]);
+}
+const Snapshot& StateManager::getSnapshotAt(const std::string& DSTarget, int idx) {
+    std::vector <HistoryFrame>& targetList = historyMap[DSTarget];
+
+    return idx >= 0 && idx < (int) targetList.size() ? targetList[idx].capturedSnapshot : emptySnapshot;
+}
+float StateManager::getCurrentSnapshotTransition(const std::string& DSTarget) {
+    return getSnapshotTransitionAt(DSTarget, stepMap[DSTarget]);
+}
+float StateManager::getSnapshotTransitionAt(const std::string& DSTarget, int idx) {
+    std::vector <HistoryFrame>& targetList = historyMap[DSTarget];
+
+    return idx >= 0 && idx < (int) targetList.size() ? targetList[idx].duration : 0;
+}
+
+/// @brief Clearing the full history of the data structure
 void StateManager::clearAllSnapshots(const std::string& DSTarget) {
-    std::vector <Snapshot>& targetList = historyMap[DSTarget];
+    std::vector <HistoryFrame>& targetList = historyMap[DSTarget];
     targetList.clear();
     targetList.shrink_to_fit();
-    targetList.emplace_back(emptySnapshot);
+    targetList.emplace_back(emptyHistory);
     
     stepMap[DSTarget] = 0;
 }
@@ -78,19 +99,21 @@ bool StateManager::tryStepBackward(const std::string& DSTarget) {
 
     return false;
 }
-const Snapshot& StateManager::getCurrentSnapShot(const std::string& DSTarget) {
-    return getSnapshotAt(DSTarget, stepMap[DSTarget]);
-}
-const Snapshot& StateManager::getSnapshotAt(const std::string& DSTarget, int idx) {
-    std::vector <Snapshot>& targetList = historyMap[DSTarget];
 
-    return idx >= 0 && idx < (int) targetList.size() ? targetList[idx] : emptySnapshot;
-}
-
-Snapshot StateManager::snapshotTransition(const std::string& DSTarget, int firstIdx, int secondIdx, float rate) {
+/// @brief Making a interpolated snapshot between two chosen snapshots,
+///        working even with OutOfBound cases but then this function will return values
+///        based on the 2nd state.
+/// @return  The resulting snapshot
+Snapshot StateManager::snapshotTransition(const std::string& DSTarget, int firstIdx, int secondIdx, float timePoint) {
     const Snapshot& oldSnapshot = getSnapshotAt(DSTarget, firstIdx);
     const Snapshot& newSnapshot = getSnapshotAt(DSTarget, secondIdx);
 
+    float duration = getSnapshotTransitionAt(DSTarget, secondIdx);
+    if (abs(duration) <= 1e-9) {
+        return newSnapshot;
+    }
+
+    float rate = std::min(1.0f, timePoint / duration);
     Snapshot mergedSnapshot;
 
     for (const ShapeState& newShape : newSnapshot) {

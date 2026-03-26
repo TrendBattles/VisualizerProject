@@ -24,6 +24,8 @@ enum ShapeType {
     ARROW
 };
 
+/// @brief The root definition of the shapes in the program
+///        From this, we can develop generalized patterns
 struct ShapeState {
     //Identity
     std::string shapeID = "";

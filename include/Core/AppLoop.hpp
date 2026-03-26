@@ -24,12 +24,13 @@ public:
     void updateTextBox();
 private:
     Camera2D camera;
-    StateManager* globalStateManager = nullptr;
     UIManager* globalUIManager = nullptr;
 
-    AnimationManager* animationManager = nullptr;
-    IDataStructure* activeDS = nullptr;
     EventManager* eventManager = nullptr;
+    StateManager* globalStateManager = nullptr;
+    AnimationManager* animationManager = nullptr;
+
+    IDataStructure* activeDS = nullptr;
 };
 
 #endif

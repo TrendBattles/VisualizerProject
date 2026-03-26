@@ -14,6 +14,9 @@ UIManager::UIManager() {
 void UIManager::setStateManger(StateManager* source) {
     stateManager = source;
 }
+void UIManager::setAnimationManager(AnimationManager* source) {
+    animationManager = source;
+}
 const std::vector <std::string>& UIManager::getDSOptions() const {
     return options;
 }
@@ -90,6 +93,9 @@ void UIManager::drawText(const Text& text) {
 }
 
 /// @brief Rendering the data structure
+void UIManager::renderSnapshot() {
+    renderSnapshot(animationManager -> requestCurrentSnapshot(getScreenSection()));
+}
 void UIManager::renderSnapshot(const Snapshot& modifiedSnapshot) {
     if (stateManager == nullptr) {
         std::cerr << "[ERROR]: State Manager not found\n";

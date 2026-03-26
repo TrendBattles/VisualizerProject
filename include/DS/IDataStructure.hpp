@@ -16,7 +16,7 @@ public:
     virtual bool removeNode(std::string value) = 0;
     virtual void clearAll() = 0;
 
-    virtual void generateSnapshot() = 0;
+    virtual void generateSnapshot(float duration) = 0;
 protected:
     StateManager* stateManager = nullptr;
     AnimationManager* animationManager = nullptr;

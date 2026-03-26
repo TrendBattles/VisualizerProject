@@ -63,12 +63,12 @@ void AVL::clearAll() {
 void AVL::insertNode(int value) {
     // generateSnapshot(); // snapshot the state before insertion
     root = insert(root, value);
-    generateSnapshot(); // snapshot the final state after insertion
+    generateSnapshot(1.0f); // snapshot the final state after insertion
 }
 void AVL::removeNode(int value) {
     // generateSnapshot(); // snapshot the state before removal
     root = remove(root, value);
-    generateSnapshot(); // snapshot the final state after removal
+    generateSnapshot(1.0f); // snapshot the final state after removal
 }
 
 /// @brief Builds a Snapshot of the current tree state without touching the StateManager.
@@ -153,13 +153,13 @@ Snapshot AVL::buildSnapshot() {
     return storage;
 }
 
-void AVL::generateSnapshot() {
+void AVL::generateSnapshot(float duration) {
     if (stateManager == nullptr) {
         std::cerr << "[ERROR]: State Manager not found\n";
         return;
     }
 
-    stateManager -> addSnapshot("AVL Tree", buildSnapshot());
+    stateManager -> addSnapshot("AVL Tree", HistoryFrame{ buildSnapshot(), duration });
 }
 
 
@@ -228,14 +228,14 @@ AVLNode* AVL::rebalance(AVLNode* node) {
     if (balance > +1) { // Left-Heavy
         if (balanceFactor(node -> leftChild) < 0) {
             node -> leftChild = rotateLeft(node -> leftChild);
-            generateSnapshot();
+            generateSnapshot(1.5f);
         }
 
         node = rotateRight(node);
     } else if (balance < -1) { // Right-Heavy
         if (balanceFactor(node -> rightChild) > 0) {
             node -> rightChild = rotateRight(node -> rightChild);
-            generateSnapshot();
+            generateSnapshot(1.5f);
         }
 
         node = rotateLeft(node);
@@ -269,7 +269,7 @@ AVLNode* AVL::insert(AVLNode* node, int key) {
     }
 
     if (recentlyAdded) {
-        generateSnapshot();
+        generateSnapshot(0.75f);
     }
 
     node = rebalance(node);
@@ -291,7 +291,7 @@ AVLNode* AVL::removeSuccessor(AVLNode* node) {
     node -> leftChild = removeSuccessor(node -> leftChild);
 
     if (recentlyRemoved) {
-        generateSnapshot();
+        generateSnapshot(1.0f);
     }
 
     node = rebalance(node);
@@ -300,6 +300,7 @@ AVLNode* AVL::removeSuccessor(AVLNode* node) {
 }
 
 /// @brief Remove the target key from the tree
+///        Updated: Added snapshot generation to smooth transitions
 /// @param node 
 /// @param key 
 /// @return node (the updated tree)
@@ -325,7 +326,7 @@ AVLNode* AVL::remove(AVLNode* node, int key) {
         node -> rightChild = removeSuccessor(node -> rightChild);
         
         if (recentlyRemoved) {
-            generateSnapshot();
+            generateSnapshot(1.0f);
         }
 
         node = rebalance(node);
@@ -367,8 +368,10 @@ AVLNode* AVL::remove(AVLNode* node, int key) {
         if (subrootChanged) subrootChanged &= node -> leftChild == nullptr || node -> leftChild -> key != tempKey; 
     }
 
-    if (recentlyRemoved || subrootChanged) {
-        generateSnapshot();
+    if (recentlyRemoved) {
+        generateSnapshot(1.0f);
+    } else if (subrootChanged) {
+        generateSnapshot(1.5f);
     }
 
     node = rebalance(node);

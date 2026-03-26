@@ -20,7 +20,7 @@ public:
     bool removeNode(std::string value) override;
     void clearAll() override;
     
-    void generateSnapshot() override;
+    void generateSnapshot(float duration) override;
 private:
     AVLNode* root;
     void destroyTree(AVLNode* node);

@@ -5,10 +5,8 @@
 void AnimationManager::setStateManager(StateManager* source) {
     stateManager = source;
 }
-void AnimationManager::setUIManager(UIManager* source) {
-    uiManager = source;
-}
 
+/// @brief Returns true if there are more animation steps to play for the given DS.
 bool AnimationManager::hasMoreSteps(const std::string& DSTarget) {
     if (isPauseToggle) return false;
 
@@ -21,23 +19,23 @@ void AnimationManager::setStartAnimation() {
     timeStart = std::chrono::steady_clock::now();
 }
 
-void AnimationManager::sendAnimationSignals(const std::string& DSTarget) {
+/// @brief A Snapshot request function from UIManager to draw the data structures
+///        on the screen
+/// @return Interpolated snapshot
+Snapshot AnimationManager::requestCurrentSnapshot(const std::string& DSTarget) {
     if (!hasMoreSteps(DSTarget)) {
-        uiManager -> renderSnapshot(stateManager -> getCurrentSnapShot(DSTarget));
-        return;
+        return stateManager -> getCurrentSnapShot(DSTarget);
     }
 
     timeEnd = std::chrono::steady_clock::now();
     std::chrono::duration <float> timeElapsed = timeEnd - timeStart;
-
-    float timeHolder = std::min(timeElapsed.count(), animationFrameTime);
-
     int currentIdx = stateManager -> getSnapshotIdx(DSTarget);
 
-    uiManager -> renderSnapshot(stateManager -> snapshotTransition(DSTarget, currentIdx, currentIdx + 1, timeHolder / animationFrameTime));
-
-    if (std::fabs(timeHolder - animationFrameTime) <= 1e-9) {
+    float countdown = stateManager -> getSnapshotTransitionAt(DSTarget, currentIdx + 1) - timeElapsed.count();
+    if (countdown <= 1e-9) {
         stateManager -> tryStepForward(DSTarget);
         setStartAnimation();
     }
+
+    return stateManager -> snapshotTransition(DSTarget, currentIdx, currentIdx + 1, timeElapsed.count());
 }

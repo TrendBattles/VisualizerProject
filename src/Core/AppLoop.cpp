@@ -4,11 +4,11 @@
 AppLoop::AppLoop() = default;
 AppLoop::~AppLoop() {
     delete activeDS;
-    delete globalUIManager;
     delete eventManager;
 
     delete animationManager;
     delete globalStateManager;
+    delete globalUIManager;
 }
 
 //////////////////////////////
@@ -24,14 +24,15 @@ void AppLoop::init() {
 
     globalUIManager = new UIManager();
     globalStateManager = new StateManager(globalUIManager -> getDSOptions());
+
+    animationManager = new AnimationManager();
+    animationManager -> setStateManager(globalStateManager);
+
     globalUIManager -> setStateManger(globalStateManager);
+    globalUIManager -> setAnimationManager(animationManager);
     
     activeDS = new AVL();
     activeDS -> setStateManager(globalStateManager);
-    
-    animationManager = new AnimationManager();
-    animationManager -> setStateManager(globalStateManager);
-    animationManager -> setUIManager(globalUIManager);
 
     eventManager = new EventManager();
     eventManager -> init();
@@ -64,7 +65,7 @@ void AppLoop::mainLoop() {
         updateTextBox();
 
         BeginMode2D(camera);
-            animationManager -> sendAnimationSignals(globalUIManager -> getScreenSection());
+            globalUIManager -> renderSnapshot();
         EndMode2D();
 
         // Draw UI (which doesn't move with the camera)
