@@ -16,10 +16,11 @@ public:
     AVL();
     ~AVL();
 
-    bool insertNode(std::string value) override;
-    bool removeNode(std::string value) override;
+    int insertNode(std::string value) override;
+    int removeNode(std::string value) override;
+    int searchNode(std::string value) override;
+
     void clearAll() override;
-    
     void generateSnapshot(float duration) override;
 private:
     AVLNode* root;
@@ -41,5 +42,8 @@ private:
     AVLNode* removeSuccessor(AVLNode* node);
     AVLNode* remove(AVLNode* node, int key);
     void removeNode(int value);
+
+    AVLNode* search(AVLNode* node, int key);
+    AVLNode* searchNode(int value);
 };
 #endif

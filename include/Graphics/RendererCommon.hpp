@@ -1,8 +1,7 @@
 #ifndef RENDERERCOMMON_HPP
 #define RENDERERCOMMON_HPP
 
-#include "raylib.h"
-#include <string>
+#include <Common.hpp>
 
 /// @brief Builtin features for advanced settings
 struct Text {
@@ -14,6 +13,8 @@ struct Text {
     int centerToggle = false;
 
     void setCenter(bool isCentered);
+    void clearTextBuffer();
+    std::string getLabel() const;
 };
 
 enum ShapeType { 
@@ -40,13 +41,15 @@ struct ShapeState {
 
     //Style
     Color color, outlineColor;
-    bool isHidden = false;
+    bool isVisible = true;
     
     //Content
     Text content;
     bool hasText = true;
     
     void setColor(Color color, Color outlineColor);
+
+    void setShapeVisibility(bool isTrue);
     void setText(Text content);
     void setTextVisibility(bool isTrue);
     void setTextCenter(bool isCentered);

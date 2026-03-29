@@ -3,12 +3,13 @@
 
 AppLoop::AppLoop() = default;
 AppLoop::~AppLoop() {
-    delete activeDS;
-    delete eventManager;
-
-    delete animationManager;
-    delete globalStateManager;
-    delete globalUIManager;
+    delete DataStructureUI;  DataStructureUI = nullptr;
+    delete DataStructure;    DataStructure   = nullptr;
+    delete eventManager;     eventManager    = nullptr;
+    delete inputManager;     inputManager    = nullptr;
+    delete animationManager; animationManager = nullptr;
+    delete stateManager;     stateManager    = nullptr;
+    delete uiManager;        uiManager       = nullptr;
 }
 
 //////////////////////////////
@@ -22,20 +23,25 @@ void AppLoop::init() {
     const int screenHeight = 800;
     InitWindow(screenWidth, screenHeight, "C++ Data Structure Visualizer");
 
-    globalUIManager = new UIManager();
-    globalStateManager = new StateManager(globalUIManager -> getDSOptions());
+    uiManager = new UIManager();
+    stateManager = new StateManager(uiManager -> getDSOptions());
 
     animationManager = new AnimationManager();
-    animationManager -> setStateManager(globalStateManager);
+    animationManager -> setStateManager(stateManager);
 
-    globalUIManager -> setStateManger(globalStateManager);
-    globalUIManager -> setAnimationManager(animationManager);
+    uiManager -> setStateManger(stateManager);
+    uiManager -> setAnimationManager(animationManager);
     
-    activeDS = new AVL();
-    activeDS -> setStateManager(globalStateManager);
+    DataStructure = new AVL();
+    DataStructure -> setStateManager(stateManager);
+    DataStructureUI = new AVLUI();
+    DataStructureUI -> setUIManager(uiManager);
 
     eventManager = new EventManager();
-    eventManager -> init();
+    eventManager -> setAnimationManager(animationManager);
+    eventManager -> setDSPointer(DataStructure);
+
+    inputManager = new InputManager();
 
     // Camera Setup
     camera.target = (Vector2){ 0, 0 };
@@ -48,6 +54,15 @@ void AppLoop::init() {
     
 /// @brief The main app workflow
 void AppLoop::mainLoop() {
+    if (uiManager -> isVisualizing()) {
+        VisualizerLoop();
+        return;
+    }
+
+    
+}
+
+void AppLoop::VisualizerLoop() {
     // --- Update Logic ---
     if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
         Vector2 delta = GetMouseDelta();
@@ -59,122 +74,30 @@ void AppLoop::mainLoop() {
 
     // --- Drawing Logic ---
     BeginDrawing();
-        ClearBackground(GetColor(0x181818FF)); // Modern Dark Theme
+        ClearBackground(GetColor(0x1F2937FF)); // Modern Dark Theme
 
-        updateEvent();
-        updateTextBox();
+        DataStructureUI -> render();
+        
+        VisualizerInputHandling();
+        // updateEvent();
+        // updateTextBox();
 
         BeginMode2D(camera);
-            globalUIManager -> renderSnapshot();
+            uiManager -> renderSnapshot();
         EndMode2D();
 
         // Draw UI (which doesn't move with the camera)
         DrawFPS(10, 10);
-        DrawText("Right-click to pan | Scroll to zoom", 10, 40, 20, GRAY);
-
-
+        DrawText("Right-click to pan | Scroll to zoom", 10, 40, 20, WHITE);
     EndDrawing();
 }
 
+void AppLoop::VisualizerInputHandling() {
+    inputManager -> update();
 
-/// @brief Event Updates on the screen
-void AppLoop::updateEvent() {
-    for (int eventIdx = 0; eventIdx < eventManager -> getSize(); ++eventIdx) {
-        if (eventManager -> isButtonHidden(eventIdx)) continue;
-
-        globalUIManager -> drawShape(eventManager -> getEventShape(eventIdx));
-        globalUIManager -> drawShape(eventManager -> getEventTextBox(eventIdx));
+    while (inputManager -> hasEvents()) {
+        RawInputEvent nextInput = inputManager -> pollEvent();
+        std::string commandRequest = DataStructureUI -> processInput(nextInput); 
+        eventManager -> handleCommand(commandRequest);
     }
-
-    for (int eventIdx = 0; IsMouseButtonDown(MOUSE_LEFT_BUTTON) && eventIdx < eventManager -> getSize(); ++eventIdx) {
-        if (eventManager -> isButtonHidden(eventIdx)) continue;
-        
-        ShapeState currentTextBox = eventManager -> getEventTextBox(eventIdx);
-
-        if (CheckCollisionPointRec(GetMousePosition(), Helper::createRaylibRectangle(currentTextBox.startPosition, currentTextBox.endPosition))) {
-            eventManager -> setFocused(eventIdx, true);
-        } else {
-            eventManager -> setFocused(eventIdx, false);
-        }
-    }
-
-    if (!IsMouseButtonDown(MOUSE_LEFT_BUTTON)) return;
-
-    if (!eventManager -> isButtonHidden("Insert")) {
-        ShapeState insertButton = eventManager -> getEventShape("Insert");
-        Text insertText = eventManager -> getEventTextBox("Insert").content;
-
-        if (CheckCollisionPointRec(GetMousePosition(), Helper::createRaylibRectangle(insertButton.startPosition, insertButton.endPosition))) {
-            if (!insertText.label.empty() && activeDS -> insertNode(insertText.label)) {
-                animationManager -> setStartAnimation();
-            }
-            
-            eventManager -> clearTextBox("Insert");
-        }
-    }  
-
-    if (!eventManager -> isButtonHidden("Remove")) {
-        ShapeState removeButton = eventManager -> getEventShape("Remove");
-        Text removeText = eventManager -> getEventTextBox("Remove").content;
-
-        if (CheckCollisionPointRec(GetMousePosition(), Helper::createRaylibRectangle(removeButton.startPosition, removeButton.endPosition))) {
-            if (!removeText.label.empty() && activeDS -> removeNode(removeText.label)) {
-                animationManager -> setStartAnimation();
-            } 
-
-            eventManager -> clearTextBox("Remove");
-        }
-    }   
-}
-
-/// @brief Text Box Behaviors
-void AppLoop::updateTextBox() {
-    SetMouseCursor(MOUSE_CURSOR_DEFAULT);
-    
-    for (int eventIdx = 0; eventIdx < eventManager -> getSize(); ++eventIdx) {
-        if (eventManager -> isTextBoxHidden(eventIdx)) continue;
-        
-        ShapeState currentTextBox = eventManager -> getEventTextBox(eventIdx);
-
-        if (CheckCollisionPointRec(GetMousePosition(), Helper::createRaylibRectangle(currentTextBox.startPosition, currentTextBox.endPosition))) {
-            SetMouseCursor(MOUSE_CURSOR_IBEAM);
-            break;
-        }
-    }
-    
-    int focusID = -1;
-    for (int eventIdx = 0; eventIdx < eventManager -> getSize(); ++eventIdx) {
-        if (eventManager -> isTextBoxHidden(eventIdx)) continue;
-
-        if (eventManager -> getFocused(eventIdx)) {
-            focusID = eventIdx;
-            break;
-        }
-    }
-
-    ShapeState inputHitBox = eventManager -> getEventTextBox(focusID);
-
-    int key = -1;
-    while ((key = GetCharPressed()) > 0) {
-        if (focusID == -1) {
-            continue;
-        }
-
-        
-        int currentLen = (int) inputHitBox.content.label.length();
-        if (currentLen >= 5) {
-            continue;
-        }
-
-        // Only allow numbers for inputs
-        if (key >= '0' && key <= '9') {
-            inputHitBox.content.label.push_back((char) key);
-        }
-    }
-        
-    if (IsKeyPressed(KEY_BACKSPACE) && !inputHitBox.content.label.empty()) {
-        inputHitBox.content.label.pop_back();
-    }
-
-    eventManager -> setEventTextBox(focusID, inputHitBox);
 }

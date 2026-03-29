@@ -2,6 +2,7 @@
 #define HELPER_HPP
 
 #include <Graphics/RendererCommon.hpp>
+#include <Graphics/Panels/Button.hpp>
 
 namespace Helper {
     // Shape Creation
@@ -19,6 +20,13 @@ namespace Helper {
     ShapeState shapeTimeLerp(const ShapeState& shapeA, const ShapeState& shapeB, float rate);
     Color colorTimeLerp(Color colorA, Color colorB, float rate);
     
+    //Intersection, Collision
+    bool IsPointCollidedWithShape(Vector2 position, ShapeState shape);
+
+    //Creation of more complex designs
+    Button createButton(ShapeState background, Text label);
+    TextBox createTextBox(ShapeState background, Text label);
+
     //Additionals
     std::string edgeStringBuffer(std::string objectA, std::string objectB);
     std::string edgePointStringBuffer(std::string object);
@@ -28,6 +36,8 @@ namespace Helper {
     std::string rectangleStringBuffer(std::string shapeID);
 
     Rectangle createRaylibRectangle(Vector2 upperLeft, Vector2 lowerRight);
+
+    std::string upperString(std::string str);
 }
 
 #endif

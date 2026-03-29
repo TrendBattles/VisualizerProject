@@ -1,0 +1,86 @@
+#include <Core/InputManager.hpp>
+
+void MouseState::pressUpdate(std::queue <RawInputEvent>& inputQueue, bool isLeft) {
+    if (!pressed) {
+        pressed = true;
+        timestamp = ChronoStart::now();
+        position = GetMousePosition();
+    }  
+
+    ChronoClock currentTime = ChronoStart::now();
+    std::chrono::duration <float> timeElapsed = currentTime - timestamp;
+
+    if (timeElapsed.count() >= 0.25f) {
+        RawInputEvent holdInput;
+        holdInput.inputType = isLeft ? RawInputEvent::InputType::LEFT_MOUSE_HOLD : RawInputEvent::InputType::RIGHT_MOUSE_HOLD;
+        holdInput.position = GetMousePosition();
+
+        inputQueue.push(holdInput);
+    }
+}
+
+void MouseState::releaseUpdate(std::queue <RawInputEvent>& inputQueue, bool isLeft) {
+    if (!pressed) return;
+
+    pressed = false;
+    ChronoClock currentTime = ChronoStart::now();
+    std::chrono::duration <float> timeElapsed = currentTime - timestamp;
+            
+    if (timeElapsed.count() < 0.25f) {
+        RawInputEvent clickedInput;
+        clickedInput.inputType = isLeft ? RawInputEvent::InputType::LEFT_MOUSE_CLICKED : RawInputEvent::InputType::RIGHT_MOUSE_CLICKED;
+        clickedInput.position = position;
+        inputQueue.push(clickedInput);
+    } else {
+        RawInputEvent releasedInput;
+        releasedInput.inputType = isLeft ? RawInputEvent::InputType::LEFT_MOUSE_RELEASED : RawInputEvent::InputType::RIGHT_MOUSE_RELEASED;
+        releasedInput.position = GetMousePosition();
+        inputQueue.push(releasedInput);
+    }
+}
+
+void InputManager::update() {
+    if (GetMouseWheelMove() != 0) {
+        RawInputEvent newInput;
+        newInput.inputType = RawInputEvent::InputType::MOUSE_SCROLL;
+        newInput.scrollDelta = GetMouseWheelMove();
+
+        inputQueue.push(newInput);
+    }
+
+    KeyboardKey keyGet = (KeyboardKey) GetKeyPressed();
+    if (keyGet != KEY_NULL) {
+        RawInputEvent newInput;
+        newInput.inputType = RawInputEvent::InputType::KEY_PRESSED;
+        newInput.keySignal = keyGet;
+
+        inputQueue.push(newInput);
+    }
+
+    if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
+        LeftMouse.pressUpdate(inputQueue, true);
+    }
+    if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
+        LeftMouse.releaseUpdate(inputQueue, true);
+    }
+
+    if (IsMouseButtonDown(MOUSE_RIGHT_BUTTON)) {
+        RightMouse.pressUpdate(inputQueue, false);
+    }
+    if (IsMouseButtonReleased(MOUSE_RIGHT_BUTTON)) {
+        RightMouse.releaseUpdate(inputQueue, false);
+    }
+}
+
+bool InputManager::hasEvents() {
+    return !inputQueue.empty();
+}
+RawInputEvent InputManager::pollEvent() {
+    if (inputQueue.empty()) {
+        return RawInputEvent();
+    }
+
+    RawInputEvent event = inputQueue.front();
+    inputQueue.pop();
+    return event;
+}

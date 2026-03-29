@@ -1,6 +1,5 @@
 #include <Graphics/Helper.hpp>
 #include <stdexcept>
-#include "raymath.h"
 
 ///////////////////////////////////
 ///     BUILTIN CONSTRUCTION    ///
@@ -143,6 +142,36 @@ Color Helper::colorTimeLerp(Color colorA, Color colorB, float rate) {
     };
 } 
 
+
+///
+/// Intersection, Collision
+///
+bool Helper::IsPointCollidedWithShape(Vector2 position, ShapeState shape) {
+    if (shape.sType == ShapeType::RECTANGLE) {
+        Vector2 boundary = {shape.outlineSize, shape.outlineSize};
+
+        return CheckCollisionPointRec(position, createRaylibRectangle(shape.startPosition - boundary, shape.endPosition + boundary));
+    }
+
+    if (shape.sType == ShapeType::CIRCLE) {
+        return Vector2Distance(position, shape.startPosition) <= shape.size + shape.outlineSize;
+    }
+
+    return false;
+}
+
+///
+/// Creation of more complex designs
+///
+Button Helper::createButton(ShapeState background, Text label) {
+    label.setCenter(true);
+    label.position = Vector2Lerp(background.startPosition, background.endPosition, 0.5f);
+    return Button {background, label};
+}
+TextBox Helper::createTextBox(ShapeState background, Text label) {
+    return createButton(background, label);
+}
+
 ///
 /// Additionals
 ///
@@ -173,4 +202,14 @@ Rectangle Helper::createRaylibRectangle(Vector2 upperLeft, Vector2 lowerRight) {
         lowerRight.x - upperLeft.x,
         lowerRight.y - upperLeft.y
     };
+}
+
+std::string Helper::upperString(std::string str) {
+    for (char& x : str) {
+        if (x >= 'a' and x <= 'z') {
+            x = x - 'a' + 'A';
+        }
+    }
+
+    return str;
 }

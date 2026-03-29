@@ -1,138 +1,132 @@
 #include <Core/EventManager.hpp>
 #include <Graphics/Helper.hpp>
-#include <algorithm>
-#include "raylib.h"
-#include "raymath.h"
 
-///////////////////////////////////////
-///     EVENT INITIALIZATIONS       ///
-///////////////////////////////////////
-void EventManager::init() {
-    eventButtonsID = {"Insert", "Remove", "Search"};
-    eventButtons.resize((int) eventButtonsID.size());
-    eventTextBox.resize((int) eventButtonsID.size());   
-    isFocused.assign((int) eventButtons.size(), false);
+#include <sstream>
+#include <stdexcept>
 
+void EventManager::setAnimationManager(AnimationManager* source) {
+    animationManager = source;
+}
+void EventManager::setDSPointer(IDataStructure* source) {
+    DSPointer = source;
+}
 
-    //Event buttons
-    eventButtons[0] = Helper::createRectangle("rect_insert_button", Vector2{0.0f, (float) GetScreenHeight() - 60.0f}, Vector2{100.0f, (float) GetScreenHeight()}, 5.0f, 0);
-    eventButtons[0].setColor(Color {170, 170, 170, 255}, BLUE);
-    eventButtons[0].setText(Helper::createText("Insert", GetFontDefault(), 20.0f, 5.0f, Vector2Lerp(eventButtons[0].startPosition, eventButtons[0].endPosition, 0.5f), RED));
-    eventButtons[0].setTextCenter(true);
-
-    eventButtons[1] = Helper::createRectangle("rect_remove_button", Vector2{240.0f, (float) GetScreenHeight() - 60.0f}, Vector2{340.0f, (float) GetScreenHeight()}, 5.0f, 0);
-    eventButtons[1].setColor(Color {170, 170, 170, 255}, BLUE);
-    eventButtons[1].setText(Helper::createText("Remove", GetFontDefault(), 20.0f, 5.0f, Vector2Lerp(eventButtons[1].startPosition, eventButtons[1].endPosition, 0.5f), RED));
-    eventButtons[1].setTextCenter(true);
-
-    eventButtons[2].isHidden = true;
-
-    //Event Text Box
-    eventTextBox[0] = Helper::createRectangle("rect_insert_textbox", Vector2{120.0f, (float) GetScreenHeight() - 60.0f}, Vector2{220.0f, (float) GetScreenHeight()}, 5.0f, 0);
-    eventTextBox[0].setColor(Color {170, 170, 170, 255}, BLUE);
-    eventTextBox[0].setText(Helper::createText(std::string(), GetFontDefault(), 20.0f, 2.0f, Vector2Lerp(eventTextBox[0].startPosition, eventTextBox[0].endPosition, 0.5f), BLACK));
-    eventTextBox[0].setTextCenter(true);
+void EventManager::handleCommand(std::string commandString) {
+    if (commandString.empty()) return;
     
-    eventTextBox[1] = Helper::createRectangle("rect_remove_textbox", Vector2{360.0f, (float) GetScreenHeight() - 60.0f}, Vector2{460.0f, (float) GetScreenHeight()}, 5.0f, 0);
-    eventTextBox[1].setColor(Color {170, 170, 170, 255}, BLUE);
-    eventTextBox[1].setText(Helper::createText(std::string(), GetFontDefault(), 20.0f, 2.0f, Vector2Lerp(eventTextBox[1].startPosition, eventTextBox[1].endPosition, 0.5f), BLACK));
-    eventTextBox[1].setTextCenter(true);
+    std::stringstream ss(commandString);
+    std::vector <std::string> parseList(1);
+    while (ss >> parseList.back()) {
+        parseList.push_back("");
+    }
+    parseList.pop_back();
+
+    if (parseList[0] == "MODIFY") {
+        if ((int) parseList.size() != 5) throw std::runtime_error("Invalid command word length");
+
+        handleModification(parseList);
+        return;
+    }
+
+    if (parseList[0] == "QUERY") {
+        if ((int) parseList.size() != 5) throw std::runtime_error("Invalid command word length");
+
+        handleQuery(parseList);
+        return;
+    }
+
+    throw std::runtime_error("Invalid command");
+}
+void EventManager::handleModification(std::vector <std::string> parseList) {
+    // Empty cases will be worked on to fill in parallelly with the progress
+    if (parseList[1] == "SETTINGS") {
+
+        return;
+    }
+    
+    if (parseList[1] == "INTERACT") {
+        const std::string& DataStructure = parseList[2];
+
+        if (DataStructure == "AVL_Tree") {
+            const std::string& operation = parseList[3];
+            const std::string& rawValue = parseList[4];
+            
+            animationManager -> resetAnimationTimer();
+            if (operation == "INSERT") {
+                DSPointer -> insertNode(rawValue);
+                return;
+            }
+            if (operation == "REMOVE") {
+                DSPointer -> removeNode(rawValue);
+                return;
+            }
+
+            throw std::runtime_error("Invalid AVL function");
+        }
+
+        if (DataStructure == "Trie") {
+
+            return;
+        }
+        if (DataStructure == "Linked_List") {
+
+            return;
+        }   
+        if (DataStructure == "Hash_Table") {
+
+            return;
+        }
+        if (DataStructure == "Graph") {
+
+            return;
+        }
+
+        throw std::runtime_error("Data Structure not found");
+    }
+
+    throw std::runtime_error("Invalid section");
+}
+void EventManager::handleQuery(std::vector <std::string> parseList) {
+    // Empty cases will be worked on to fill in parallelly with the progress
+    if (parseList[1] == "SETTINGS") {
+
+        return;
+    }
+    if (parseList[1] == "INTERACT") {
+        const std::string& DataStructure = parseList[2];
+
+        if (DataStructure == "AVL_Tree") {
+            const std::string& operation = parseList[3];
+            const std::string& rawValue = parseList[4];
+            
+            if (operation == "SEARCH") {
+                DSPointer -> searchNode(rawValue);
+                return;
+            }
+
+            throw std::runtime_error("Invalid AVL function");
+        }
+
+        if (DataStructure == "Trie") {
+
+            return;
+        }
+        if (DataStructure == "Linked_List") {
+            
+            return;
+        }   
+        if (DataStructure == "Hash_Table") {
+
+            return;
+        }
+        if (DataStructure == "Graph") {
+
+            return;
+        }
+
+        throw std::runtime_error("Data Structure not found");
+    }
+
+    throw std::runtime_error("Invalid section");
 }
 
-///////////////////////////////
-///     EVENT FUNCTIONS     ///
-///////////////////////////////
-int EventManager::getSize() {
-    return (int) eventButtons.size();
-}
-
-std::string EventManager::getEventName(int idx) {
-    return idx < 0 || idx >= getSize() ? "" : eventButtonsID[idx];
-}
-
-/// Shape modifications 
-void EventManager::setEventShape(int idx, ShapeState newShape) {
-    if (idx < 0 || idx >= getSize()) return;
-
-    eventButtons[idx] = newShape;
-}
-void EventManager::setEventShape(std::string message, ShapeState newShape) {
-    setEventShape(find(eventButtonsID.begin(), eventButtonsID.end(), message) - eventButtonsID.begin(), newShape);
-}
-ShapeState EventManager::getEventShape(int idx) {
-    return idx < 0 || idx >= getSize() ? ShapeState() : eventButtons[idx];
-}
-ShapeState EventManager::getEventShape(std::string message) {
-    return getEventShape(find(eventButtonsID.begin(), eventButtonsID.end(), message) - eventButtonsID.begin());
-}
-
-/// Button modifications 
-bool EventManager::isButtonHidden(int idx) {
-    return idx < 0 || idx >= getSize() ? true : eventButtons[idx].isHidden;
-}
-bool EventManager::isButtonHidden(std::string message) {
-    return isButtonHidden(find(eventButtonsID.begin(), eventButtonsID.end(), message) - eventButtonsID.begin());
-}
-void EventManager::setButtonVisibility(int idx, bool isTrue) {
-    if (idx < 0 || idx >= getSize()) return;
-
-    eventButtons[idx].isHidden = !isTrue;
-}
-void EventManager::setButtonVisibility(std::string message, bool isTrue) {
-    setButtonVisibility(find(eventButtonsID.begin(), eventButtonsID.end(), message) - eventButtonsID.begin(), isTrue);
-}
-
-/// Text box modifications 
-void EventManager::setEventTextBox(int idx, ShapeState newShape) {
-    if (idx < 0 || idx >= getSize()) return;
-
-    eventTextBox[idx] = newShape;
-}
-void EventManager::setEventTextBox(std::string message, ShapeState newShape) {
-    setEventTextBox(find(eventButtonsID.begin(), eventButtonsID.end(), message) - eventButtonsID.begin(), newShape);
-}
-ShapeState EventManager::getEventTextBox(int idx) {
-    return idx < 0 || idx >= getSize() ? ShapeState() : eventTextBox[idx];
-}
-ShapeState EventManager::getEventTextBox(std::string message) {
-    return getEventTextBox(find(eventButtonsID.begin(), eventButtonsID.end(), message) - eventButtonsID.begin());
-}
-
-bool EventManager::isTextBoxHidden(int idx) {
-    return idx < 0 || idx >= getSize() ? true : eventButtons[idx].isHidden;
-}
-bool EventManager::isTextBoxHidden(std::string message) {
-    return isTextBoxHidden(find(eventButtonsID.begin(), eventButtonsID.end(), message) - eventButtonsID.begin());
-}
-void EventManager::setTextBoxVisibility(int idx, bool isTrue) {
-    if (idx < 0 || idx >= getSize()) return;
-
-    eventButtons[idx].isHidden = !isTrue;
-}
-void EventManager::setTextBoxVisibility(std::string message, bool isTrue) {
-    setTextBoxVisibility(find(eventButtonsID.begin(), eventButtonsID.end(), message) - eventButtonsID.begin(), isTrue);
-}
-
-void EventManager::setFocused(int idx, int state) {
-    if (idx < 0 || idx >= getSize()) return;
-
-    isFocused[idx] = state;
-}
-void EventManager::setFocused(std::string message, int state) {
-    setFocused(find(eventButtonsID.begin(), eventButtonsID.end(), message) - eventButtonsID.begin(), state);   
-}
-int EventManager::getFocused(int idx) {
-    return idx < 0 || idx >= getSize() ? false : isFocused[idx];
-}
-int EventManager::getFocused(std::string message) {
-    return getFocused(find(eventButtonsID.begin(), eventButtonsID.end(), message) - eventButtonsID.begin());
-}
-
-void EventManager::clearTextBox(int idx) {
-    if (idx < 0 || idx >= getSize()) return;
-
-    eventTextBox[idx].content.label.clear();
-}
-void EventManager::clearTextBox(std::string message) {
-    clearTextBox(find(eventButtonsID.begin(), eventButtonsID.end(), message) - eventButtonsID.begin());
-}

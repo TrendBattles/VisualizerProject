@@ -1,5 +1,4 @@
 #include <Graphics/RendererCommon.hpp>
-#include "raymath.h"
 
 ///////////////////////////////
 ///     MEMBER FUNCTIONS    ///
@@ -9,6 +8,12 @@
 void Text::setCenter(bool isCentered) {
     centerToggle = isCentered;
 }
+void Text::clearTextBuffer() {
+    label.clear();
+}
+std::string Text::getLabel() const {
+    return label;
+}
 
 /// @brief Shape Functions
 void ShapeState::setColor(Color color, Color outlineColor) {
@@ -16,16 +21,21 @@ void ShapeState::setColor(Color color, Color outlineColor) {
     this -> outlineColor = outlineColor;
 }
 
+/// @brief Shape Visibility setting 
+void ShapeState::setShapeVisibility(bool isTrue) {
+    isVisible = isTrue;
+}
+
 /// @brief Text modification 
 void ShapeState::setText(Text content) {
     this -> content = content;
 }
 
-/// @brief Text Visibility settings 
+/// @brief Text Visibility setting 
 void ShapeState::setTextVisibility(bool isTrue) {
     hasText = isTrue;
 }
-/// @brief Text Centering settings 
+/// @brief Text Centering setting 
 void ShapeState::setTextCenter(bool isCentered) {
     content.setCenter(isCentered);
 }
