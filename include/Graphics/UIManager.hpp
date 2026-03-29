@@ -1,12 +1,8 @@
 #ifndef UIMANAGER_HPP
 #define UIMANAGER_HPP
 
-#include "raylib.h"
-
 #include <Core/StateManager.hpp>
 #include <Core/AnimationManager.hpp>
-
-#include <vector>
 
 /// @brief UI Management
 class UIManager {
@@ -20,7 +16,8 @@ public:
     const std::vector <std::string>& getDSOptions() const;
     void setScreenSection(const std::string& sectionID);
     const std::string& getScreenSection() const;
-    
+    bool isVisualizing() const;
+
     void drawShape(const ShapeState& shape);
     void drawText(const Text& text);
 

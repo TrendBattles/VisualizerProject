@@ -1,15 +1,16 @@
 #ifndef APPLOOP_HPP
 #define APPLOOP_HPP
 
-#include "raylib.h"
-#include "raymath.h"
-
+#include <Core/InputManager.hpp>
 #include <Core/EventManager.hpp>
 #include <Core/AnimationManager.hpp>
 
 #include <DS/Tree/AVL.hpp>
+#include <DS/Tree/AVLUI.hpp>
 
 #include <Graphics/UIManager.hpp>
+
+#include <Common.hpp>
 
 #include <iostream>
 
@@ -20,17 +21,23 @@ public:
     void init();
     void mainLoop();
 
-    void updateEvent();
-    void updateTextBox();
+    // void updateEvent();
+    // void updateTextBox();
 private:
-    Camera2D camera;
-    UIManager* globalUIManager = nullptr;
+    void VisualizerLoop();
+    void VisualizerInputHandling();
 
+    Camera2D camera;
+    UIManager* uiManager = nullptr;
+    
+    InputManager* inputManager = nullptr;
     EventManager* eventManager = nullptr;
-    StateManager* globalStateManager = nullptr;
+
+    StateManager* stateManager = nullptr;
     AnimationManager* animationManager = nullptr;
 
-    IDataStructure* activeDS = nullptr;
+    IDataStructure* DataStructure = nullptr;
+    IDataStructureUI* DataStructureUI = nullptr;
 };
 
 #endif

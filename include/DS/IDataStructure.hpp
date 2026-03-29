@@ -3,7 +3,6 @@
 
 #include <Core/StateManager.hpp>
 #include <Core/AnimationManager.hpp>
-#include "raymath.h"
 
 /// @brief Data Structure Interface: Representation
 class IDataStructure {
@@ -12,8 +11,9 @@ public:
     void setAnimationManager(AnimationManager* source);
 
     virtual ~IDataStructure() = default;
-    virtual bool insertNode(std::string value) = 0;
-    virtual bool removeNode(std::string value) = 0;
+    virtual int insertNode(std::string value) = 0;
+    virtual int removeNode(std::string value) = 0;
+    virtual int searchNode(std::string value) { return 1; }
     virtual void clearAll() = 0;
 
     virtual void generateSnapshot(float duration) = 0;

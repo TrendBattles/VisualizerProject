@@ -2,10 +2,6 @@
 #define ANIMATIONMANAGER_HPP
 #include <Core/StateManager.hpp>
 
-#include <chrono>
-
-typedef std::chrono::time_point <std::chrono::steady_clock> ChronoClock;
-
 /// @brief Animation Management
 /// @brief Restriction: The animations aren't supported to render parallelly between different data structures
 
@@ -15,13 +11,13 @@ public:
 
     bool hasMoreSteps(const std::string& DSTarget);
     
-    void setStartAnimation();
+    void resetAnimationTimer();
     Snapshot requestCurrentSnapshot(const std::string& DSTarget);
-
 private:
     StateManager* stateManager = nullptr;
     ChronoClock timeStart, timeEnd;
 
+    float elapsedSeconds();
     bool isPauseToggle = false;
 };
 #endif

@@ -1,9 +1,6 @@
 #include <DS/Tree/AVL.hpp>
 #include <Graphics/Helper.hpp>
 
-#include <algorithm>
-#include <iostream>
-
 AVL::AVL() {
     root = nullptr;
 }
@@ -25,7 +22,7 @@ void AVL::destroyTree(AVLNode* node) {
 /////////////////////////////////
 ///  REPONSIVE FUNCTIONS      ///
 /////////////////////////////////
-bool AVL::insertNode(std::string value) {
+int AVL::insertNode(std::string value) {
     int valueParse = 0;
     try {
         valueParse = std::stoi(value);
@@ -33,13 +30,11 @@ bool AVL::insertNode(std::string value) {
 	    std::cerr << "[INPUT ERROR]: " << ia.what() << '\n';
         return false;
     }
-
-    if (abs(valueParse) >= 10'000) return false;
-
+    
     insertNode(valueParse);
     return true;
 }
-bool AVL::removeNode(std::string value) {
+int AVL::removeNode(std::string value) {
     int valueParse = 0;
     try {
         valueParse = std::stoi(value);
@@ -47,17 +42,27 @@ bool AVL::removeNode(std::string value) {
 	    std::cerr << "[INPUT ERROR]: " << ia.what() << '\n';
         return false;
     }
-
-    if (abs(valueParse) >= 10'000) return false;
 
     removeNode(valueParse);
     return true;
 }
+int AVL::searchNode(std::string value) {
+    int valueParse = 0;
+    try {
+        valueParse = std::stoi(value);
+    } catch (const std::invalid_argument& ia) {
+	    std::cerr << "[INPUT ERROR]: " << ia.what() << '\n';
+        return -1;
+    }
+
+    return searchNode(valueParse) != nullptr;
+}
+
 void AVL::clearAll() {
     destroyTree(root);
     root = nullptr;
 
-    stateManager -> clearAllSnapshots("AVL Tree");
+    stateManager -> clearAllSnapshots("AVL_Tree");
 }
 
 void AVL::insertNode(int value) {
@@ -159,7 +164,7 @@ void AVL::generateSnapshot(float duration) {
         return;
     }
 
-    stateManager -> addSnapshot("AVL Tree", HistoryFrame{ buildSnapshot(), duration });
+    stateManager -> addSnapshot("AVL_Tree", HistoryFrame{ buildSnapshot(), duration });
 }
 
 
@@ -376,4 +381,23 @@ AVLNode* AVL::remove(AVLNode* node, int key) {
 
     node = rebalance(node);
     return node;
+}
+
+AVLNode* AVL::search(AVLNode* node, int key) {
+    if (node == nullptr) return nullptr;
+
+    if (node -> key == key) {
+        return node;
+    }
+    
+    if (node -> key < key) {
+        return search(node -> rightChild, key);
+    }
+    return search(node -> leftChild, key);
+}
+AVLNode* AVL::searchNode(int value) {
+    AVLNode* result = search(root, value);
+
+    generateSnapshot(1.0f);
+    return result;
 }

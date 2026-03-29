@@ -2,8 +2,6 @@
 #define STATEMANAGER_HPP
 
 #include <Graphics/RendererCommon.hpp>
-#include <vector>
-#include <map>
 
 /// @brief A manager designed to keep track of different versions of DS
 typedef std::vector <ShapeState> Snapshot;
@@ -29,10 +27,10 @@ public:
     float getSnapshotTransitionAt(const std::string& DSTarget, int idx);
     void clearAllSnapshots(const std::string& DSTarget);
 
+    bool canStepForward(const std::string& DSTarget);
+    bool canStepBackward(const std::string& DSTarget);
     bool stepForward(const std::string& DSTarget);
     bool stepBackward(const std::string& DSTarget);
-    bool tryStepForward(const std::string& DSTarget);
-    bool tryStepBackward(const std::string& DSTarget);
 
     Snapshot snapshotTransition(const std::string& DSTarget, int firstIdx, int secondIdx, float timePoint);
 private:
@@ -41,6 +39,8 @@ private:
 
     const Snapshot emptySnapshot = Snapshot();
     const HistoryFrame emptyHistory = {Snapshot(), 0.75f};
+
+    const std::vector <HistoryFrame>& getHistory(const std::string& DSTarget);
 };
 
 

@@ -22,15 +22,18 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 # Core Managers
 target_sources(${PROJECT_NAME} PRIVATE
 	"src/Core/AppLoop.cpp"
-	"src/Core/EventManager.cpp"
 	"src/Core/StateManager.cpp"
 	"src/Core/AnimationManager.cpp"
+	"src/Core/InputManager.cpp"
+	"src/Core/EventManager.cpp"
 )
 
 # Data Structures
 target_sources(${PROJECT_NAME} PRIVATE
 	"src/DS/IDataStructure.cpp"
+	"src/DS/IDataStructureUI.cpp"
 	"src/DS/Tree/AVL.cpp"
+	"src/DS/Tree/AVLUI.cpp"
 )
 
 # Graphics
@@ -38,6 +41,7 @@ target_sources(${PROJECT_NAME} PRIVATE
 	"src/Graphics/Helper.cpp"
 	"src/Graphics/RendererCommon.cpp"
 	"src/Graphics/UIManager.cpp"
+	"src/Graphics/Panels/Button.cpp"
 )
 
 # Link the libraries

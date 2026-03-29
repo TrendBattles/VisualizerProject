@@ -1,14 +1,12 @@
 #include <Graphics/UIManager.hpp>
 #include <Graphics/Helper.hpp>
-#include "raymath.h"
-#include <iostream>
 
 /////////////////////////////////
 ///     UI Initialization     ///
 /////////////////////////////////
 UIManager::UIManager() {
-    options = {"AVL Tree", "Trie", "Linked List", "Hash Table", "Graph"};
-    appSection = "AVL Tree";
+    options = {"AVL_Tree", "Trie", "Linked_List", "Hash_Table", "Graph"};
+    appSection = "AVL_Tree";
 }
 
 void UIManager::setStateManger(StateManager* source) {
@@ -25,6 +23,9 @@ void UIManager::setScreenSection(const std::string& sectionID) {
 }
 const std::string& UIManager::getScreenSection() const {
     return appSection;
+}
+bool UIManager::isVisualizing() const {
+    return find(options.begin(), options.end(), appSection) != options.end();
 }
 
 //////////////////////////

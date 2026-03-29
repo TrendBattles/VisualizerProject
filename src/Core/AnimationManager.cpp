@@ -1,6 +1,4 @@
 #include <Core/AnimationManager.hpp>
-#include <algorithm>
-#include <cmath>
 
 void AnimationManager::setStateManager(StateManager* source) {
     stateManager = source;
@@ -10,10 +8,10 @@ void AnimationManager::setStateManager(StateManager* source) {
 bool AnimationManager::hasMoreSteps(const std::string& DSTarget) {
     if (isPauseToggle) return false;
 
-    return stateManager -> stepForward(DSTarget);
+    return stateManager -> canStepForward(DSTarget);
 }
 
-void AnimationManager::setStartAnimation() {
+void AnimationManager::resetAnimationTimer() {
     if (isPauseToggle) return;
 
     timeStart = std::chrono::steady_clock::now();
@@ -27,15 +25,20 @@ Snapshot AnimationManager::requestCurrentSnapshot(const std::string& DSTarget) {
         return stateManager -> getCurrentSnapShot(DSTarget);
     }
 
+    float elapsed = elapsedSeconds();
+    int currentIdx = stateManager -> getSnapshotIdx(DSTarget);
+    float countdown = stateManager -> getSnapshotTransitionAt(DSTarget, currentIdx + 1) - elapsed;
+    if (countdown <= 1e-9) {
+        stateManager -> stepForward(DSTarget);
+        resetAnimationTimer();
+    }
+    
+    return stateManager -> snapshotTransition(DSTarget, currentIdx, currentIdx + 1, elapsed);
+}
+
+float AnimationManager::elapsedSeconds() {
     timeEnd = std::chrono::steady_clock::now();
     std::chrono::duration <float> timeElapsed = timeEnd - timeStart;
-    int currentIdx = stateManager -> getSnapshotIdx(DSTarget);
 
-    float countdown = stateManager -> getSnapshotTransitionAt(DSTarget, currentIdx + 1) - timeElapsed.count();
-    if (countdown <= 1e-9) {
-        stateManager -> tryStepForward(DSTarget);
-        setStartAnimation();
-    }
-
-    return stateManager -> snapshotTransition(DSTarget, currentIdx, currentIdx + 1, timeElapsed.count());
+    return timeElapsed.count();
 }
