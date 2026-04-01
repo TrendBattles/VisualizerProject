@@ -6,8 +6,15 @@
 class AVLUI: public IDataStructureUI {
 public:
     AVLUI();
-    void render() override;
+    
     std::string processInput(RawInputEvent nextInput) override;
+
+    void disableOption(std::string optionName) override;
+    void enableOption(std::string optionName) override;
+    void disableAllOperations() override;
+    void enableAllOperations() override;
+    
+    void render() override;
     std::string getDSName() const override;
 private:
     const std::vector <std::string> operationList = {"Insert", "Remove", "Search"};

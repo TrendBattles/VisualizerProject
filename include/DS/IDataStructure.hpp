@@ -4,6 +4,8 @@
 #include <Core/StateManager.hpp>
 #include <Core/AnimationManager.hpp>
 
+#include <DS/HighlightTheme.hpp>
+
 /// @brief Data Structure Interface: Representation
 class IDataStructure {
 public:
@@ -16,7 +18,7 @@ public:
     virtual int searchNode(std::string value) { return 1; }
     virtual void clearAll() = 0;
 
-    virtual void generateSnapshot(float duration) = 0;
+    virtual void generateSnapshot(float duration, ChangeMap changeMap) = 0;
 protected:
     StateManager* stateManager = nullptr;
     AnimationManager* animationManager = nullptr;

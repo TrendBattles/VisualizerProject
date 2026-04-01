@@ -21,11 +21,11 @@ public:
     void init();
     void mainLoop();
 
-    // void updateEvent();
-    // void updateTextBox();
 private:
     void VisualizerLoop();
     void VisualizerInputHandling();
+    void VisualizerUpdate();
+    void VisualizerRender();
 
     Camera2D camera;
     UIManager* uiManager = nullptr;

@@ -6,9 +6,11 @@
 /// @brief AVL Auxiliary Structure
 struct AVLNode {
     int key, height;
-    AVLNode* leftChild, * rightChild;
+    AVLNode* parent;
+    AVLNode* leftChild;
+    AVLNode* rightChild;
 
-    AVLNode(int value = 0): key(value), height(0), leftChild(nullptr), rightChild(nullptr) {}
+    AVLNode(int value = 0): key(value), height(0), parent(nullptr), leftChild(nullptr), rightChild(nullptr) {}
 };
     
 class AVL : public IDataStructure {
@@ -21,12 +23,15 @@ public:
     int searchNode(std::string value) override;
 
     void clearAll() override;
-    void generateSnapshot(float duration) override;
+    void generateSnapshot(float duration, ChangeMap changeMap = ChangeMap()) override;
 private:
     AVLNode* root;
     void destroyTree(AVLNode* node);
 
-    Snapshot buildSnapshot();
+    void getAllNodesInSubtree(AVLNode* root, std::vector <AVLNode*>& nodeList);
+    std::vector <AVLNode*> getAllNodesInSubtree(AVLNode* root);
+
+    Snapshot buildSnapshot(const ChangeMap& changeMap);
 
     int getHeight(AVLNode* node);
     void update(AVLNode* node);
@@ -39,6 +44,7 @@ private:
     AVLNode* insert(AVLNode* node, int key);
     void insertNode(int value);
 
+    AVLNode* removeSingleChildNode(AVLNode* node);
     AVLNode* removeSuccessor(AVLNode* node);
     AVLNode* remove(AVLNode* node, int key);
     void removeNode(int value);

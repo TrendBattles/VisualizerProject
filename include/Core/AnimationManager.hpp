@@ -12,12 +12,13 @@ public:
     bool hasMoreSteps(const std::string& DSTarget);
     
     void resetAnimationTimer();
-    Snapshot requestCurrentSnapshot(const std::string& DSTarget);
+    Snapshot requestCurrentSnapshot(const std::string& DSTarget, float speed = 1.0f);
 private:
     StateManager* stateManager = nullptr;
     ChronoClock timeStart, timeEnd;
 
     float elapsedSeconds();
+    const float delayTransition = 0.5f;
     bool isPauseToggle = false;
 };
 #endif

@@ -4,6 +4,7 @@
 #include <Common.hpp>
 #include <queue>
 
+/// @brief Input Events
 struct RawInputEvent {
     enum class InputType {
         EMPTY,
@@ -25,6 +26,7 @@ struct RawInputEvent {
     float scrollDelta = 0.0f;
 };
 
+/// @brief Mouse Events
 struct MouseState {
     ChronoClock timestamp;
     bool pressed = false;

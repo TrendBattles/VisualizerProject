@@ -9,6 +9,37 @@ AVLUI::AVLUI() {
     createField(40.0f, GetScreenHeight() - 2 * BUTTON_Y_BOTTOM_OFFSET);
 }
 
+std::string AVLUI::processInput(RawInputEvent nextInput) {
+    std::string buttonSignal = buttonListenerRequest(nextInput);
+    if (!buttonSignal.empty()) return buttonSignal;
+
+    std::string fieldSignal = fieldListenerRequest(nextInput);
+    if (!fieldSignal.empty()) return fieldSignal;
+
+    return "";
+}
+
+void AVLUI::disableOption(std::string optionName) {
+    if (find(operationList.begin(), operationList.end(), optionName) != operationList.end()) {
+        isButtonDisabledMap[optionName] = true;
+    }
+}
+void AVLUI::enableOption(std::string optionName) {
+    if (find(operationList.begin(), operationList.end(), optionName) != operationList.end()) {
+        isButtonDisabledMap[optionName] = false;
+    }
+}
+void AVLUI::disableAllOperations() {
+    for (std::string operation : operationList) {
+        isButtonDisabledMap[operation] = true;
+    }
+}
+void AVLUI::enableAllOperations() {
+    for (std::string operation : operationList) {
+        isButtonDisabledMap[operation] = false;
+    }
+}
+
 void AVLUI::render() {
     for (std::string operation : operationList) {
         int buttonState = isButtonDisabledMap[operation] ? 1 : (int) buttonMap[operation][0].contains(GetMousePosition()) * 2;
@@ -33,16 +64,6 @@ void AVLUI::render() {
     int fieldSubmitState = fieldSubmit[0].contains(GetMousePosition());
     drawButton(fieldSubmit[fieldSubmitState]);
 }
-std::string AVLUI::processInput(RawInputEvent nextInput) {
-    std::string buttonSignal = buttonListenerRequest(nextInput);
-    if (!buttonSignal.empty()) return buttonSignal;
-
-    std::string fieldSignal = fieldListenerRequest(nextInput);
-    if (!fieldSignal.empty()) return fieldSignal;
-
-    return "";
-}
-
 std::string AVLUI::getDSName() const { return "AVL_Tree"; }
 
 void AVLUI::createButtons(std::string buttonID, float x, float y) {
@@ -71,6 +92,7 @@ std::string AVLUI::buttonListenerRequest(RawInputEvent nextInput) {
     if (nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED) {
         if (!operationPlaceholder.empty()) {
             if (fieldTextBox.contains(nextInput.position)) return "";
+
             if (fieldSubmit[0].contains(nextInput.position)) return "";
         }
         
@@ -132,7 +154,7 @@ std::string AVLUI::fieldListenerRequest(RawInputEvent nextInput) {
 
             if (rawValue.empty()) return "";
 
-            std::string command = (operationPlaceholder == "Search" ? "QUERY INTERACT " : "MODIFY INTERACT ");
+            std::string command = (chosenOperation == "Search" ? "QUERY INTERACT " : "MODIFY INTERACT ");
             command += getDSName() + " " + Helper::upperString(chosenOperation) + " ";
             command += rawValue;
         

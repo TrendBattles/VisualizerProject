@@ -20,15 +20,21 @@ void AnimationManager::resetAnimationTimer() {
 /// @brief A Snapshot request function from UIManager to draw the data structures
 ///        on the screen
 /// @return Interpolated snapshot
-Snapshot AnimationManager::requestCurrentSnapshot(const std::string& DSTarget) {
+Snapshot AnimationManager::requestCurrentSnapshot(const std::string& DSTarget, float speed) {
     if (!hasMoreSteps(DSTarget)) {
         return stateManager -> getCurrentSnapShot(DSTarget);
     }
 
-    float elapsed = elapsedSeconds();
+    //Adding a constant delay for each transition
+    float elapsed = elapsedSeconds() * speed;
+    if (elapsed < delayTransition) {
+        return stateManager -> getCurrentSnapShot(DSTarget);
+    }
+
+    elapsed -= delayTransition;
     int currentIdx = stateManager -> getSnapshotIdx(DSTarget);
-    float countdown = stateManager -> getSnapshotTransitionAt(DSTarget, currentIdx + 1) - elapsed;
-    if (countdown <= 1e-9) {
+    float duration = stateManager -> getSnapshotTransitionAt(DSTarget, currentIdx + 1);
+    if (duration <= elapsed) {
         stateManager -> stepForward(DSTarget);
         resetAnimationTimer();
     }

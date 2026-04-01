@@ -1,5 +1,6 @@
 #include <DS/Tree/AVL.hpp>
 #include <Graphics/Helper.hpp>
+#include <cassert>
 
 AVL::AVL() {
     root = nullptr;
@@ -16,7 +17,23 @@ void AVL::destroyTree(AVLNode* node) {
     destroyTree(node -> leftChild);
     destroyTree(node -> rightChild);
     
+    node -> parent = nullptr;
     delete node;
+}
+
+/// @brief A node list of the entire subtree 
+void AVL::getAllNodesInSubtree(AVLNode* root, std::vector <AVLNode*>& nodeList) {
+    if (root == nullptr) return;
+    nodeList.push_back(root);
+
+    getAllNodesInSubtree(root -> leftChild);
+    getAllNodesInSubtree(root -> rightChild);
+}
+std::vector <AVLNode*> AVL::getAllNodesInSubtree(AVLNode* root) {
+    std::vector <AVLNode*> nodeList;
+    getAllNodesInSubtree(root, nodeList);
+
+    return nodeList;
 }
 
 /////////////////////////////////
@@ -67,7 +84,19 @@ void AVL::clearAll() {
 
 void AVL::insertNode(int value) {
     // generateSnapshot(); // snapshot the state before insertion
+    bool isNull = root == nullptr;
     root = insert(root, value);
+
+    // Special case of highlight when the tree is null
+    if (isNull) {
+        generateSnapshot(0.5f, {
+            make_pair(
+                Helper::nodeStringBuffer(std::to_string(root -> key)),
+                Highlight::INSERTED
+            )
+        });
+    }
+
     generateSnapshot(1.0f); // snapshot the final state after insertion
 }
 void AVL::removeNode(int value) {
@@ -75,14 +104,21 @@ void AVL::removeNode(int value) {
     root = remove(root, value);
     generateSnapshot(1.0f); // snapshot the final state after removal
 }
+AVLNode* AVL::searchNode(int value) {
+    AVLNode* result = search(root, value);
+
+    //Returning back to normal tree
+    generateSnapshot(1.0f);
+    return result;
+}
 
 /// @brief Builds a Snapshot of the current tree state without touching the StateManager.
 ///        Separates layout/serialization from persistence so that callers
 ///        can decorate the result before committing it.
-Snapshot AVL::buildSnapshot() {
+Snapshot AVL::buildSnapshot(const ChangeMap& changeMap) {
     if (root == nullptr) return Snapshot();
 
-    const float radius = 30.0f, outlineSize = 3.0f, lengthVertical = 100;
+    const float radius = 30.0f, outlineSize = 6.0f, lengthVertical = 100;
     const float padding = 5.0f;
 
     // Calculating the position of the nodes efficiently
@@ -100,7 +136,7 @@ Snapshot AVL::buildSnapshot() {
             Vector2 normVec = Vector2Normalize(childVec - parentVec);
 
             ShapeState arrow = Helper::createArrow(
-                "arrow_" + std::to_string(childValue),
+                Helper::arrowPointStringBuffer(std::to_string(childValue)),
                 parentVec + normVec * (radius + outlineSize),
                 childVec - normVec * (radius + outlineSize),
                 3.0f, 1.5f, -1000
@@ -155,16 +191,26 @@ Snapshot AVL::buildSnapshot() {
         tempoState.positionTransitAllBy(transitDelta);
     }
 
+    // Override the color information of the target shapes
+    for (ShapeState& finalState : storage) {
+        auto it = changeMap.find(finalState.shapeID);
+        if (it == changeMap.end()) continue;
+
+        finalState.color = it -> second.backgroundColor;
+        finalState.outlineColor = it -> second.outlineColor;
+        finalState.content.textColor = it -> second.textColor;
+    }
+
     return storage;
 }
 
-void AVL::generateSnapshot(float duration) {
+void AVL::generateSnapshot(float duration, ChangeMap changeMap) {
     if (stateManager == nullptr) {
         std::cerr << "[ERROR]: State Manager not found\n";
         return;
     }
 
-    stateManager -> addSnapshot("AVL_Tree", HistoryFrame{ buildSnapshot(), duration });
+    stateManager -> addSnapshot("AVL_Tree", HistoryFrame{ buildSnapshot(changeMap), duration });
 }
 
 
@@ -192,12 +238,48 @@ AVLNode* AVL::rotateLeft(AVLNode* node) {
     auto R = node -> rightChild;
     auto RL = R -> leftChild;
 
+    // Highlighting the rotated nodes first
+    ChangeMap rotateMap = {
+        make_pair(
+            Helper::nodeStringBuffer(std::to_string(node -> key)), 
+            Highlight::ROTATION
+        ),
+        make_pair(
+            Helper::nodeStringBuffer(std::to_string(R -> key)), 
+            Highlight::ROTATION
+        ),
+    };
+    if (RL != nullptr) {
+        rotateMap.insert(make_pair(
+            Helper::nodeStringBuffer(std::to_string(RL -> key)), 
+            Highlight::ROTATION
+        ));
+    }
+    generateSnapshot(1.0f, rotateMap);
+
+    // Doing the rotation
     node -> rightChild = RL;
     R -> leftChild = node;
+    if (node == root) root = R;
 
+    // Updating the parent of the nodes
+    R -> parent = node -> parent;
+    if (node -> parent != nullptr) {
+        auto parent = node -> parent;
+
+        if (parent -> leftChild == node) parent -> leftChild = R;
+        else parent -> rightChild = R; 
+    }
+
+    node -> parent = R;
+    if (RL != nullptr) RL -> parent = node;
+
+    // Height update
     update(node);
     update(R);
 
+    // Highlighting once again to see the transition
+    generateSnapshot(1.5f, rotateMap);
     return R;
 }
 
@@ -210,12 +292,48 @@ AVLNode* AVL::rotateRight(AVLNode* node) {
     auto L = node -> leftChild;
     auto LR = L -> rightChild;
 
+    // Highlighting the rotated nodes first
+    ChangeMap rotateMap = {
+        make_pair(
+            Helper::nodeStringBuffer(std::to_string(node -> key)), 
+            Highlight::ROTATION
+        ),
+        make_pair(
+            Helper::nodeStringBuffer(std::to_string(L -> key)), 
+            Highlight::ROTATION
+        ),
+    };
+    if (LR != nullptr) {
+        rotateMap.insert(make_pair(
+            Helper::nodeStringBuffer(std::to_string(LR -> key)), 
+            Highlight::ROTATION
+        ));
+    }
+    generateSnapshot(1.0f, rotateMap);
+    
+    // Doing the rotation
     node -> leftChild = LR;
     L -> rightChild = node;
+    if (node == root) root = L;
 
+    // Updating the parent of the nodes
+    L -> parent = node -> parent;
+    if (node -> parent != nullptr) {
+        auto parent = node -> parent;
+
+        if (parent -> leftChild == node) parent -> leftChild = L;
+        else parent -> rightChild = L;
+    }
+
+    node -> parent = L;
+    if (LR != nullptr) LR -> parent = node;
+
+    // Height update
     update(node);
     update(L);
 
+    // Highlighting once again to see the transition
+    generateSnapshot(1.5f, rotateMap);
     return L;
 }
 
@@ -233,14 +351,12 @@ AVLNode* AVL::rebalance(AVLNode* node) {
     if (balance > +1) { // Left-Heavy
         if (balanceFactor(node -> leftChild) < 0) {
             node -> leftChild = rotateLeft(node -> leftChild);
-            generateSnapshot(1.5f);
         }
 
         node = rotateRight(node);
     } else if (balance < -1) { // Right-Heavy
         if (balanceFactor(node -> rightChild) > 0) {
             node -> rightChild = rotateRight(node -> rightChild);
-            generateSnapshot(1.5f);
         }
 
         node = rotateLeft(node);
@@ -250,6 +366,7 @@ AVLNode* AVL::rebalance(AVLNode* node) {
 }
 
 /// @brief Insert a new key to the tree
+///        Updated: Added path tracking and inserting/rotating transitions
 /// @param node 
 /// @param key 
 /// @return node (the updated tree)
@@ -259,134 +376,212 @@ AVLNode* AVL::insert(AVLNode* node, int key) {
         return node;
     }
 
+    // Activating the node on the inserting path
+    generateSnapshot(0.5f, {
+        make_pair(
+            Helper::nodeStringBuffer(std::to_string(node -> key)),
+            Highlight::ACTIVE
+        )
+    }); 
+    
+    //If found, stop searching
     if (node -> key == key) {
         return node;
     }
 
-    bool recentlyAdded = false;
-
+    AVLNode* addedNode = nullptr;
     if (node -> key < key) {
-        recentlyAdded = node -> rightChild == nullptr;
+        bool recentlyAdded = node -> rightChild == nullptr;
         node -> rightChild = insert(node -> rightChild, key);
+
+        if (recentlyAdded) addedNode = node -> rightChild;
+        node -> rightChild -> parent = node;
     } else {
-        recentlyAdded = node -> leftChild == nullptr;
+        bool recentlyAdded = node -> leftChild == nullptr;
         node -> leftChild = insert(node -> leftChild, key);
+
+        if (recentlyAdded) addedNode = node -> leftChild;
+        node -> leftChild -> parent = node;
     }
 
-    if (recentlyAdded) {
-        generateSnapshot(0.75f);
+    // If a new node is inserted, generate a new highlight
+    if (addedNode != nullptr) {
+        generateSnapshot(0.5f, {
+            make_pair(
+                Helper::nodeStringBuffer(std::to_string(addedNode -> key)),
+                Highlight::INSERTED
+            )
+        }); 
     }
+
+    // Updating the path
+    generateSnapshot(0.5f, {
+        make_pair(
+            Helper::nodeStringBuffer(std::to_string(node -> key)),
+            Highlight::ACTIVE
+        )
+    });
 
     node = rebalance(node);
     return node;
 }
 
+/// @brief Removing a node with a single child
+/// @param node 
+/// @return node 
+AVLNode* AVL::removeSingleChildNode(AVLNode* node) {
+    if (node == nullptr) return node;
 
+    auto tmp = node -> leftChild ? node -> leftChild : node -> rightChild;
+    // Generate a snapshot of removing that node
+    generateSnapshot(1.5f, {
+        make_pair(
+            Helper::nodeStringBuffer(std::to_string(node -> key)),
+            Highlight::REMOVED
+        )
+    });
+
+    if (tmp != nullptr) tmp -> parent = node -> parent;
+    if (node -> parent != nullptr) {
+        auto parent = node -> parent;
+        if (parent -> leftChild == node) parent -> leftChild = tmp;
+        else parent -> rightChild = tmp;
+    }
+    if (root == node) root = tmp;
+
+    delete node;
+    node = tmp;
+    
+    //Activate the uplifting node for path tracking
+    if (tmp == nullptr) {
+        generateSnapshot(0.5f);
+    } else {
+        generateSnapshot(1.5f, {
+            make_pair(
+                Helper::nodeStringBuffer(std::to_string(tmp -> key)),
+                Highlight::ACTIVE
+            )
+        });
+    }
+
+    return node;
+}
+
+/// @brief Removing the InOrder successor of a node
+/// @param node 
+/// @return node 
 AVLNode* AVL::removeSuccessor(AVLNode* node) {
     if (node -> leftChild == nullptr) {
-        auto tmp = node -> rightChild;
-
-        delete node;
-        node = tmp;
-
-        return node;
+        return removeSingleChildNode(node);
     }
 
-    bool recentlyRemoved = node -> leftChild -> leftChild == nullptr;
     node -> leftChild = removeSuccessor(node -> leftChild);
+    if (node -> leftChild != nullptr) node -> leftChild -> parent = node;
 
-    if (recentlyRemoved) {
-        generateSnapshot(1.0f);
-    }
-
+    generateSnapshot(0.5f, {
+        make_pair(
+            Helper::nodeStringBuffer(std::to_string(node -> key)),
+            Highlight::ACTIVE
+        )
+    });
     node = rebalance(node);
 
     return node;
 }
 
 /// @brief Remove the target key from the tree
-///        Updated: Added snapshot generation to smooth transitions
+///        Updated: Added path tracking, removing/balancing transitions.
 /// @param node 
 /// @param key 
 /// @return node (the updated tree)
 AVLNode* AVL::remove(AVLNode* node, int key) {
     if (node == nullptr) return node;
+    
+    //Update path tracking
+    generateSnapshot(0.5f, {
+        make_pair(
+            Helper::nodeStringBuffer(std::to_string(node -> key)),
+            Highlight::ACTIVE
+        )
+    });
 
     if (node -> key == key) {
-        // In case this node doesn't have two subtrees, we can just move the subtree up.
+        // In case this node doesn't have two subtrees, move the subtree up.
         if (node -> leftChild == nullptr || node -> rightChild == nullptr) {
-            auto tmp = node -> leftChild ? node -> leftChild : node -> rightChild;
-
-            delete node;
-            node = tmp;
-
-            return node;
+            return removeSingleChildNode(node);
         }
 
+        //Otherwise, find the successor's node and copy its content to the current node.
+        //After that, remove that successor node and do balancing rotations.
         AVLNode* successor = node -> rightChild;
         while (successor -> leftChild != nullptr) successor = successor -> leftChild;
 
         node -> key = successor -> key;
-        bool recentlyRemoved = node -> rightChild -> leftChild == nullptr;
+        successor -> key = -1;
         node -> rightChild = removeSuccessor(node -> rightChild);
-        
-        if (recentlyRemoved) {
-            generateSnapshot(1.0f);
-        }
+        if (node -> rightChild != nullptr) node -> rightChild -> parent = node;
+
+        generateSnapshot(0.5f, {
+            make_pair(
+                Helper::nodeStringBuffer(std::to_string(node -> key)),
+                Highlight::ACTIVE
+            )
+        });
 
         node = rebalance(node);
         return node;
     }
 
-    bool recentlyRemoved = false;
-    bool subrootChanged = false;
-
     if (node -> key < key) {
-        recentlyRemoved = 
-            node -> rightChild != nullptr &&
-            node -> rightChild -> key == key &&
-            (
-                node -> rightChild -> leftChild == nullptr ||
-                node -> rightChild -> rightChild == nullptr
-            );
-        
-        subrootChanged = node -> rightChild != nullptr;
-        int tempKey = subrootChanged ? node -> rightChild -> key : 0;
-
         node -> rightChild = remove(node -> rightChild, key);
-        
-        if (subrootChanged) subrootChanged &= node -> rightChild == nullptr || node -> rightChild -> key != tempKey; 
+        if (node -> rightChild != nullptr) node -> rightChild -> parent = node;
     } else {
-        recentlyRemoved = 
-            node -> leftChild != nullptr &&
-            node -> leftChild -> key == key &&
-            (
-                node -> leftChild -> leftChild == nullptr ||
-                node -> leftChild -> rightChild == nullptr
-            );
-        
-        subrootChanged = node -> leftChild != nullptr;
-        int tempKey = subrootChanged ? node -> leftChild -> key : 0;
-
         node -> leftChild = remove(node -> leftChild, key);
-        
-        if (subrootChanged) subrootChanged &= node -> leftChild == nullptr || node -> leftChild -> key != tempKey; 
+        if (node -> leftChild != nullptr) node -> leftChild -> parent = node;
     }
 
-    if (recentlyRemoved) {
-        generateSnapshot(1.0f);
-    } else if (subrootChanged) {
-        generateSnapshot(1.5f);
-    }
+    //Update path tracking
+    generateSnapshot(0.5f, {
+        make_pair(
+            Helper::nodeStringBuffer(std::to_string(node -> key)),
+            Highlight::ACTIVE
+        )
+    });
 
     node = rebalance(node);
     return node;
 }
 
+/// @brief Searching the target key in the tree.
+///        Updated: Added animations on path tracking
+/// @param node, key 
+/// @return node
 AVLNode* AVL::search(AVLNode* node, int key) {
     if (node == nullptr) return nullptr;
 
+    //Update path tracking
+    generateSnapshot(0.5f, {
+        make_pair(
+            Helper::nodeStringBuffer(std::to_string(node -> key)),
+            Highlight::ACTIVE
+        )
+    });
+
     if (node -> key == key) {
+        //Update Found state
+        generateSnapshot(1.0f, {
+            make_pair(
+                Helper::nodeStringBuffer(std::to_string(node -> key)),
+                Highlight::FOUND
+            )
+        });
+        generateSnapshot(0.5f, {
+            make_pair(
+                Helper::nodeStringBuffer(std::to_string(node -> key)),
+                Highlight::FOUND
+            )
+        });
+
         return node;
     }
     
@@ -394,10 +589,4 @@ AVLNode* AVL::search(AVLNode* node, int key) {
         return search(node -> rightChild, key);
     }
     return search(node -> leftChild, key);
-}
-AVLNode* AVL::searchNode(int value) {
-    AVLNode* result = search(root, value);
-
-    generateSnapshot(1.0f);
-    return result;
 }

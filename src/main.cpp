@@ -5,6 +5,13 @@ int main() {
     app -> init();
 
     while (!WindowShouldClose()) {
+
+        // Prevent crashing incident
+        if (IsWindowMinimized()) {
+            WaitTime(1);
+            continue;
+        }
+
         app -> mainLoop();
     }
 

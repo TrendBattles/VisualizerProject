@@ -13,6 +13,11 @@ public:
     virtual ~IDataStructureUI() = default;
     virtual std::string processInput(RawInputEvent nextInput) = 0;
 
+    virtual void disableOption(std::string optionName) = 0;
+    virtual void enableOption(std::string optionName) = 0;
+    virtual void disableAllOperations() = 0;
+    virtual void enableAllOperations() = 0;
+    
     virtual void render() = 0;
     virtual std::string getDSName() const = 0;
 protected:

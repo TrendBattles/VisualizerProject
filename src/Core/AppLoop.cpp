@@ -58,12 +58,19 @@ void AppLoop::mainLoop() {
         VisualizerLoop();
         return;
     }
-
-    
 }
 
 void AppLoop::VisualizerLoop() {
-    // --- Update Logic ---
+    VisualizerInputHandling();
+    VisualizerUpdate();
+    VisualizerRender();
+}
+
+void AppLoop::VisualizerInputHandling() {
+    inputManager -> update();
+}
+void AppLoop::VisualizerUpdate() {
+    // Camera Update
     if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
         Vector2 delta = GetMouseDelta();
         camera.target.x -= delta.x / camera.zoom;
@@ -72,32 +79,33 @@ void AppLoop::VisualizerLoop() {
     camera.zoom += ((float)GetMouseWheelMove() * 0.1f);
     camera.zoom = std::max(std::min(camera.zoom, 3.0f), 0.25f);
 
-    // --- Drawing Logic ---
+    // Input Updates 
+    while (inputManager -> hasEvents()) {
+        RawInputEvent nextInput = inputManager -> pollEvent();
+
+        std::string commandRequest = DataStructureUI -> processInput(nextInput); 
+        eventManager -> handleCommand(commandRequest);
+    }
+
+    if (animationManager -> hasMoreSteps(uiManager -> getScreenSection())) {
+        DataStructureUI -> disableAllOperations();
+    } else {
+        DataStructureUI -> enableAllOperations();
+    }
+}
+void AppLoop::VisualizerRender() {
     BeginDrawing();
         ClearBackground(GetColor(0x1F2937FF)); // Modern Dark Theme
 
-        DataStructureUI -> render();
-        
-        VisualizerInputHandling();
-        // updateEvent();
-        // updateTextBox();
-
+        // Animated Data Structures
         BeginMode2D(camera);
             uiManager -> renderSnapshot();
         EndMode2D();
 
-        // Draw UI (which doesn't move with the camera)
+        // Overlays
+        DataStructureUI -> render();
+
         DrawFPS(10, 10);
         DrawText("Right-click to pan | Scroll to zoom", 10, 40, 20, WHITE);
     EndDrawing();
-}
-
-void AppLoop::VisualizerInputHandling() {
-    inputManager -> update();
-
-    while (inputManager -> hasEvents()) {
-        RawInputEvent nextInput = inputManager -> pollEvent();
-        std::string commandRequest = DataStructureUI -> processInput(nextInput); 
-        eventManager -> handleCommand(commandRequest);
-    }
 }

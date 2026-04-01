@@ -1,5 +1,11 @@
 #include <Core/InputManager.hpp>
 
+///////////////////////////////////
+///     MOUSE CONSTRUCTION      ///
+///////////////////////////////////
+
+/// @brief This updates that the mouse button is being pressed.
+///        After sufficient time, it pushes a HOLD event.
 void MouseState::pressUpdate(std::queue <RawInputEvent>& inputQueue, bool isLeft) {
     if (!pressed) {
         pressed = true;
@@ -19,6 +25,8 @@ void MouseState::pressUpdate(std::queue <RawInputEvent>& inputQueue, bool isLeft
     }
 }
 
+/// @brief This updates that the mouse button has been released.
+///        Processing cases where it's a CLICKED event or a RELEASED event
 void MouseState::releaseUpdate(std::queue <RawInputEvent>& inputQueue, bool isLeft) {
     if (!pressed) return;
 
@@ -39,6 +47,7 @@ void MouseState::releaseUpdate(std::queue <RawInputEvent>& inputQueue, bool isLe
     }
 }
 
+/// @brief Main Input Update
 void InputManager::update() {
     if (GetMouseWheelMove() != 0) {
         RawInputEvent newInput;

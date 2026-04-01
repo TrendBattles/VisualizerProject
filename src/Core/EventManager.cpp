@@ -3,7 +3,6 @@
 
 #include <sstream>
 #include <stdexcept>
-
 void EventManager::setAnimationManager(AnimationManager* source) {
     animationManager = source;
 }
@@ -11,6 +10,7 @@ void EventManager::setDSPointer(IDataStructure* source) {
     DSPointer = source;
 }
 
+/// @brief A function serving the purpose of task division.
 void EventManager::handleCommand(std::string commandString) {
     if (commandString.empty()) return;
     
@@ -37,6 +37,8 @@ void EventManager::handleCommand(std::string commandString) {
 
     throw std::runtime_error("Invalid command");
 }
+
+/// @brief There are two cases. The first is modfication. 
 void EventManager::handleModification(std::vector <std::string> parseList) {
     // Empty cases will be worked on to fill in parallelly with the progress
     if (parseList[1] == "SETTINGS") {
@@ -86,6 +88,7 @@ void EventManager::handleModification(std::vector <std::string> parseList) {
 
     throw std::runtime_error("Invalid section");
 }
+/// @brief The second is query in contrast. 
 void EventManager::handleQuery(std::vector <std::string> parseList) {
     // Empty cases will be worked on to fill in parallelly with the progress
     if (parseList[1] == "SETTINGS") {
