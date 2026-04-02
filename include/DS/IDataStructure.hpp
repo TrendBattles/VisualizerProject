@@ -4,7 +4,7 @@
 #include <Core/StateManager.hpp>
 #include <Core/AnimationManager.hpp>
 
-#include <DS/HighlightTheme.hpp>
+#include <Graphics/Panels/HighlightTheme.hpp>
 
 /// @brief Data Structure Interface: Representation
 class IDataStructure {

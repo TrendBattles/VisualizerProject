@@ -1,6 +1,5 @@
 #include <DS/Tree/AVL.hpp>
 #include <Graphics/Helper.hpp>
-#include <cassert>
 
 AVL::AVL() {
     root = nullptr;
@@ -418,7 +417,7 @@ AVLNode* AVL::insert(AVLNode* node, int key) {
     generateSnapshot(0.5f, {
         make_pair(
             Helper::nodeStringBuffer(std::to_string(node -> key)),
-            Highlight::ACTIVE
+            Highlight::INACTIVE
         )
     });
 
@@ -459,7 +458,7 @@ AVLNode* AVL::removeSingleChildNode(AVLNode* node) {
         generateSnapshot(1.5f, {
             make_pair(
                 Helper::nodeStringBuffer(std::to_string(tmp -> key)),
-                Highlight::ACTIVE
+                Highlight::INACTIVE
             )
         });
     }
@@ -481,7 +480,7 @@ AVLNode* AVL::removeSuccessor(AVLNode* node) {
     generateSnapshot(0.5f, {
         make_pair(
             Helper::nodeStringBuffer(std::to_string(node -> key)),
-            Highlight::ACTIVE
+            Highlight::INACTIVE
         )
     });
     node = rebalance(node);
@@ -524,7 +523,7 @@ AVLNode* AVL::remove(AVLNode* node, int key) {
         generateSnapshot(0.5f, {
             make_pair(
                 Helper::nodeStringBuffer(std::to_string(node -> key)),
-                Highlight::ACTIVE
+                Highlight::INACTIVE
             )
         });
 
@@ -544,7 +543,7 @@ AVLNode* AVL::remove(AVLNode* node, int key) {
     generateSnapshot(0.5f, {
         make_pair(
             Helper::nodeStringBuffer(std::to_string(node -> key)),
-            Highlight::ACTIVE
+            Highlight::INACTIVE
         )
     });
 

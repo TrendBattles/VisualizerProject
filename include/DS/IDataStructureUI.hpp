@@ -6,6 +6,7 @@
 #include <Graphics/UIManager.hpp>
 #include <Graphics/Panels/Button.hpp>
 
+/// @brief Data Structure UI Interface : Interaction
 class IDataStructureUI {
 public:
     void setUIManager(UIManager* source);
@@ -18,11 +19,12 @@ public:
     virtual void disableAllOperations() = 0;
     virtual void enableAllOperations() = 0;
     
+    virtual void update() = 0;
     virtual void render() = 0;
     virtual std::string getDSName() const = 0;
 protected:
     void drawButton(const Button& button);
-    void drawTextBox(const TextBox& button);
+    void drawTextbox(const Textbox& button);
     UIManager* uiManager = nullptr;
 };
 #endif

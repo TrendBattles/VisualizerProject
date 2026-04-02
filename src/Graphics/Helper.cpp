@@ -38,6 +38,22 @@ ShapeState Helper::createRectangle(std::string tempoID, Vector2 startPosition, V
 
     return tempShape;
 }
+ShapeState Helper::createRectangle(std::string tempoID, Vector2 startPosition, Vector2 endPosition, float outlineSize, Color color, Color outlineColor, int layerID) {
+    ShapeState tempShape;
+    tempShape.shapeID = tempoID;
+    tempShape.startPosition = startPosition;
+    tempShape.endPosition = endPosition;
+
+    tempShape.sType = ShapeType::RECTANGLE;
+
+    tempShape.size = 0;
+    tempShape.outlineSize = outlineSize;
+    tempShape.color = color;
+    tempShape.outlineColor = outlineColor;
+    tempShape.layerID = layerID;
+
+    return tempShape;
+}
 
 ShapeState Helper::createLine(std::string tempoID, Vector2 startPosition, Vector2 endPosition, float size, float outlineSize, int layerID) {
     ShapeState tempShape;
@@ -53,6 +69,22 @@ ShapeState Helper::createLine(std::string tempoID, Vector2 startPosition, Vector
 
     return tempShape;
 }
+ShapeState Helper::createLine(std::string tempoID, Vector2 startPosition, Vector2 endPosition, float size, float outlineSize, Color color, Color outlineColor, int layerID) {
+    ShapeState tempShape;
+    tempShape.shapeID = tempoID;
+    tempShape.startPosition = startPosition;
+    tempShape.endPosition = endPosition;
+
+    tempShape.sType = ShapeType::LINE;
+
+    tempShape.size = size;
+    tempShape.outlineSize = outlineSize;
+    tempShape.color = color;
+    tempShape.outlineColor = outlineColor;
+    tempShape.layerID = layerID;
+
+    return tempShape;
+}
 
 ShapeState Helper::createArrow(std::string tempoID, Vector2 startPosition, Vector2 endPosition, float size, float outlineSize, int layerID) {
     ShapeState tempShape;
@@ -64,6 +96,23 @@ ShapeState Helper::createArrow(std::string tempoID, Vector2 startPosition, Vecto
 
     tempShape.size = size;
     tempShape.outlineSize = outlineSize;
+    tempShape.layerID = layerID;
+
+    return tempShape;
+}
+ShapeState Helper::createArrow(std::string tempoID, Vector2 startPosition, Vector2 endPosition, float size, float outlineSize, Color color, Color outlineColor, int layerID) {
+    //Text creation
+    ShapeState tempShape;
+    tempShape.shapeID = tempoID;
+    tempShape.startPosition = startPosition;
+    tempShape.endPosition = endPosition;
+
+    tempShape.sType = ShapeType::ARROW;
+
+    tempShape.size = size;
+    tempShape.outlineSize = outlineSize;
+    tempShape.color = color;
+    tempShape.outlineColor = outlineColor;
     tempShape.layerID = layerID;
 
     return tempShape;
@@ -168,7 +217,7 @@ Button Helper::createButton(ShapeState background, Text label) {
     label.position = Vector2Lerp(background.startPosition, background.endPosition, 0.5f);
     return Button {background, label};
 }
-TextBox Helper::createTextBox(ShapeState background, Text label) {
+Textbox Helper::createTextbox(ShapeState background, Text label) {
     return createButton(background, label);
 }
 
@@ -186,6 +235,9 @@ std::string Helper::arrowStringBuffer(std::string objectA, std::string objectB) 
 }
 std::string Helper::arrowPointStringBuffer(std::string object) {
     return "arrow_" + object;
+}
+std::string Helper::nodeStringBuffer(int value) {
+    return nodeStringBuffer(std::to_string(value));
 }
 std::string Helper::nodeStringBuffer(std::string value) {
     return "node_" + value;

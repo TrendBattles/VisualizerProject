@@ -68,6 +68,14 @@ void AppLoop::VisualizerLoop() {
 
 void AppLoop::VisualizerInputHandling() {
     inputManager -> update();
+
+    // Input Updates 
+    while (inputManager -> hasEvents()) {
+        RawInputEvent nextInput = inputManager -> pollEvent();
+
+        std::string commandRequest = DataStructureUI -> processInput(nextInput); 
+        eventManager -> handleCommand(commandRequest);
+    }
 }
 void AppLoop::VisualizerUpdate() {
     // Camera Update
@@ -79,14 +87,8 @@ void AppLoop::VisualizerUpdate() {
     camera.zoom += ((float)GetMouseWheelMove() * 0.1f);
     camera.zoom = std::max(std::min(camera.zoom, 3.0f), 0.25f);
 
-    // Input Updates 
-    while (inputManager -> hasEvents()) {
-        RawInputEvent nextInput = inputManager -> pollEvent();
-
-        std::string commandRequest = DataStructureUI -> processInput(nextInput); 
-        eventManager -> handleCommand(commandRequest);
-    }
-
+    // Data Structure UI update
+    DataStructureUI -> update();
     if (animationManager -> hasMoreSteps(uiManager -> getScreenSection())) {
         DataStructureUI -> disableAllOperations();
     } else {

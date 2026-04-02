@@ -35,9 +35,9 @@ namespace Highlight {
         BLACK
     };
 
-    inline const ChangeInfo NOT_FOUND = {
-        GRAY,
+    inline const ChangeInfo INACTIVE = {
         WHITE,
+        GRAY,
         GRAY
     };
 
