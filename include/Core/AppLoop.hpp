@@ -4,6 +4,7 @@
 #include <Core/InputManager.hpp>
 #include <Core/EventManager.hpp>
 #include <Core/AnimationManager.hpp>
+#include <Core/PlaybackController.hpp>
 
 #include <DS/Tree/AVL.hpp>
 #include <DS/Tree/AVLUI.hpp>
@@ -38,6 +39,8 @@ private:
 
     IDataStructure* DataStructure = nullptr;
     IDataStructureUI* DataStructureUI = nullptr;
+
+    PlaybackController* playbackController = nullptr;
 };
 
 #endif

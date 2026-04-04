@@ -53,7 +53,9 @@ void EventManager::handleModification(std::vector <std::string> parseList) {
             const std::string& operation = parseList[3];
             const std::string& rawValue = parseList[4];
             
-            animationManager -> resetAnimationTimer();
+            if (!animationManager -> isPaused())
+                animationManager -> resetAnimationTimer();
+                
             if (operation == "INSERT") {
                 DSPointer -> insertNode(rawValue);
                 return;

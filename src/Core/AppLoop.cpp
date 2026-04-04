@@ -3,13 +3,14 @@
 
 AppLoop::AppLoop() = default;
 AppLoop::~AppLoop() {
-    delete DataStructureUI;  DataStructureUI = nullptr;
-    delete DataStructure;    DataStructure   = nullptr;
-    delete eventManager;     eventManager    = nullptr;
-    delete inputManager;     inputManager    = nullptr;
-    delete animationManager; animationManager = nullptr;
-    delete stateManager;     stateManager    = nullptr;
-    delete uiManager;        uiManager       = nullptr;
+    delete playbackController; playbackController = nullptr;
+    delete DataStructureUI;    DataStructureUI = nullptr;
+    delete DataStructure;      DataStructure   = nullptr;
+    delete eventManager;       eventManager    = nullptr;
+    delete inputManager;       inputManager    = nullptr;
+    delete animationManager;   animationManager = nullptr;
+    delete stateManager;       stateManager    = nullptr;
+    delete uiManager;          uiManager       = nullptr;
 }
 
 //////////////////////////////
@@ -23,6 +24,7 @@ void AppLoop::init() {
     const int screenHeight = 800;
     InitWindow(screenWidth, screenHeight, "C++ Data Structure Visualizer");
 
+    // Core Managers
     uiManager = new UIManager();
     stateManager = new StateManager(uiManager -> getDSOptions());
 
@@ -41,7 +43,10 @@ void AppLoop::init() {
     eventManager -> setAnimationManager(animationManager);
     eventManager -> setDSPointer(DataStructure);
 
+    // Core: UI Interactions
     inputManager = new InputManager();
+    playbackController = new PlaybackController();
+    playbackController -> setAnimationManager(animationManager);
 
     // Camera Setup
     camera.target = (Vector2){ 0, 0 };
@@ -73,8 +78,12 @@ void AppLoop::VisualizerInputHandling() {
     while (inputManager -> hasEvents()) {
         RawInputEvent nextInput = inputManager -> pollEvent();
 
+        // Data Structure operation signal request
         std::string commandRequest = DataStructureUI -> processInput(nextInput); 
         eventManager -> handleCommand(commandRequest);
+
+        // Playback Controller Input Retrieval
+        playbackController -> processInput(nextInput);
     }
 }
 void AppLoop::VisualizerUpdate() {
@@ -87,9 +96,15 @@ void AppLoop::VisualizerUpdate() {
     camera.zoom += ((float)GetMouseWheelMove() * 0.1f);
     camera.zoom = std::max(std::min(camera.zoom, 3.0f), 0.25f);
 
+    // Playback Update
+    playbackController -> update(uiManager -> getScreenSection());
+
     // Data Structure UI update
     DataStructureUI -> update();
-    if (animationManager -> hasMoreSteps(uiManager -> getScreenSection())) {
+
+    const std::string& DSTarget = uiManager -> getScreenSection();
+    bool operationDisabled = animationManager -> canStepForward(DSTarget);
+    if (operationDisabled) {
         DataStructureUI -> disableAllOperations();
     } else {
         DataStructureUI -> enableAllOperations();
@@ -106,6 +121,7 @@ void AppLoop::VisualizerRender() {
 
         // Overlays
         DataStructureUI -> render();
+        playbackController -> render();
 
         DrawFPS(10, 10);
         DrawText("Right-click to pan | Scroll to zoom", 10, 40, 20, WHITE);

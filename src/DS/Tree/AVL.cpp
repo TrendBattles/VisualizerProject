@@ -88,7 +88,7 @@ void AVL::insertNode(int value) {
 
     // Special case of highlight when the tree is null
     if (isNull) {
-        generateSnapshot(0.5f, {
+        generateSnapshot(0.4f, {
             make_pair(
                 Helper::nodeStringBuffer(std::to_string(root -> key)),
                 Highlight::INSERTED
@@ -96,18 +96,18 @@ void AVL::insertNode(int value) {
         });
     }
 
-    generateSnapshot(1.0f); // snapshot the final state after insertion
+    generateSnapshot(0.5f); // snapshot the final state after insertion
 }
 void AVL::removeNode(int value) {
     // generateSnapshot(); // snapshot the state before removal
     root = remove(root, value);
-    generateSnapshot(1.0f); // snapshot the final state after removal
+    generateSnapshot(0.5f); // snapshot the final state after removal
 }
 AVLNode* AVL::searchNode(int value) {
     AVLNode* result = search(root, value);
 
     //Returning back to normal tree
-    generateSnapshot(1.0f);
+    generateSnapshot(0.5f);
     return result;
 }
 
@@ -254,7 +254,7 @@ AVLNode* AVL::rotateLeft(AVLNode* node) {
             Highlight::ROTATION
         ));
     }
-    generateSnapshot(1.0f, rotateMap);
+    generateSnapshot(0.75f, rotateMap);
 
     // Doing the rotation
     node -> rightChild = RL;
@@ -278,7 +278,7 @@ AVLNode* AVL::rotateLeft(AVLNode* node) {
     update(R);
 
     // Highlighting once again to see the transition
-    generateSnapshot(1.5f, rotateMap);
+    generateSnapshot(0.75f, rotateMap);
     return R;
 }
 
@@ -308,7 +308,7 @@ AVLNode* AVL::rotateRight(AVLNode* node) {
             Highlight::ROTATION
         ));
     }
-    generateSnapshot(1.0f, rotateMap);
+    generateSnapshot(0.75f, rotateMap);
     
     // Doing the rotation
     node -> leftChild = LR;
@@ -332,7 +332,7 @@ AVLNode* AVL::rotateRight(AVLNode* node) {
     update(L);
 
     // Highlighting once again to see the transition
-    generateSnapshot(1.5f, rotateMap);
+    generateSnapshot(0.75f, rotateMap);
     return L;
 }
 
@@ -376,7 +376,7 @@ AVLNode* AVL::insert(AVLNode* node, int key) {
     }
 
     // Activating the node on the inserting path
-    generateSnapshot(0.5f, {
+    generateSnapshot(0.4f, {
         make_pair(
             Helper::nodeStringBuffer(std::to_string(node -> key)),
             Highlight::ACTIVE
@@ -405,7 +405,7 @@ AVLNode* AVL::insert(AVLNode* node, int key) {
 
     // If a new node is inserted, generate a new highlight
     if (addedNode != nullptr) {
-        generateSnapshot(0.5f, {
+        generateSnapshot(0.4f, {
             make_pair(
                 Helper::nodeStringBuffer(std::to_string(addedNode -> key)),
                 Highlight::INSERTED
@@ -414,7 +414,7 @@ AVLNode* AVL::insert(AVLNode* node, int key) {
     }
 
     // Updating the path
-    generateSnapshot(0.5f, {
+    generateSnapshot(0.4f, {
         make_pair(
             Helper::nodeStringBuffer(std::to_string(node -> key)),
             Highlight::INACTIVE
@@ -433,7 +433,7 @@ AVLNode* AVL::removeSingleChildNode(AVLNode* node) {
 
     auto tmp = node -> leftChild ? node -> leftChild : node -> rightChild;
     // Generate a snapshot of removing that node
-    generateSnapshot(1.5f, {
+    generateSnapshot(0.75f, {
         make_pair(
             Helper::nodeStringBuffer(std::to_string(node -> key)),
             Highlight::REMOVED
@@ -453,9 +453,9 @@ AVLNode* AVL::removeSingleChildNode(AVLNode* node) {
     
     //Activate the uplifting node for path tracking
     if (tmp == nullptr) {
-        generateSnapshot(0.5f);
+        generateSnapshot(0.4f);
     } else {
-        generateSnapshot(1.5f, {
+        generateSnapshot(0.75f, {
             make_pair(
                 Helper::nodeStringBuffer(std::to_string(tmp -> key)),
                 Highlight::INACTIVE
@@ -477,7 +477,7 @@ AVLNode* AVL::removeSuccessor(AVLNode* node) {
     node -> leftChild = removeSuccessor(node -> leftChild);
     if (node -> leftChild != nullptr) node -> leftChild -> parent = node;
 
-    generateSnapshot(0.5f, {
+    generateSnapshot(0.4f, {
         make_pair(
             Helper::nodeStringBuffer(std::to_string(node -> key)),
             Highlight::INACTIVE
@@ -497,7 +497,7 @@ AVLNode* AVL::remove(AVLNode* node, int key) {
     if (node == nullptr) return node;
     
     //Update path tracking
-    generateSnapshot(0.5f, {
+    generateSnapshot(0.4f, {
         make_pair(
             Helper::nodeStringBuffer(std::to_string(node -> key)),
             Highlight::ACTIVE
@@ -520,7 +520,7 @@ AVLNode* AVL::remove(AVLNode* node, int key) {
         node -> rightChild = removeSuccessor(node -> rightChild);
         if (node -> rightChild != nullptr) node -> rightChild -> parent = node;
 
-        generateSnapshot(0.5f, {
+        generateSnapshot(0.4f, {
             make_pair(
                 Helper::nodeStringBuffer(std::to_string(node -> key)),
                 Highlight::INACTIVE
@@ -540,7 +540,7 @@ AVLNode* AVL::remove(AVLNode* node, int key) {
     }
 
     //Update path tracking
-    generateSnapshot(0.5f, {
+    generateSnapshot(0.4f, {
         make_pair(
             Helper::nodeStringBuffer(std::to_string(node -> key)),
             Highlight::INACTIVE
@@ -559,7 +559,7 @@ AVLNode* AVL::search(AVLNode* node, int key) {
     if (node == nullptr) return nullptr;
 
     //Update path tracking
-    generateSnapshot(0.5f, {
+    generateSnapshot(0.4f, {
         make_pair(
             Helper::nodeStringBuffer(std::to_string(node -> key)),
             Highlight::ACTIVE
@@ -568,13 +568,7 @@ AVLNode* AVL::search(AVLNode* node, int key) {
 
     if (node -> key == key) {
         //Update Found state
-        generateSnapshot(1.0f, {
-            make_pair(
-                Helper::nodeStringBuffer(std::to_string(node -> key)),
-                Highlight::FOUND
-            )
-        });
-        generateSnapshot(0.5f, {
+        generateSnapshot(1.75f, {
             make_pair(
                 Helper::nodeStringBuffer(std::to_string(node -> key)),
                 Highlight::FOUND

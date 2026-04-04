@@ -26,6 +26,7 @@ target_sources(${PROJECT_NAME} PRIVATE
 	"src/Core/AnimationManager.cpp"
 	"src/Core/InputManager.cpp"
 	"src/Core/EventManager.cpp"
+	"src/Core/PlaybackController.cpp"
 )
 
 # Data Structures

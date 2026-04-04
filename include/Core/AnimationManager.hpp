@@ -8,9 +8,21 @@
 class AnimationManager {
 public:
     void setStateManager(StateManager* source);
+    void setPauseToggle(bool isTrue);
 
+    bool isPaused() const;
     bool hasMoreSteps(const std::string& DSTarget);
-    
+
+    int getSize(const std::string& DSTarget);
+    void setSnapshotIdx(const std::string& DSTarget, int idx);
+    int getSnapshotIdx(const std::string& DSTarget);
+    bool stepBackward(const std::string& DSTarget);
+    bool stepForward(const std::string& DSTarget);
+    bool canStepBackward(const std::string& DSTarget);
+    bool canStepForward(const std::string& DSTarget);
+
+    int getTransitionCoeff() const;
+    void setTransitionCoeff(int newCoeff);
     void resetAnimationTimer();
     Snapshot requestCurrentSnapshot(const std::string& DSTarget, float speed = 1.0f);
 private:
@@ -18,7 +30,9 @@ private:
     ChronoClock timeStart, timeEnd;
 
     float elapsedSeconds();
-    const float delayTransition = 0.5f;
+    const float delayTransition = 0.25f;
     bool isPauseToggle = false;
+
+    int transitionCoeff = +1;
 };
 #endif
