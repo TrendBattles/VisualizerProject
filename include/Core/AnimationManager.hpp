@@ -20,7 +20,8 @@ public:
     bool stepForward(const std::string& DSTarget);
     bool canStepBackward(const std::string& DSTarget);
     bool canStepForward(const std::string& DSTarget);
-
+    std::pair <PseudocodeSection, std::vector <int>> getPseudoInfoAt(const std::string& DSTarget, int idx);
+    
     int getTransitionCoeff() const;
     void setTransitionCoeff(int newCoeff);
     void resetAnimationTimer();

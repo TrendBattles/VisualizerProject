@@ -56,4 +56,15 @@ struct ShapeState {
 
     void positionTransitAllBy(Vector2 delta);
 };  
+
+struct CoreFonts {
+    inline static Font CascadiaMonoLight, CascadiaMonoRegular, CascadiaMonoBold;
+    inline static Font Consolas;
+    
+    // Call this ONCE in AppLoop initialization
+    static void load();
+
+    // Call this ONCE before app closes
+    static void unload();
+};
 #endif

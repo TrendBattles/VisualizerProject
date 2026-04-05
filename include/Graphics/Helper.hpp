@@ -7,6 +7,7 @@
 namespace Helper {
     // Shape Creation
     ShapeState createCircle(std::string tempoID, Vector2 startPosition, float radius, float outlineSize, int layerID);
+    ShapeState createCircle(std::string tempoID, Vector2 startPosition, float radius, float outlineSize, Color color, Color outlineColor, int layerID);
     ShapeState createRectangle(std::string tempoID, Vector2 startPosition, Vector2 endPosition, float outlineSize, int layerID);
     ShapeState createRectangle(std::string tempoID, Vector2 startPosition, Vector2 endPosition, float outlineSize, Color color, Color outlineColor, int layerID);
     ShapeState createLine(std::string tempoID, Vector2 startPosition, Vector2 endPosition, float size, float outlineSize, int layerID);

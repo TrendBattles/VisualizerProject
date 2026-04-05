@@ -4,13 +4,13 @@
 #include <Core/StateManager.hpp>
 #include <Core/AnimationManager.hpp>
 
+#include <Graphics/Panels/PseudocodePanel.hpp>
 /// @brief UI Management
 class UIManager {
 public:
     UIManager();
-    ~UIManager() = default;
+    ~UIManager();
 
-    void setStateManger(StateManager* source);
     void setAnimationManager(AnimationManager* source);
     
     const std::vector <std::string>& getDSOptions() const;
@@ -21,12 +21,15 @@ public:
     void drawShape(const ShapeState& shape);
     void drawText(const Text& text);
 
+    void renderPseudocodePanel();
     void renderSnapshot();
     void renderSnapshot(const Snapshot& modifiedSnapshot);
 private:
     // To save the snapshots of the data structure
-    StateManager* stateManager = nullptr;
     AnimationManager* animationManager = nullptr;
+    
+    // Pseudocode Visualization
+    PseudocodePanel* pseudocodePanel = nullptr;
 
     //Menu, Settings, DS options, ....
     std::vector <std::string> options;

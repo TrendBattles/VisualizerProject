@@ -2,6 +2,7 @@
 #define IDATASTRUCTUREUI_HPP
 
 #include <Core/InputManager.hpp>
+#include <Core/EventManager.hpp>
 
 #include <Graphics/UIManager.hpp>
 #include <Graphics/Panels/Button.hpp>
@@ -12,7 +13,7 @@ public:
     void setUIManager(UIManager* source);
 
     virtual ~IDataStructureUI() = default;
-    virtual std::string processInput(RawInputEvent nextInput) = 0;
+    virtual CommandPattern processInput(RawInputEvent nextInput) = 0;
 
     virtual void disableOption(std::string optionName) = 0;
     virtual void enableOption(std::string optionName) = 0;

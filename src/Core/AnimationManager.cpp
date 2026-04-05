@@ -44,6 +44,14 @@ bool AnimationManager::canStepBackward(const std::string& DSTarget) {
 bool AnimationManager::canStepForward(const std::string& DSTarget) {
     return stateManager -> canStepForward(DSTarget);
 }
+std::pair <PseudocodeSection, std::vector <int>> AnimationManager::getPseudoInfoAt(const std::string& DSTarget, int idx) {
+    return stateManager -> getPseudoInfoAt(DSTarget, idx);
+}
+
+
+///////////////////////////////////
+///     ANIMATION FUNCTIONS     ///
+///////////////////////////////////
 
 /// @brief Transition jumps, usable for going backward / forward, pausing 
 int AnimationManager::getTransitionCoeff() const {
@@ -65,16 +73,8 @@ Snapshot AnimationManager::requestCurrentSnapshot(const std::string& DSTarget, f
     if (transitionCoeff == 0 || !hasMoreSteps(DSTarget)) {
         return stateManager -> getCurrentSnapShot(DSTarget);
     }
-
-    //Adding a constant delay for each transition
+    
     float elapsed = elapsedSeconds() * speed;
-    float currentDelay = isPaused() ? 0.0f : delayTransition;
-
-    if (elapsed < currentDelay) {
-        return stateManager -> getCurrentSnapShot(DSTarget);
-    }
-
-    elapsed -= currentDelay;
 
     int currentIdx = stateManager -> getSnapshotIdx(DSTarget);
     float duration = stateManager -> getSnapshotTransitionAt(DSTarget, std::max(currentIdx, currentIdx + transitionCoeff));

@@ -31,7 +31,6 @@ void AppLoop::init() {
     animationManager = new AnimationManager();
     animationManager -> setStateManager(stateManager);
 
-    uiManager -> setStateManger(stateManager);
     uiManager -> setAnimationManager(animationManager);
     
     DataStructure = new AVL();
@@ -79,7 +78,7 @@ void AppLoop::VisualizerInputHandling() {
         RawInputEvent nextInput = inputManager -> pollEvent();
 
         // Data Structure operation signal request
-        std::string commandRequest = DataStructureUI -> processInput(nextInput); 
+        CommandPattern commandRequest = DataStructureUI -> processInput(nextInput); 
         eventManager -> handleCommand(commandRequest);
 
         // Playback Controller Input Retrieval
@@ -103,8 +102,10 @@ void AppLoop::VisualizerUpdate() {
     DataStructureUI -> update();
 
     const std::string& DSTarget = uiManager -> getScreenSection();
-    bool operationDisabled = animationManager -> canStepForward(DSTarget);
-    if (operationDisabled) {
+    bool operationEnabled = !animationManager -> canStepForward(DSTarget)
+                        &&  animationManager -> getTransitionCoeff() >= 0;
+
+    if (!operationEnabled) {
         DataStructureUI -> disableAllOperations();
     } else {
         DataStructureUI -> enableAllOperations();
@@ -113,13 +114,15 @@ void AppLoop::VisualizerUpdate() {
 void AppLoop::VisualizerRender() {
     BeginDrawing();
         ClearBackground(GetColor(0x1F2937FF)); // Modern Dark Theme
-
+        
         // Animated Data Structures
         BeginMode2D(camera);
             uiManager -> renderSnapshot();
         EndMode2D();
 
         // Overlays
+        uiManager -> renderPseudocodePanel();
+
         DataStructureUI -> render();
         playbackController -> render();
 

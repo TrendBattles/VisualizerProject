@@ -33,8 +33,13 @@ target_sources(${PROJECT_NAME} PRIVATE
 target_sources(${PROJECT_NAME} PRIVATE
 	"src/DS/IDataStructure.cpp"
 	"src/DS/IDataStructureUI.cpp"
-	"src/DS/Tree/AVL.cpp"
-	"src/DS/Tree/AVLUI.cpp"
+	"src/DS/Tree/AVL/AVL.cpp"
+	"src/DS/Tree/AVL/AVLInsert.cpp"
+	"src/DS/Tree/AVL/AVLRemove.cpp"
+	"src/DS/Tree/AVL/AVLSearch.cpp"
+	"src/DS/Tree/AVL/AVLRotation.cpp"
+	"src/DS/Tree/AVL/AVLSnapshot.cpp"
+	"src/DS/Tree/AVL/AVLUI.cpp"
 )
 
 # Graphics
@@ -43,6 +48,7 @@ target_sources(${PROJECT_NAME} PRIVATE
 	"src/Graphics/RendererCommon.cpp"
 	"src/Graphics/UIManager.cpp"
 	"src/Graphics/Panels/Button.cpp"
+	"src/Graphics/Panels/PseudocodePanel.cpp"
 )
 
 # Link the libraries

@@ -1,4 +1,4 @@
-#include <DS/Tree/AVLUI.hpp>
+#include <DS/Tree/AVL/AVLUI.hpp>
 #include <Graphics/Helper.hpp>
 
 AVLUI::AVLUI() {
@@ -14,14 +14,12 @@ AVLUI::AVLUI() {
 ///////////////////////////
 
 /// @brief Input processing 
-std::string AVLUI::processInput(RawInputEvent nextInput) {
+CommandPattern AVLUI::processInput(RawInputEvent nextInput) {
     updateOperationButtons(nextInput);
     updateField(nextInput);
 
-    std::string fieldSignal = fieldListenerRequest(nextInput);
-    if (!fieldSignal.empty()) return fieldSignal;
-
-    return "";
+    CommandPattern fieldSignal = fieldListenerRequest(nextInput);
+    return fieldSignal;
 }
 
 void AVLUI::disableOption(std::string optionName) {
@@ -254,7 +252,7 @@ void AVLUI::changeField() {
 }
 void AVLUI::updateField(RawInputEvent nextInput) {
     if (operationPlaceholder.empty()) return;
-
+    
     if (nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED) {
         isFieldTextboxFocused = fieldTextbox.contains(nextInput.position);
     }
@@ -280,8 +278,8 @@ void AVLUI::updateField(RawInputEvent nextInput) {
 }
 
 /// @brief Responds requests to Data Structure  
-std::string AVLUI::fieldListenerRequest(RawInputEvent nextInput) {
-    if (operationPlaceholder.empty()) return "";
+CommandPattern AVLUI::fieldListenerRequest(RawInputEvent nextInput) {
+    if (operationPlaceholder.empty()) return CommandPattern();
 
     bool submitEnter = nextInput.inputType == RawInputEvent::InputType::KEY_PRESSED
                     && nextInput.keySignal == KeyboardKey::KEY_ENTER;
@@ -294,14 +292,16 @@ std::string AVLUI::fieldListenerRequest(RawInputEvent nextInput) {
         operationPlaceholder = "";
         changeField();
 
-        if (rawValue.empty()) return "";
+        if (rawValue.empty()) return CommandPattern();
 
-        std::string command = (chosenOperation == "Search" ? "QUERY INTERACT " : "MODIFY INTERACT ");
-        command += getDSName() + " " + Helper::upperString(chosenOperation) + " ";
-        command += rawValue;
-        
-        return command;
+        return CommandPattern {
+            chosenOperation == "Search" ? "QUERY" : "MODIFY",
+            "INTERACT",
+            getDSName(),
+            Helper::upperString(chosenOperation),
+            rawValue
+        };
     }
 
-    return "";
+    return CommandPattern();
 }

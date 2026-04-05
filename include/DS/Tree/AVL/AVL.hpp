@@ -23,7 +23,7 @@ public:
     int searchNode(std::string value) override;
 
     void clearAll() override;
-    void generateSnapshot(float duration, ChangeMap changeMap = ChangeMap()) override;
+    void generateSnapshot(float duration, ChangeMap changeMap = ChangeMap(), PseudocodeSection pseudoFrame = PseudocodeSection::NONE, std::vector <int> pseudoActiveLines = {}) override;
 private:
     AVLNode* root;
     void destroyTree(AVLNode* node);
@@ -37,11 +37,11 @@ private:
     void update(AVLNode* node);
     int balanceFactor(AVLNode* node);
 
-    AVLNode* rotateLeft(AVLNode* node);
-    AVLNode* rotateRight(AVLNode* node);
+    AVLNode* rotateLeft(AVLNode* node, std::vector <int> pseudoActiveLines = {});
+    AVLNode* rotateRight(AVLNode* node, std::vector <int> pseudoActiveLines = {});
     AVLNode* rebalance(AVLNode* node);
 
-    AVLNode* insert(AVLNode* node, int key);
+    AVLNode* insert(AVLNode* node, int key, AVLNode* parent = nullptr);
     void insertNode(int value);
 
     AVLNode* removeSingleChildNode(AVLNode* node);

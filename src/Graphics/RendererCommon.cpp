@@ -1,8 +1,8 @@
 #include <Graphics/RendererCommon.hpp>
 
-///////////////////////////////
-///     MEMBER FUNCTIONS    ///
-///////////////////////////////
+///////////////////
+///     TEXT    ///
+///////////////////
 
 /// @brief Text Functions 
 void Text::setCenter(bool isCentered) {
@@ -14,6 +14,10 @@ void Text::clearTextBuffer() {
 std::string Text::getLabel() const {
     return label;
 }
+
+////////////////////
+///     SHAPE    ///
+////////////////////
 
 /// @brief Shape Functions
 void ShapeState::setColor(Color color, Color outlineColor) {
@@ -45,4 +49,25 @@ void ShapeState::positionTransitAllBy(Vector2 delta) {
     startPosition += delta;
     endPosition += delta;
     content.position += delta;
+}
+
+///////////////////////
+///     FONTS       ///
+///////////////////////
+void CoreFonts::load() {
+    const std::string directory = "../Assets/Font/";
+
+    const std::string CascadiaMonoDir = directory + "CascadiaMono/";
+    CascadiaMonoLight = LoadFont((CascadiaMonoDir + "CascadiaMono-Light.otf").c_str());
+    CascadiaMonoRegular = LoadFont((CascadiaMonoDir + "CascadiaMono-Regular.otf").c_str());
+    CascadiaMonoBold = LoadFont((CascadiaMonoDir + "CascadiaMono-Bold.otf").c_str());
+
+    Consolas = LoadFont((directory + "Consolas/CONSOLAB.TTF").c_str());
+}   
+void CoreFonts::unload() {
+    UnloadFont(CascadiaMonoLight);
+    UnloadFont(CascadiaMonoRegular);
+    UnloadFont(CascadiaMonoBold);
+
+    UnloadFont(Consolas);
 }

@@ -36,48 +36,74 @@ void StateManager::addSnapshot(const std::string& DSTarget, const HistoryFrame& 
 
 /// @brief SnapshotIdx requests
 int StateManager::getSnapshotIdx(const std::string& DSTarget) {
-    return stepMap[DSTarget];
+    auto it = stepMap.find(DSTarget);
+    if (it == stepMap.end()) 
+        throw std::out_of_range("[StateManager] Unknown DS key: " + DSTarget);
+
+    return it -> second;
 }
 void StateManager::setSnapshotIdx(const std::string& DSTarget, int idx) {
+    auto it = stepMap.find(DSTarget);
+    if (it == stepMap.end()) 
+        throw std::out_of_range("[StateManager] Unknown DS key: " + DSTarget);
+
     if (idx < 0 || idx >= getSize(DSTarget)) return;
 
-    stepMap[DSTarget] = idx;
+    it -> second = idx;
 }
 
-/// @brief Snapshot requests 
+//////////////////////////////////
+///     HISTORY REQUESTS       ///
+//////////////////////////////////
 const Snapshot& StateManager::getCurrentSnapShot(const std::string& DSTarget) {
     return getSnapshotAt(DSTarget, stepMap[DSTarget]);
 }
 const Snapshot& StateManager::getSnapshotAt(const std::string& DSTarget, int idx) {
-    const std::vector <HistoryFrame>& targetList = getHistory(DSTarget);
-
-    return idx >= 0 && idx < (int) targetList.size() ? targetList[idx].capturedSnapshot : emptySnapshot;
+    return getHistoryFrame(DSTarget, idx).capturedSnapshot;
 }
 float StateManager::getCurrentSnapshotTransition(const std::string& DSTarget) {
     return getSnapshotTransitionAt(DSTarget, stepMap[DSTarget]);
 }
 float StateManager::getSnapshotTransitionAt(const std::string& DSTarget, int idx) {
-    const std::vector <HistoryFrame>& targetList = getHistory(DSTarget);
-
-    return idx >= 0 && idx < (int) targetList.size() ? targetList[idx].duration : 0;
+    return getHistoryFrame(DSTarget, idx).duration;
 }
+std::pair <PseudocodeSection, std::vector <int>> StateManager::getCurrentPseudoInfo(const std::string& DSTarget) {
+    return getPseudoInfoAt(DSTarget, stepMap[DSTarget]);
+}
+std::pair <PseudocodeSection, std::vector <int>> StateManager::getPseudoInfoAt(const std::string& DSTarget, int idx) {
+    const HistoryFrame& historyFrame = getHistoryFrame(DSTarget, idx);
+
+    return make_pair(historyFrame.pseudoFrame, historyFrame.pseudoActiveLines);
+}
+
 
 /// @brief Clearing the full history of the data structure
 void StateManager::clearAllSnapshots(const std::string& DSTarget) {
-    std::vector <HistoryFrame>& targetList = historyMap[DSTarget];
-    targetList.clear();
-    targetList.shrink_to_fit();
-    targetList.emplace_back(emptyHistory);
+    auto it = historyMap.find(DSTarget);
+    if (it == historyMap.end())
+        throw std::out_of_range("[StateManager] Unknown DS key: " + DSTarget);
+
+    it -> second.clear();
+    it -> second.shrink_to_fit();
+    it -> second.emplace_back(emptyHistory);
     
     stepMap[DSTarget] = 0;
 }
 
 /// @brief History Traversals 
 bool StateManager::canStepForward(const std::string& DSTarget) {
-    return stepMap[DSTarget] + 1 < getSize(DSTarget);
+    auto it = stepMap.find(DSTarget);
+    if (it == stepMap.end()) 
+        throw std::out_of_range("[StateManager] Unknown DS key: " + DSTarget);
+
+    return it -> second + 1 < getSize(DSTarget);
 }
 bool StateManager::canStepBackward(const std::string& DSTarget) {
-    return stepMap[DSTarget] > 0;
+    auto it = stepMap.find(DSTarget);
+    if (it == stepMap.end()) 
+        throw std::out_of_range("[StateManager] Unknown DS key: " + DSTarget);
+
+    return it -> second > 0;
 }
 bool StateManager::stepForward(const std::string& DSTarget) {
     if (canStepForward(DSTarget)) {
@@ -111,6 +137,10 @@ Snapshot StateManager::snapshotTransition(const std::string& DSTarget, int first
     }
 
     float rate = std::min(1.0f, timePoint / duration);
+    // Cubic Eased-Out formula based on time to make the transition smoother
+    // f(r) = 1 - (1 - r)^3
+    float easedRate = 1.0f - std::pow(1.0f - rate, 3.0f);
+    
     Snapshot mergedSnapshot;
 
     std::map <std::string, const ShapeState*> oldSnapshotMap;
@@ -130,7 +160,7 @@ Snapshot StateManager::snapshotTransition(const std::string& DSTarget, int first
             oldSnapshotMap.erase(it);
         }
 
-        mergedSnapshot.emplace_back(Helper::shapeTimeLerp(refShape, newShape, rate));    
+        mergedSnapshot.emplace_back(Helper::shapeTimeLerp(refShape, newShape, easedRate));    
     }
 
     //Removing traces of the modified shapes
@@ -146,7 +176,7 @@ Snapshot StateManager::snapshotTransition(const std::string& DSTarget, int first
         ShapeState refShape = oldShape;
         refShape.color.a = refShape.outlineColor.a = 0;
         refShape.content.textColor.a = 0;
-        mergedSnapshot.emplace_back(Helper::shapeTimeLerp(oldShape, refShape, rate));    
+        mergedSnapshot.emplace_back(Helper::shapeTimeLerp(oldShape, refShape, easedRate));    
     }
 
     std::sort(mergedSnapshot.begin(), mergedSnapshot.end(), [&] (ShapeState& A, ShapeState& B) {
@@ -162,4 +192,9 @@ const std::vector <HistoryFrame>& StateManager::getHistory(const std::string& DS
         throw std::out_of_range("[StateManager] Unknown DS key: " + DSTarget);
 
     return it -> second;
+}
+const HistoryFrame& StateManager::getHistoryFrame(const std::string& DSTarget, int idx) {
+    const std::vector <HistoryFrame>& fullHistory = getHistory(DSTarget);
+
+    return idx < 0 || idx >= (int) fullHistory.size() ? emptyHistory : fullHistory[idx];
 }

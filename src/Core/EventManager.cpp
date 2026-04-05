@@ -1,7 +1,6 @@
 #include <Core/EventManager.hpp>
 #include <Graphics/Helper.hpp>
 
-#include <sstream>
 #include <stdexcept>
 void EventManager::setAnimationManager(AnimationManager* source) {
     animationManager = source;
@@ -11,27 +10,16 @@ void EventManager::setDSPointer(IDataStructure* source) {
 }
 
 /// @brief A function serving the purpose of task division.
-void EventManager::handleCommand(std::string commandString) {
-    if (commandString.empty()) return;
+void EventManager::handleCommand(CommandPattern commandMessage) {
+    if (commandMessage.prefix.empty()) return;
     
-    std::stringstream ss(commandString);
-    std::vector <std::string> parseList(1);
-    while (ss >> parseList.back()) {
-        parseList.push_back("");
-    }
-    parseList.pop_back();
-
-    if (parseList[0] == "MODIFY") {
-        if ((int) parseList.size() != 5) throw std::runtime_error("Invalid command word length");
-
-        handleModification(parseList);
+    if (commandMessage.prefix == "MODIFY") {
+        handleModification(commandMessage);
         return;
     }
 
-    if (parseList[0] == "QUERY") {
-        if ((int) parseList.size() != 5) throw std::runtime_error("Invalid command word length");
-
-        handleQuery(parseList);
+    if (commandMessage.prefix == "QUERY") {
+        handleQuery(commandMessage);
         return;
     }
 
@@ -39,19 +27,19 @@ void EventManager::handleCommand(std::string commandString) {
 }
 
 /// @brief There are two cases. The first is modfication. 
-void EventManager::handleModification(std::vector <std::string> parseList) {
+void EventManager::handleModification(CommandPattern commandMessage) {
     // Empty cases will be worked on to fill in parallelly with the progress
-    if (parseList[1] == "SETTINGS") {
+    if (commandMessage.section == "SETTINGS") {
 
         return;
     }
     
-    if (parseList[1] == "INTERACT") {
-        const std::string& DataStructure = parseList[2];
+    if (commandMessage.section == "INTERACT") {
+        const std::string& DataStructure = commandMessage.property;
 
         if (DataStructure == "AVL_Tree") {
-            const std::string& operation = parseList[3];
-            const std::string& rawValue = parseList[4];
+            const std::string& operation = commandMessage.operation;
+            const std::string& rawValue = commandMessage.value;
             
             if (!animationManager -> isPaused())
                 animationManager -> resetAnimationTimer();
@@ -91,19 +79,22 @@ void EventManager::handleModification(std::vector <std::string> parseList) {
     throw std::runtime_error("Invalid section");
 }
 /// @brief The second is query in contrast. 
-void EventManager::handleQuery(std::vector <std::string> parseList) {
+void EventManager::handleQuery(CommandPattern commandMessage) {
     // Empty cases will be worked on to fill in parallelly with the progress
-    if (parseList[1] == "SETTINGS") {
+    if (commandMessage.section == "SETTINGS") {
 
         return;
     }
-    if (parseList[1] == "INTERACT") {
-        const std::string& DataStructure = parseList[2];
+    if (commandMessage.section == "INTERACT") {
+        const std::string& DataStructure = commandMessage.property;
 
         if (DataStructure == "AVL_Tree") {
-            const std::string& operation = parseList[3];
-            const std::string& rawValue = parseList[4];
+            const std::string& operation = commandMessage.operation;
+            const std::string& rawValue = commandMessage.value;
             
+            if (!animationManager -> isPaused())
+                animationManager -> resetAnimationTimer();
+                
             if (operation == "SEARCH") {
                 DSPointer -> searchNode(rawValue);
                 return;

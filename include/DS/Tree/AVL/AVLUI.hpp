@@ -7,7 +7,7 @@ class AVLUI: public IDataStructureUI {
 public:
     AVLUI();
     
-    std::string processInput(RawInputEvent nextInput) override;
+    CommandPattern processInput(RawInputEvent nextInput) override;
 
     void disableOption(std::string optionName) override;
     void enableOption(std::string optionName) override;
@@ -44,6 +44,6 @@ private:
     void createField(float x, float y);
     void changeField();
     void updateField(RawInputEvent nextInput);
-    std::string fieldListenerRequest(RawInputEvent nextInput);
+    CommandPattern fieldListenerRequest(RawInputEvent nextInput);
 };
 #endif

@@ -5,6 +5,14 @@
 
 #include <DS/IDataStructure.hpp>
 
+struct CommandPattern {
+    std::string prefix = "";
+    std::string section = "";
+    std::string property = "";
+    std::string operation = "";
+    std::string value = "";
+};
+
 /// @brief Event Management
 class EventManager {
 public:
@@ -12,9 +20,9 @@ public:
     void setAnimationManager(AnimationManager* source);
     void setDSPointer(IDataStructure* source);
     
-    void handleCommand(std::string commandString);
-    void handleModification(std::vector <std::string> parseList);
-    void handleQuery(std::vector <std::string> parseList);
+    void handleCommand(CommandPattern commandMessage);
+    void handleModification(CommandPattern commandMessage);
+    void handleQuery(CommandPattern commandMessage);
 private:
     AnimationManager* animationManager = nullptr;
     IDataStructure* DSPointer = nullptr;

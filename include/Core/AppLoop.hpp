@@ -6,8 +6,8 @@
 #include <Core/AnimationManager.hpp>
 #include <Core/PlaybackController.hpp>
 
-#include <DS/Tree/AVL.hpp>
-#include <DS/Tree/AVLUI.hpp>
+#include <DS/Tree/AVL/AVL.hpp>
+#include <DS/Tree/AVL/AVLUI.hpp>
 
 #include <Graphics/UIManager.hpp>
 

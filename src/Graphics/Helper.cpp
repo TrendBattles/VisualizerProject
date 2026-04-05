@@ -23,6 +23,22 @@ ShapeState Helper::createCircle(std::string tempoID, Vector2 startPosition, floa
 
     return tempShape;
 }
+ShapeState Helper::createCircle(std::string tempoID, Vector2 startPosition, float radius, float outlineSize, Color color, Color outlineColor, int layerID) {
+    ShapeState tempShape;
+    tempShape.shapeID = tempoID;
+    tempShape.startPosition = startPosition;
+    tempShape.endPosition = startPosition;
+    tempShape.size = radius;
+
+    tempShape.sType = ShapeType::CIRCLE;
+
+    tempShape.outlineSize = outlineSize;
+    tempShape.color = color;
+    tempShape.outlineColor = outlineColor;
+    tempShape.layerID = layerID;
+
+    return tempShape;
+}
 
 ShapeState Helper::createRectangle(std::string tempoID, Vector2 startPosition, Vector2 endPosition, float outlineSize, int layerID) {
     ShapeState tempShape;

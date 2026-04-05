@@ -2,13 +2,17 @@
 #define STATEMANAGER_HPP
 
 #include <Graphics/RendererCommon.hpp>
+#include <Graphics/Panels/PseudocodePanel.hpp>
 
 /// @brief A manager designed to keep track of different versions of DS
 typedef std::vector <ShapeState> Snapshot;
 
 struct HistoryFrame {
     Snapshot capturedSnapshot;
-    float duration = 0.75f;
+    float duration;
+
+    PseudocodeSection pseudoFrame;
+    std::vector <int> pseudoActiveLines;
 };
 
 class StateManager {
@@ -25,6 +29,9 @@ public:
     const Snapshot& getSnapshotAt(const std::string& DSTarget, int idx);
     float getCurrentSnapshotTransition(const std::string& DSTarget);
     float getSnapshotTransitionAt(const std::string& DSTarget, int idx);
+    std::pair <PseudocodeSection, std::vector <int>> getCurrentPseudoInfo(const std::string& DSTarget);
+    std::pair <PseudocodeSection, std::vector <int>> getPseudoInfoAt(const std::string& DSTarget, int idx);
+
     void clearAllSnapshots(const std::string& DSTarget);
 
     bool canStepForward(const std::string& DSTarget);
@@ -38,9 +45,10 @@ private:
     std::map <std::string, int> stepMap;
 
     const Snapshot emptySnapshot = Snapshot();
-    const HistoryFrame emptyHistory = {Snapshot(), 0.75f};
+    const HistoryFrame emptyHistory = {Snapshot(), 0.75f, PseudocodeSection::NONE, std::vector <int> ()};
 
     const std::vector <HistoryFrame>& getHistory(const std::string& DSTarget);
+    const HistoryFrame& getHistoryFrame(const std::string& DSTarget, int idx);
 };
 
 
