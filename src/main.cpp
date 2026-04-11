@@ -4,8 +4,6 @@ int main() {
     AppLoop* app = new AppLoop();
     app -> init();
 
-    CoreFonts::load();
-
     while (!WindowShouldClose()) {
 
         // Prevent crashing incident
@@ -17,9 +15,8 @@ int main() {
         app -> mainLoop();
     }
 
-    CloseWindow();
-
-    CoreFonts::unload();
     delete app;
+
+    CloseWindow();
     return 0;
 }

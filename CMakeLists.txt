@@ -49,6 +49,7 @@ target_sources(${PROJECT_NAME} PRIVATE
 	"src/Graphics/UIManager.cpp"
 	"src/Graphics/Panels/Button.cpp"
 	"src/Graphics/Panels/PseudocodePanel.cpp"
+	"src/Graphics/Panels/NavigationBar.cpp"
 )
 
 # Link the libraries

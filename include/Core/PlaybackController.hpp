@@ -23,6 +23,7 @@ enum class PlaybackIcon {
 class PlaybackController {
 public:
     PlaybackController();
+    ~PlaybackController();
     void setAnimationManager(AnimationManager* source);
 
     void processInput(RawInputEvent nextInput);
@@ -32,14 +33,14 @@ private:
     AnimationManager* animationManager = nullptr;
 
     // Initialization 
-    Texture playbackMap;
+    Texture playbackMap = {0};
     std::map <PlaybackIcon, Vector2> playbackMapPosition;
     const Vector2 MAP_OFFSET = {117, 69};
     const Vector2 MAP_HORIZONTAL_OFFSET = {190.5, 0}, MAP_VERTICAL_OFFSET = {0, 142.5};
-    const float length = 94, scale = 0.75f;
+    const float length = 94, scale = 0.5f;
 
-    const float BUTTON_Y_BOTTOM_OFFSET = 100.0f;
-    const Vector2 SCREEN_HORIZONTAL_OFFSET = {100.0f, 0.0f};
+    const float NAVBAR_WIDTH = 95.0f;
+    const Vector2 SCREEN_VERTICAL_OFFSET = {0.0f, 100.0f};
     std::map <PlaybackIcon, Vector2> playbackScreenPosition;
     void loadSprite();
 

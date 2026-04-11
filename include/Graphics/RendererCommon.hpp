@@ -21,6 +21,7 @@ enum ShapeType {
     CIRCLE,
     LINE,
     RECTANGLE,
+    ROUNDED_RECTANGLE,
     TEXT,
     ARROW
 };
@@ -32,15 +33,15 @@ struct ShapeState {
     std::string shapeID = "";
 
     //Geometry
-    Vector2 startPosition, endPosition;
-    float size, outlineSize;
+    Vector2 startPosition = Vector2{0.0f, 0.0f}, endPosition = Vector2{0.0f, 0.0f};
+    float size = 0, outlineSize = 0, roundness = 0;
 
     //Recognition
-    ShapeType sType;
-    int layerID;
+    ShapeType sType = ShapeType::TEXT;
+    int layerID = 0;
 
     //Style
-    Color color, outlineColor;
+    Color color = Color{0, 0, 0, 0}, outlineColor = Color{0, 0, 0, 0};
     bool isVisible = true;
     
     //Content
@@ -58,13 +59,35 @@ struct ShapeState {
 };  
 
 struct CoreFonts {
-    inline static Font CascadiaMonoLight, CascadiaMonoRegular, CascadiaMonoBold;
+    inline static Font CascadiaMonoRegular, CascadiaMonoBold;
     inline static Font Consolas;
+    inline static Font Aptos, AptosBold;
     
     // Call this ONCE in AppLoop initialization
     static void load();
 
     // Call this ONCE before app closes
     static void unload();
+};
+
+/// @brief Pseudocode Dashboard Indicator
+enum class PseudocodeSection {
+    NONE,
+    AVL_INSERT,
+    AVL_REMOVE,
+    AVL_REMOVE_SUCCESSOR,
+    AVL_SEARCH,
+    AVL_REBALANCE
+};
+
+/// @brief A storage designedx to keep track of different versions of DS
+typedef std::vector <ShapeState> Snapshot;
+
+struct HistoryFrame {
+    Snapshot capturedSnapshot;
+    float duration;
+
+    PseudocodeSection pseudoFrame;
+    std::vector <int> pseudoActiveLines;
 };
 #endif

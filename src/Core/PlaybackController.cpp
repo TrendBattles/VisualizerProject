@@ -4,6 +4,9 @@
 PlaybackController::PlaybackController() {
     loadSprite();
 }
+PlaybackController::~PlaybackController() {
+    UnloadTexture(playbackMap);
+}
 
 ///////////////////////////////
 ///     GLOBAL FUNCTIONS    ///
@@ -96,12 +99,12 @@ void PlaybackController::loadSprite() {
     playbackMapPosition[PlaybackIcon::STEP_BACKWARD] = MAP_OFFSET + MAP_HORIZONTAL_OFFSET * 4;
     playbackMapPosition[PlaybackIcon::STEP_FORWARD] = MAP_OFFSET + MAP_HORIZONTAL_OFFSET * 5;
 
-    const Vector2 SCREEN_OFFSET = {500, GetScreenHeight() - BUTTON_Y_BOTTOM_OFFSET};
+    const Vector2 SCREEN_OFFSET = Vector2 {(NAVBAR_WIDTH - length * scale) * 0.5f, 300.0f};
     playbackScreenPosition[PlaybackIcon::SKIP_START] = SCREEN_OFFSET;
-    playbackScreenPosition[PlaybackIcon::STEP_BACKWARD] = SCREEN_OFFSET + SCREEN_HORIZONTAL_OFFSET;
-    playbackScreenPosition[PlaybackIcon::PLAY] = playbackScreenPosition[PlaybackIcon::PAUSE] = SCREEN_OFFSET + SCREEN_HORIZONTAL_OFFSET * 2;
-    playbackScreenPosition[PlaybackIcon::STEP_FORWARD] = SCREEN_OFFSET + SCREEN_HORIZONTAL_OFFSET * 3;
-    playbackScreenPosition[PlaybackIcon::SKIP_END] = SCREEN_OFFSET + SCREEN_HORIZONTAL_OFFSET * 4;
+    playbackScreenPosition[PlaybackIcon::STEP_BACKWARD] = SCREEN_OFFSET + SCREEN_VERTICAL_OFFSET;
+    playbackScreenPosition[PlaybackIcon::PLAY] = playbackScreenPosition[PlaybackIcon::PAUSE] = SCREEN_OFFSET + SCREEN_VERTICAL_OFFSET * 2;
+    playbackScreenPosition[PlaybackIcon::STEP_FORWARD] = SCREEN_OFFSET + SCREEN_VERTICAL_OFFSET * 3;
+    playbackScreenPosition[PlaybackIcon::SKIP_END] = SCREEN_OFFSET + SCREEN_VERTICAL_OFFSET * 4;
 }
 
 /// @brief Check button hitboxes with the mouse position 

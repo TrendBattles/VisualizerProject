@@ -10,3 +10,7 @@ void IDataStructureUI::drawButton(const Button& button) {
 void IDataStructureUI::drawTextbox(const Textbox& textbox) {
     drawButton(textbox);
 }
+
+IDataStructureUI::NavPhase IDataStructureUI::getNavPhase() const {
+    return navPhase;
+}

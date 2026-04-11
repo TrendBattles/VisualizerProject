@@ -4,31 +4,8 @@
 /////////////////////////////////
 ///     UI Initialization     ///
 /////////////////////////////////
-UIManager::UIManager() {
-    options = {"AVL_Tree", "Trie", "Linked_List", "Hash_Table", "Graph"};
-    appSection = "AVL_Tree";
-
-    pseudocodePanel = new PseudocodePanel();
-}
-UIManager::~UIManager() {
-    delete pseudocodePanel;
-}
-
-void UIManager::setAnimationManager(AnimationManager* source) {
-    animationManager = source;
-}
-const std::vector <std::string>& UIManager::getDSOptions() const {
-    return options;
-}
-void UIManager::setScreenSection(const std::string& sectionID) {
-    appSection = sectionID;
-}
-const std::string& UIManager::getScreenSection() const {
-    return appSection;
-}
-bool UIManager::isVisualizing() const {
-    return find(options.begin(), options.end(), appSection) != options.end();
-}
+UIManager::UIManager() = default;
+UIManager::~UIManager() = default;
 
 //////////////////////////
 ///     UI Renders     ///
@@ -47,11 +24,12 @@ void UIManager::drawShape(const ShapeState& shape) {
             DrawLineEx(shape.startPosition, shape.endPosition, shape.size, shape.color);
             break;
         case ShapeType::RECTANGLE:
-            DrawRectangleRoundedLinesEx(Helper::createRaylibRectangle(shape.startPosition, shape.endPosition), 0.3f, 10, shape.outlineSize, shape.outlineColor);
-            DrawRectangleRounded(Helper::createRaylibRectangle(shape.startPosition, shape.endPosition), 0.3f, 10, shape.color);
-
-            // DrawRectangleV(shape.startPosition, shape.endPosition - shape.startPosition, shape.color);
-            // DrawRectangleLinesEx(Helper::createRaylibRectangle(shape.startPosition, shape.endPosition), shape.outlineSize, shape.outlineColor);
+            DrawRectangleV(shape.startPosition, shape.endPosition - shape.startPosition, shape.color);
+            DrawRectangleLinesEx(Helper::createRaylibRectangle(shape.startPosition, shape.endPosition), shape.outlineSize, shape.outlineColor);
+            break;
+        case ShapeType::ROUNDED_RECTANGLE:
+            DrawRectangleRoundedLinesEx(Helper::createRaylibRectangle(shape.startPosition, shape.endPosition), shape.roundness, 10, shape.outlineSize, shape.outlineColor);
+            DrawRectangleRounded(Helper::createRaylibRectangle(shape.startPosition, shape.endPosition), shape.roundness, 10, shape.color);
             break;
         case ShapeType::ARROW: {
             float headSize = std::min(shape.size * 3.0f, Vector2Distance(shape.startPosition, shape.endPosition) * 0.5f);
@@ -98,35 +76,7 @@ void UIManager::drawText(const Text& text) {
     DrawTextEx(text.font, text.label.c_str(), finalPosition, text.fontSize, text.spacing, text.textColor);
 }
 
-/// @brief Rendering the pseudocode panel
-void UIManager::renderPseudocodePanel() {
-    int currentIdx = animationManager -> getSnapshotIdx(getScreenSection());
-    int coeff = animationManager -> getTransitionCoeff();
-    
-    // There is a limit of pseudocode demonstration when pausing / going forward
-    if (coeff >= 0 && !animationManager -> canStepForward(getScreenSection())) {
-        pseudocodePanel -> render();
-        return;
-    }
-
-    // Getting the correctly labeled pseudocode highlight.
-    // If coeff = +1 => show the next step
-    // If coeff = 0 => show the current step
-    // If coeff = -1 => show the previous step
-    int pseudoTargetIdx = currentIdx + coeff;
-
-    // Prevent out-of-bounds crashes
-    pseudoTargetIdx = std::min(pseudoTargetIdx, animationManager -> getSize(getScreenSection()) - 1);
-    pseudoTargetIdx = std::max(pseudoTargetIdx, 0);
-
-    auto pseudoSignalRequest = animationManager -> getPseudoInfoAt(getScreenSection(), pseudoTargetIdx);
-    pseudocodePanel -> render(pseudoSignalRequest);
-}
-
-/// @brief Rendering the data structure
-void UIManager::renderSnapshot() {
-    renderSnapshot(animationManager -> requestCurrentSnapshot(getScreenSection()));
-}
+/// @brief Rendering the shape list
 void UIManager::renderSnapshot(const Snapshot& modifiedSnapshot) {
     for (const ShapeState& shape : modifiedSnapshot) {
         drawShape(shape);

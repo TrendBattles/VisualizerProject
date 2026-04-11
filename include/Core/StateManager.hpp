@@ -2,18 +2,6 @@
 #define STATEMANAGER_HPP
 
 #include <Graphics/RendererCommon.hpp>
-#include <Graphics/Panels/PseudocodePanel.hpp>
-
-/// @brief A manager designed to keep track of different versions of DS
-typedef std::vector <ShapeState> Snapshot;
-
-struct HistoryFrame {
-    Snapshot capturedSnapshot;
-    float duration;
-
-    PseudocodeSection pseudoFrame;
-    std::vector <int> pseudoActiveLines;
-};
 
 class StateManager {
 public:

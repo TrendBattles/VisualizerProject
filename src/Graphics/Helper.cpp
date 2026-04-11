@@ -5,6 +5,10 @@
 ///     BUILTIN CONSTRUCTION    ///
 ///////////////////////////////////
 
+long long Helper::random_gen(long long lvalue, long long rvalue) {
+    return rand_mt() % (rvalue - lvalue + 1) + lvalue;
+}
+
 ///
 /// Shape Creation
 ///
@@ -68,6 +72,17 @@ ShapeState Helper::createRectangle(std::string tempoID, Vector2 startPosition, V
     tempShape.outlineColor = outlineColor;
     tempShape.layerID = layerID;
 
+    return tempShape;
+}
+
+ShapeState Helper::createRoundedRectangle(std::string tempoID, Vector2 startPosition, Vector2 endPosition, float outlineSize, float roundness, int layerID) {
+    ShapeState tempShape = createRectangle(tempoID, startPosition, endPosition, outlineSize, layerID);
+    tempShape.roundness = roundness;
+    return tempShape;
+}
+ShapeState Helper::createRoundedRectangle(std::string tempoID, Vector2 startPosition, Vector2 endPosition, float outlineSize, Color color, float roundness, Color outlineColor, int layerID) {
+    ShapeState tempShape = createRectangle(tempoID, startPosition, endPosition, outlineSize, color, outlineColor, layerID);
+    tempShape.roundness = roundness;
     return tempShape;
 }
 

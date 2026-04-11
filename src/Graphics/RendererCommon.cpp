@@ -58,16 +58,21 @@ void CoreFonts::load() {
     const std::string directory = "../Assets/Font/";
 
     const std::string CascadiaMonoDir = directory + "CascadiaMono/";
-    CascadiaMonoLight = LoadFont((CascadiaMonoDir + "CascadiaMono-Light.otf").c_str());
     CascadiaMonoRegular = LoadFont((CascadiaMonoDir + "CascadiaMono-Regular.otf").c_str());
     CascadiaMonoBold = LoadFont((CascadiaMonoDir + "CascadiaMono-Bold.otf").c_str());
 
     Consolas = LoadFont((directory + "Consolas/CONSOLAB.TTF").c_str());
+
+    const std::string AptosDir = directory + "Aptos/";
+    Aptos = LoadFontEx((AptosDir + "Aptos.ttf").c_str(), 64, NULL, 0);
+    AptosBold = LoadFontEx((AptosDir + "Aptos-Bold.ttf").c_str(), 64, NULL, 0);
 }   
 void CoreFonts::unload() {
-    UnloadFont(CascadiaMonoLight);
     UnloadFont(CascadiaMonoRegular);
     UnloadFont(CascadiaMonoBold);
 
     UnloadFont(Consolas);
+
+    UnloadFont(Aptos);
+    UnloadFont(AptosBold);
 }

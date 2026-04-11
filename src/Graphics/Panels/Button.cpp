@@ -35,6 +35,11 @@ std::string Button::getLabelBuffer() {
     return label.getLabel();
 }
 
+void Button::positionTransitAllBy(Vector2 delta) {
+    background.positionTransitAllBy(delta);
+    label.position += delta;
+}
+
 
 ////////////////////////////////
 ///     BUTTON CONTROLS      ///

@@ -23,6 +23,15 @@ public:
     void mainLoop();
 
 private:
+    const std::vector <std::string>& getDSOptions() const;
+    void setScreenSection(const std::string& sectionID);
+    const std::string& getScreenSection() const;
+    bool isVisualizing() const;
+
+    //Menu, Settings, DS options, ....
+    std::vector <std::string> options;
+    std::string appSection = "";
+
     void VisualizerLoop();
     void VisualizerInputHandling();
     void VisualizerUpdate();
@@ -41,6 +50,7 @@ private:
     IDataStructureUI* DataStructureUI = nullptr;
 
     PlaybackController* playbackController = nullptr;
+    PseudocodePanel* pseudocodePanel = nullptr;
 };
 
 #endif

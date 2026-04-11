@@ -16,6 +16,8 @@ public:
     void setLabelBuffer(std::string buffer);
     void clearLabelBuffer();
     std::string getLabelBuffer();
+
+    void positionTransitAllBy(Vector2 delta); 
 private:
     ShapeState background;
     Text label;
@@ -25,6 +27,7 @@ enum class ButtonState {
     CLICKED,
     HOLD,
     ACTIVE,
+    INACTIVE,
     DISABLED,
     HOVERED,
     HIDDEN,
