@@ -8,8 +8,6 @@
 AVLNode* AVL::searchNode(int value) {
     AVLNode* result = search(root, value);
 
-    //Returning back to normal tree
-    generateSnapshot(0.5f);
     return result;
 }
 

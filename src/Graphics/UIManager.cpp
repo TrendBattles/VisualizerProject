@@ -79,6 +79,6 @@ void UIManager::drawText(const Text& text) {
 /// @brief Rendering the shape list
 void UIManager::renderSnapshot(const Snapshot& modifiedSnapshot) {
     for (const ShapeState& shape : modifiedSnapshot) {
-        drawShape(shape);
+        if (shape.isVisible) drawShape(shape);
     }
 }

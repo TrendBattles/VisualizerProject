@@ -8,6 +8,8 @@
 
 #include <DS/Tree/AVL/AVL.hpp>
 #include <DS/Tree/AVL/AVLUI.hpp>
+#include <DS/Tree/Trie/Trie.hpp>
+#include <DS/Tree/Trie/TrieUI.hpp>
 
 #include <Graphics/UIManager.hpp>
 
@@ -30,14 +32,22 @@ private:
 
     //Menu, Settings, DS options, ....
     std::vector <std::string> options;
-    std::string appSection = "";
+    std::string appSection = "", pendingSection = "";
+
+    struct DataStructurePackage {
+        Camera2D camera;
+        IDataStructure* DataStructure = nullptr;
+        IDataStructureUI* DataStructureUI = nullptr;
+    };
+    std::map <std::string, DataStructurePackage> DSPackage;
 
     void VisualizerLoop();
     void VisualizerInputHandling();
     void VisualizerUpdate();
+    void VisualizerCommandUpdate();
     void VisualizerRender();
+    void SwitchSection();
 
-    Camera2D camera;
     UIManager* uiManager = nullptr;
     
     InputManager* inputManager = nullptr;
@@ -45,9 +55,6 @@ private:
 
     StateManager* stateManager = nullptr;
     AnimationManager* animationManager = nullptr;
-
-    IDataStructure* DataStructure = nullptr;
-    IDataStructureUI* DataStructureUI = nullptr;
 
     PlaybackController* playbackController = nullptr;
     PseudocodePanel* pseudocodePanel = nullptr;

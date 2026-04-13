@@ -15,8 +15,7 @@ int main() {
         app -> mainLoop();
     }
 
-    delete app;
-
     CloseWindow();
+    delete app;
     return 0;
 }

@@ -18,18 +18,16 @@ public:
     AVL();
     ~AVL();
 
-    int insertNode(std::string value) override;
-    int removeNode(std::string value) override;
-    int searchNode(std::string value) override;
+    bool insertNode(std::string value) override;
+    bool removeNode(std::string value) override;
+    bool searchNode(std::string value) override;
 
     void clearAll() override;
     void generateSnapshot(float duration, ChangeMap changeMap = ChangeMap(), PseudocodeSection pseudoFrame = PseudocodeSection::NONE, std::vector <int> pseudoActiveLines = {}) override;
+    std::string getDSID() const override;
 private:
-    AVLNode* root;
+    AVLNode* root = nullptr;
     void destroyTree(AVLNode* node);
-
-    void getAllNodesInSubtree(AVLNode* root, std::vector <AVLNode*>& nodeList);
-    std::vector <AVLNode*> getAllNodesInSubtree(AVLNode* root);
 
     Snapshot buildSnapshot(const ChangeMap& changeMap);
 

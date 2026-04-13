@@ -20,12 +20,19 @@ public:
     void setAnimationManager(AnimationManager* source);
     void setDSPointer(IDataStructure* source);
     
-    void handleCommand(CommandPattern commandMessage);
-    void handleModification(CommandPattern commandMessage);
-    void handleQuery(CommandPattern commandMessage);
+    void handleCommand(CommandPattern commandRequest);
+    void handleModification(CommandPattern commandRequest);
+    void handleQuery(CommandPattern commandRequest);
+
+    void pushToQueue(CommandPattern commandRequest);
+    CommandPattern popNextCommand();
+    CommandPattern peekNextCommand();
+    bool hasPendingCommands() const;
 private:
     AnimationManager* animationManager = nullptr;
     IDataStructure* DSPointer = nullptr;
+
+    std::queue <CommandPattern> commandQueue;
 };
 
 #endif

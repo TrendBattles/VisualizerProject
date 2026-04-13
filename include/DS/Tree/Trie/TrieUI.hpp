@@ -1,11 +1,11 @@
-#ifndef AVLUI_HPP
-#define AVLUI_HPP
+#ifndef TRIEUI_HPP
+#define TRIEUI_HPP
 
 #include <DS/IDataStructureUI.hpp>
 
-class AVLUI: public IDataStructureUI {
+class TrieUI: public IDataStructureUI {
 public:
-    AVLUI();
+    TrieUI();
     
     CommandPattern processInput(RawInputEvent nextInput) override;
 
@@ -34,7 +34,7 @@ private:
     CommandPattern navbarListenerRequest(RawInputEvent nextInput);
     void updateNavbar(RawInputEvent nextInput) override;
 
-    const int TEXTBOX_LENGTH_LIMIT = 4;
+    const int TEXTBOX_LENGTH_LIMIT = 5;
     std::string operationPlaceholder = "";
 
     const float FIELD_GAP = 30.0f;

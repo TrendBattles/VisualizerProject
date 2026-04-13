@@ -16,7 +16,7 @@ public:
     void setAnimationManager(AnimationManager* source);
     void setUIManager(UIManager* source);
     void render(std::string DSTarget);
-    void renderPseudoInfo(std::pair <PseudocodeSection, std::vector <int>> pseudoInfo = {PseudocodeSection::NONE, {}}); 
+    void update();
 
     void processInput(RawInputEvent nextInput);
 private:
@@ -26,12 +26,18 @@ private:
     void init();
     std::map<PseudocodeSection, std::vector <std::string>> pseudocodeContent;
     
+    enum PanelStatus {
+        OPEN,
+        CLOSED
+    };
+    PanelStatus panelStatus = PanelStatus::OPEN;
     const Vector2 toggleSize = {80.0f, 40.0f};
-    ButtonController toggleButton;
+    ButtonController activeButton, inactiveButton;
 
-    const Vector2 panelSize = {350.0f, 500.0f}, textOffset = {30.0f, 60.0f}, textPadding = {0.0f, 15.0f};
+    const Vector2 panelSize = {350.0f, 300.0f}, textOffset = {30.0f, 60.0f}, textPadding = {0.0f, 15.0f};
     Vector2 ORIGIN_POS;
     const float fontSize = 12.0f;
-    void drawLogicalCode(PseudocodeSection pseudoFrame, std::vector <int> pseudoActiveLines);
+
+    void renderPseudoInfo(std::pair <PseudocodeSection, std::vector <int>> pseudoInfo = {PseudocodeSection::NONE, {}}); 
 };
 #endif

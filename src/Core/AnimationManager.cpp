@@ -19,6 +19,11 @@ bool AnimationManager::hasMoreSteps(const std::string& DSTarget) {
     return stateManager -> canStepBackward(DSTarget);
 }
 
+/// @brief The operations are allowed to take inputs when the app isn't currently animating the data structure. 
+bool AnimationManager::allowsOperations(const std::string& DSTarget) {
+    return !canStepForward(DSTarget) && getTransitionCoeff() >= 0;
+}
+
 
 ///////////////////////////////////////////////
 ///     STATE MANAGER WRAPPER FUNCTIONS     ///

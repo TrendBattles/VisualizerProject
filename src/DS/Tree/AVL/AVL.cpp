@@ -6,8 +6,7 @@ AVL::AVL() {
 }
 
 AVL::~AVL() {
-    destroyTree(root);
-    root = nullptr;
+    clearAll();
 }
 
 void AVL::destroyTree(AVLNode* node) {
@@ -20,25 +19,14 @@ void AVL::destroyTree(AVLNode* node) {
     delete node;
 }
 
-/// @brief A node list of the entire subtree 
-void AVL::getAllNodesInSubtree(AVLNode* root, std::vector <AVLNode*>& nodeList) {
-    if (root == nullptr) return;
-    nodeList.push_back(root);
-
-    getAllNodesInSubtree(root -> leftChild);
-    getAllNodesInSubtree(root -> rightChild);
-}
-std::vector <AVLNode*> AVL::getAllNodesInSubtree(AVLNode* root) {
-    std::vector <AVLNode*> nodeList;
-    getAllNodesInSubtree(root, nodeList);
-
-    return nodeList;
+std::string AVL::getDSID() const {
+    return "AVL_Tree";
 }
 
 ////////////////////////////////////
 ///     REPONSIVE FUNCTIONS      ///
 ////////////////////////////////////
-int AVL::insertNode(std::string value) {
+bool AVL::insertNode(std::string value) {
     int valueParse = 0;
     try {
         valueParse = std::stoi(value);
@@ -50,7 +38,7 @@ int AVL::insertNode(std::string value) {
     insertNode(valueParse);
     return true;
 }
-int AVL::removeNode(std::string value) {
+bool AVL::removeNode(std::string value) {
     int valueParse = 0;
     try {
         valueParse = std::stoi(value);
@@ -62,7 +50,7 @@ int AVL::removeNode(std::string value) {
     removeNode(valueParse);
     return true;
 }
-int AVL::searchNode(std::string value) {
+bool AVL::searchNode(std::string value) {
     int valueParse = 0;
     try {
         valueParse = std::stoi(value);
@@ -77,7 +65,8 @@ void AVL::clearAll() {
     destroyTree(root);
     root = nullptr;
 
-    stateManager -> clearAllSnapshots("AVL_Tree");
+    if (stateManager != nullptr)
+        stateManager -> clearAllSnapshots(getDSID());
 }
 
 

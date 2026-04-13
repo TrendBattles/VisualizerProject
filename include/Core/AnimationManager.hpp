@@ -12,6 +12,7 @@ public:
 
     bool isPaused() const;
     bool hasMoreSteps(const std::string& DSTarget);
+    bool allowsOperations(const std::string& DSTarget);
 
     int getSize(const std::string& DSTarget);
     void setSnapshotIdx(const std::string& DSTarget, int idx);

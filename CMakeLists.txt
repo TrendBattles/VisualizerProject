@@ -40,6 +40,8 @@ target_sources(${PROJECT_NAME} PRIVATE
 	"src/DS/Tree/AVL/AVLRotation.cpp"
 	"src/DS/Tree/AVL/AVLSnapshot.cpp"
 	"src/DS/Tree/AVL/AVLUI.cpp"
+	"src/DS/Tree/Trie/Trie.cpp"
+	"src/DS/Tree/Trie/TrieUI.cpp"
 )
 
 # Graphics

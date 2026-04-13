@@ -10,36 +10,34 @@ void EventManager::setDSPointer(IDataStructure* source) {
 }
 
 /// @brief A function serving the purpose of task division.
-void EventManager::handleCommand(CommandPattern commandMessage) {
-    if (commandMessage.prefix.empty()) return;
+void EventManager::handleCommand(CommandPattern commandRequest) {
+    if (commandRequest.prefix.empty()) return;
     
-    if (commandMessage.prefix == "MODIFY") {
-        handleModification(commandMessage);
+    if (commandRequest.prefix == "MODIFY") {
+        handleModification(commandRequest);
         return;
     }
 
-    if (commandMessage.prefix == "QUERY") {
-        handleQuery(commandMessage);
+    if (commandRequest.prefix == "QUERY") {
+        handleQuery(commandRequest);
         return;
     }
-
-    throw std::runtime_error("Invalid command");
 }
 
 /// @brief There are two cases. The first is modfication. 
-void EventManager::handleModification(CommandPattern commandMessage) {
+void EventManager::handleModification(CommandPattern commandRequest) {
     // Empty cases will be worked on to fill in parallelly with the progress
-    if (commandMessage.section == "SETTINGS") {
+    if (commandRequest.section == "SETTINGS") {
 
         return;
     }
     
-    if (commandMessage.section == "INTERACT") {
-        const std::string& DataStructure = commandMessage.property;
+    if (commandRequest.section == "INTERACT") {
+        const std::string& DataStructure = commandRequest.property;
 
         if (DataStructure == "AVL_Tree") {
-            const std::string& operation = commandMessage.operation;
-            const std::string& rawValue = commandMessage.value;
+            const std::string& operation = commandRequest.operation;
+            const std::string& rawValue = commandRequest.value;
             
             if (!animationManager -> isPaused())
                 animationManager -> resetAnimationTimer();
@@ -52,13 +50,35 @@ void EventManager::handleModification(CommandPattern commandMessage) {
                 DSPointer -> removeNode(rawValue);
                 return;
             }
+            if (operation == "CLEAR") {
+                DSPointer -> clearAll();
+                return;
+            }
 
             throw std::runtime_error("Invalid AVL function");
         }
 
         if (DataStructure == "Trie") {
+            const std::string& operation = commandRequest.operation;
+            const std::string& rawValue = commandRequest.value;
+            
+            if (!animationManager -> isPaused())
+                animationManager -> resetAnimationTimer();
+                
+            if (operation == "INSERT") {
+                DSPointer -> insertNode(rawValue);
+                return;
+            }
+            if (operation == "REMOVE") {
+                DSPointer -> removeNode(rawValue);
+                return;
+            }
+            if (operation == "CLEAR") {
+                DSPointer -> clearAll();
+                return;
+            }
 
-            return;
+            throw std::runtime_error("Invalid Trie function");
         }
         if (DataStructure == "Linked_List") {
 
@@ -79,18 +99,18 @@ void EventManager::handleModification(CommandPattern commandMessage) {
     throw std::runtime_error("Invalid section");
 }
 /// @brief The second is query in contrast. 
-void EventManager::handleQuery(CommandPattern commandMessage) {
+void EventManager::handleQuery(CommandPattern commandRequest) {
     // Empty cases will be worked on to fill in parallelly with the progress
-    if (commandMessage.section == "SETTINGS") {
+    if (commandRequest.section == "SETTINGS") {
 
         return;
     }
-    if (commandMessage.section == "INTERACT") {
-        const std::string& DataStructure = commandMessage.property;
+    if (commandRequest.section == "INTERACT") {
+        const std::string& DataStructure = commandRequest.property;
 
         if (DataStructure == "AVL_Tree") {
-            const std::string& operation = commandMessage.operation;
-            const std::string& rawValue = commandMessage.value;
+            const std::string& operation = commandRequest.operation;
+            const std::string& rawValue = commandRequest.value;
             
             if (!animationManager -> isPaused())
                 animationManager -> resetAnimationTimer();
@@ -104,8 +124,18 @@ void EventManager::handleQuery(CommandPattern commandMessage) {
         }
 
         if (DataStructure == "Trie") {
+            const std::string& operation = commandRequest.operation;
+            const std::string& rawValue = commandRequest.value;
+            
+            if (!animationManager -> isPaused())
+                animationManager -> resetAnimationTimer();
+                
+            if (operation == "SEARCH") {
+                DSPointer -> searchNode(rawValue);
+                return;
+            }
 
-            return;
+            throw std::runtime_error("Invalid Trie function");
         }
         if (DataStructure == "Linked_List") {
             
@@ -126,3 +156,23 @@ void EventManager::handleQuery(CommandPattern commandMessage) {
     throw std::runtime_error("Invalid section");
 }
 
+void EventManager::pushToQueue(CommandPattern commandRequest) {
+    commandQueue.push(commandRequest);
+}
+CommandPattern EventManager::popNextCommand() {
+    if (commandQueue.empty())
+        return CommandPattern();
+
+    CommandPattern firstCommand = commandQueue.front();
+    commandQueue.pop();
+    return firstCommand;
+}
+CommandPattern EventManager::peekNextCommand() {
+    if (commandQueue.empty())
+        return CommandPattern();
+
+    return commandQueue.front();
+}
+bool EventManager::hasPendingCommands() const {
+    return !commandQueue.empty();
+}

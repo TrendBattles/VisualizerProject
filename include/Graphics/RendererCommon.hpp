@@ -10,7 +10,7 @@ struct Text {
     float fontSize = 10.0f, spacing = 5.0f;
     Color textColor = BLACK;
     Vector2 position = Vector2{0.0f, 0.0f};
-    int centerToggle = false;
+    bool centerToggle = false;
 
     void setCenter(bool isCentered);
     void clearTextBuffer();
@@ -77,7 +77,11 @@ enum class PseudocodeSection {
     AVL_REMOVE,
     AVL_REMOVE_SUCCESSOR,
     AVL_SEARCH,
-    AVL_REBALANCE
+    AVL_REBALANCE,
+
+    TRIE_INSERT,
+    TRIE_REMOVE,
+    TRIE_SEARCH,
 };
 
 /// @brief A storage designedx to keep track of different versions of DS

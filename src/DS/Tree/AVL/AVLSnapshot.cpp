@@ -102,5 +102,5 @@ void AVL::generateSnapshot(float duration, ChangeMap changeMap, PseudocodeSectio
         return;
     }
 
-    stateManager -> addSnapshot("AVL_Tree", HistoryFrame{ buildSnapshot(changeMap), duration, pseudoFrame, pseudoActiveLines});
+    stateManager -> addSnapshot(getDSID(), HistoryFrame{ buildSnapshot(changeMap), duration, pseudoFrame, pseudoActiveLines});
 }

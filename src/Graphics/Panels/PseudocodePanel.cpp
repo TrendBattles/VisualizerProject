@@ -18,15 +18,15 @@ void PseudocodePanel::setUIManager(UIManager* source) {
 }
 
 void PseudocodePanel::init() {
-    ORIGIN_POS = Vector2{GetScreenWidth() - 10.0f, panelSize.y + 10.0f} - panelSize;
+    ORIGIN_POS = Vector2{GetScreenWidth() - 10.0f, GetScreenHeight() - 10.0f} - panelSize;
 
-    auto createButton = [&] (std::string prefix, std::string label, Color backgroundColor, Color textColor) -> Button {
+    auto createButton = [&] (std::string prefix, std::string label, Vector2 position, Color backgroundColor, Color outlineColor, Color textColor) -> Button {
         return Helper::createButton(
             Helper::createRectangle(
                 "PP" + Helper::rectangleStringBuffer(prefix),
-                Vector2{panelSize.x - toggleSize.x, 0}, Vector2{panelSize.x, toggleSize.y},
+                position, position + toggleSize,
                 2.0f, 
-                backgroundColor, BLACK,
+                backgroundColor, outlineColor,
                 1
             ),
 
@@ -34,9 +34,11 @@ void PseudocodePanel::init() {
         );
     }; 
 
-    toggleButton.setButtonSettings(ButtonState::ACTIVE, createButton("_active", "x", GetColor(0xC9AE8AFF), BLACK));
-    toggleButton.setButtonSettings(ButtonState::INACTIVE, createButton("_inactive", "+", GetColor(0xC9AE8AFF), BLACK));
-
+    activeButton.setButtonSettings(ButtonState::ACTIVE, createButton("_active", "x", {0.0f, 0.0f}, GetColor(0), GetColor(0), WHITE));
+    activeButton.setButtonSettings(ButtonState::HOVERED, createButton("_active_hovered", "x", {0.0f, 0.0f}, GetColor(0), GetColor(0x81A1C1FF), GetColor(0xECEFF4FF)));
+    inactiveButton.setButtonSettings(ButtonState::ACTIVE, createButton("_inactive", "+", panelSize - toggleSize, Fade(BLACK, 0.3f), GetColor(0), WHITE));
+    inactiveButton.setButtonSettings(ButtonState::HOVERED, createButton("_inactive_hovered", "+", panelSize - toggleSize, GetColor(0), GetColor(0x81A1C1FF), GetColor(0xECEFF4FF)));
+    
     pseudocodeContent[PseudocodeSection::NONE] = {};
 
     //AVL_Tree
@@ -106,6 +108,47 @@ void PseudocodePanel::init() {
         "    node = rotateLeft(node)",
         "  return node"
     };
+
+    pseudocodeContent[PseudocodeSection::TRIE_INSERT] = {
+        "insert(node, str, idx):",
+        "  node.count += 1",
+        "  if idx == length(str):",
+        "    return",
+        "  nxtNode = node.child[str[idx]]",
+        "  if nxtNode is null:",
+        "    initialize nxtNode",
+        "  insert(nxtNode, str, idx + 1)"
+    };
+
+    pseudocodeContent[PseudocodeSection::TRIE_REMOVE] = {
+        "remove(node, str, idx):",
+        "  if node is null:",
+        "    return",
+        "  if idx == length(str):",
+        "    node.count -= 1",
+        "    return node",
+        "  nxtNode = node.child[str[idx]]",
+        "  if nxtNode is null:",
+        "    return node",
+        "  nxtNode = remove(nxtNode, str, idx + 1)",
+        "  if nxtNode is truncated:",
+        "    node.Count -= 1",
+        "    if nxtNode is empty:",
+        "       delete nxtNode",
+        "  return node"
+    };
+
+    pseudocodeContent[PseudocodeSection::TRIE_SEARCH] = {
+        "search(node, str, idx):",
+        "  if node is null:",
+        "    return",
+        "  if idx == length(str):",
+        "    searching succeeded",
+        "    return",
+        "  nxtNode = node.child[str[idx]]",
+        "  nxtNode = remove(nxtNode, str, idx + 1)",
+        "  search(node, str + 1, idx)"
+    };
 }
 
 void PseudocodePanel::render(std::string DSTarget) {
@@ -132,25 +175,41 @@ void PseudocodePanel::render(std::string DSTarget) {
     renderPseudoInfo(pseudoSignalRequest);
 }
 
-void PseudocodePanel::renderPseudoInfo(std::pair <PseudocodeSection, std::vector <int>> pseudoInfo) {
-    drawLogicalCode(pseudoInfo.first, pseudoInfo.second);
+void PseudocodePanel::update() {
+    Vector2 mouse = GetMousePosition();
+
+    if (panelStatus == PanelStatus::OPEN) {
+        activeButton.setButtonState(activeButton.contains(mouse - ORIGIN_POS) ? ButtonState::HOVERED : ButtonState::ACTIVE);
+
+        inactiveButton.setButtonState(ButtonState::ACTIVE);
+    } else {
+        inactiveButton.setButtonState(inactiveButton.contains(mouse - ORIGIN_POS) ? ButtonState::HOVERED : ButtonState::ACTIVE);
+        activeButton.setButtonState(ButtonState::ACTIVE);
+    }
 }
 
 /// @brief User Input processing 
 void PseudocodePanel::processInput(RawInputEvent nextInput) {
     if (nextInput.inputType != RawInputEvent::InputType::LEFT_MOUSE_CLICKED) return;
-    if (toggleButton.contains(nextInput.position - ORIGIN_POS)) {
-        bool isPanelHidden = toggleButton.getButtonState() == ButtonState::INACTIVE;
-        toggleButton.setButtonState(isPanelHidden ? ButtonState::ACTIVE : ButtonState::INACTIVE);
+    
+    // Opening / Closing the panel
+    if (panelStatus == PanelStatus::OPEN && activeButton.contains(nextInput.position - ORIGIN_POS)) {
+        panelStatus = PanelStatus::CLOSED;
+    } else if (panelStatus == PanelStatus::CLOSED && inactiveButton.contains(nextInput.position - ORIGIN_POS)) {
+        panelStatus = PanelStatus::OPEN;
     }
 }
 
-void PseudocodePanel::drawLogicalCode(PseudocodeSection pseudoFrame, std::vector <int> pseudoActiveLines) {
-    if (toggleButton.getButtonState() == ButtonState::INACTIVE) {
+// Rendering pseudocode on the panel
+void PseudocodePanel::renderPseudoInfo(std::pair <PseudocodeSection, std::vector <int>> pseudoInfo) {
+    PseudocodeSection pseudoFrame = pseudoInfo.first; 
+    std::vector <int> pseudoActiveLines = pseudoInfo.second;
+
+    if (panelStatus == PanelStatus::CLOSED) {
         // If the pseudocode panel is closed, make sure to leave a toggle button to open up.
 
-        ShapeState toggleShape = toggleButton.getButtonShape().getBackground();
-        toggleShape.setText(toggleButton.getButtonShape().getLabel());
+        ShapeState toggleShape = inactiveButton.getButtonShape().getBackground();
+        toggleShape.setText(inactiveButton.getButtonShape().getLabel());
         toggleShape.positionTransitAllBy(ORIGIN_POS);
 
         uiManager -> drawShape(toggleShape);
@@ -166,8 +225,8 @@ void PseudocodePanel::drawLogicalCode(PseudocodeSection pseudoFrame, std::vector
     );
     
     // Pseudocode Toggle button
-    ShapeState toggleShape = toggleButton.getButtonShape().getBackground();
-    toggleShape.setText(toggleButton.getButtonShape().getLabel());
+    ShapeState toggleShape = activeButton.getButtonShape().getBackground();
+    toggleShape.setText(activeButton.getButtonShape().getLabel());
     toggleShape.positionTransitAllBy(ORIGIN_POS);
     uiManager -> drawShape(toggleShape);
 
