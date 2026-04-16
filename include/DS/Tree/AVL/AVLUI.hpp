@@ -44,7 +44,6 @@ private:
     const float FIELD_RANDOM_HEIGHT = 60.0f;
     const float FIELD_SUBMIT_WIDTH = 120.0f;
     const float FIELD_SUBMIT_HEIGHT = 60.0f;
-    const float FIELD_Y_BOTTOM_OFFSET = 100.0f;
 
     Textbox fieldTextbox;
     bool isFieldTextboxFocused = false;

@@ -87,9 +87,11 @@ void TrieUI::update() {
         } else {
             SetMouseCursor(MOUSE_CURSOR_DEFAULT);
         }
+    } else {
+        SetMouseCursor(MOUSE_CURSOR_DEFAULT);
     }
     
-
+    
     NavigationBar& navbar = navbarMap[navPhase];
     navbar.hoverButtonTrigger();
 }
@@ -115,6 +117,12 @@ void TrieUI::render() {
     tempTextbox.positionTransitAllBy(rootPos);
     tempRandom.positionTransitAllBy(rootPos);
     tempSubmit.positionTransitAllBy(rootPos);
+
+    if (isFieldTextboxFocused) {
+        ShapeState background = tempTextbox.getBackground();
+        background.setColor(GetColor(0x3B4252FF), GetColor(0x81A1C1FF));
+        tempTextbox.setBackground(background);
+    }
 
     drawTextbox(tempTextbox);
     drawButton(tempRandom);
@@ -221,20 +229,20 @@ void TrieUI::createNavbarToggle() {
 
     openToggle.setButtonSettings(
         ButtonState::ACTIVE,
-        createButton("_active", "<", CoreFonts::Aptos, GetColor(0), GetColor(0), WHITE)
+        createButton("_active", "<<", CoreFonts::Aptos, GetColor(0), GetColor(0), WHITE)
     );
     openToggle.setButtonSettings(
         ButtonState::HOVERED,
-        createButton("_hovered", "<", CoreFonts::AptosBold, GetColor(0), GetColor(0x81A1C1FF), GetColor(0xECEFF4FF))
+        createButton("_hovered", "<<", CoreFonts::AptosBold, GetColor(0), GetColor(0x81A1C1FF), GetColor(0xECEFF4FF))
     );
 
     closedToggle.setButtonSettings(
         ButtonState::ACTIVE,
-        createButton("_active", ">", CoreFonts::Aptos, GetColor(0), GetColor(0), WHITE)
+        createButton("_active", ">>", CoreFonts::Aptos, GetColor(0), GetColor(0), WHITE)
     );
     closedToggle.setButtonSettings(
         ButtonState::HOVERED,
-        createButton("_hovered", ">", CoreFonts::AptosBold, GetColor(0), GetColor(0x81A1C1FF), GetColor(0xECEFF4FF))
+        createButton("_hovered", ">>", CoreFonts::AptosBold, GetColor(0), GetColor(0x81A1C1FF), GetColor(0xECEFF4FF))
     );
 
 
@@ -298,14 +306,14 @@ CommandPattern TrieUI::navbarListenerRequest(RawInputEvent nextInput) {
         navPhase = NavPhase::NAV_CLOSED;
         operationPlaceholder = "";
         changeField();
-        return CommandPattern{"MODIFY", "INTERACT", getDSName(), "CLEAR", ""};
+        return CommandPattern{"MODIFY", "INTERACT", getDSName(), "CLEAR", {}};
     }
 
     if (find(DSList.begin(), DSList.end(), signal) != DSList.end()) {
         navPhase = NavPhase::NAV_CLOSED;
         operationPlaceholder = "";
         changeField();
-        return CommandPattern{"NAVIGATE", "DS_SWITCH", signal, "", ""};
+        return CommandPattern{"NAVIGATE", "DS_SWITCH", signal, "", {}};
     }
 
     return CommandPattern();
@@ -411,7 +419,7 @@ CommandPattern TrieUI::fieldListenerRequest(RawInputEvent nextInput) {
     bool randomClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
                     && fieldRandom.getButtonShape().contains(nextInput.position - rootPos);
 
-    // When the random request is required, set a random value from 0 to 9999 for the input box
+    // When the random request is required, set a random value with a random length [1, TEXTBOX_LENGTH]
     if (randomClick) {
         int randLength = Helper::random_gen(1, TEXTBOX_LENGTH_LIMIT);
         std::string str = "";
@@ -434,13 +442,13 @@ CommandPattern TrieUI::fieldListenerRequest(RawInputEvent nextInput) {
     navPhase = NavPhase::NAV_CLOSED;
     changeField();
 
-    if (rawValue.empty()) return CommandPattern();
+    if (rawValue.empty()) rawValue = "0";
 
     return CommandPattern {
         Helper::upperString(chosenOperation) == "SEARCH" ? "QUERY" : "MODIFY",
         "INTERACT",
         getDSName(),
         Helper::upperString(chosenOperation),
-        rawValue
+        {rawValue}
     };
 }

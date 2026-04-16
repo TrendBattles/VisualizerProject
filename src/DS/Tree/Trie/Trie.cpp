@@ -76,31 +76,26 @@ void Trie::clearAll() {
 
 void Trie::insertString(std::string value) {
     insert(root, value, 0);
+
     generateSnapshot(1.0f);
 }
 
 void Trie::insert(TrieNode* node, const std::string& value, int idx) {
-    node -> prefixCnt += 1;
-
-    generateSnapshot(
-        0.5f,
-        singleChange(Helper::nodeStringBuffer(value.substr(0, idx)), Highlight::INSERTED),
-        PseudocodeSection::TRIE_INSERT,
-        {1}   
-    );
-
     generateSnapshot(
         0.3f,
         singleChange(Helper::nodeStringBuffer(value.substr(0, idx)), Highlight::ACTIVE),
         PseudocodeSection::TRIE_INSERT,
-        {2}
+        {1}
     );
     if (idx == (int) value.length()) {
+        node -> prefixCnt += 1;
+        root -> prefixCnt += 1;
+        
         generateSnapshot(
-            0.3f,
-            singleChange(Helper::nodeStringBuffer(value.substr(0, idx)), Highlight::INACTIVE),
+            0.5f,
+            singleChange(Helper::nodeStringBuffer(value.substr(0, idx)), Highlight::INSERTED),
             PseudocodeSection::TRIE_INSERT,
-            {3}
+            {2, 3}   
         );
         return;
     }
@@ -174,6 +169,7 @@ TrieNode* Trie::remove(TrieNode* node, const std::string& value, int idx) {
 
     if (idx == (int) value.length()) {
         node -> prefixCnt -= 1;
+        root -> prefixCnt -= 1;
 
         generateSnapshot(
             0.3f,
@@ -213,7 +209,6 @@ TrieNode* Trie::remove(TrieNode* node, const std::string& value, int idx) {
         return node;
     }
 
-    int lastCnt = nxtNode -> prefixCnt;
     generateSnapshot(
         0.3f,
         node == nullptr ? ChangeMap() : singleChange(Helper::nodeStringBuffer(value.substr(0, idx)), Highlight::ACTIVE),
@@ -229,34 +224,23 @@ TrieNode* Trie::remove(TrieNode* node, const std::string& value, int idx) {
         {10}    
     );
 
-    if (nxtNode == nullptr || nxtNode -> prefixCnt < lastCnt) {
-        node -> prefixCnt -= 1;
-
+    if (isDeadNode(nxtNode)) {
         generateSnapshot(
             0.3f,
-            singleChange(Helper::nodeStringBuffer(value.substr(0, idx)), Highlight::REMOVED),
+            singleChange(Helper::nodeStringBuffer(value.substr(0, idx + 1)), Highlight::REMOVED),
             PseudocodeSection::TRIE_REMOVE,
             {11}     
         );
 
-        if (isDeadNode(nxtNode)) {
-            delete nxtNode;
-            nxtNode = nullptr;
-
-            generateSnapshot(
-                0.3f,
-                singleChange(Helper::nodeStringBuffer(value.substr(0, idx)), Highlight::REMOVED),
-                PseudocodeSection::TRIE_REMOVE,
-                {12}     
-            );
-        }
+        delete nxtNode;
+        nxtNode = nullptr;
     }
 
     generateSnapshot(
         0.3f,
         singleChange(Helper::nodeStringBuffer(value.substr(0, idx)), Highlight::MODIFIED),
         PseudocodeSection::TRIE_REMOVE,
-        {13}    
+        {12}    
     );
 
     return node;
@@ -304,12 +288,13 @@ bool Trie::search(TrieNode* node, const std::string& value, int idx, std::vector
         for (auto& it : changeInfoList) it.second = Highlight::FOUND;
 
         generateSnapshot(
-            0.3f,
-            ChangeMap(changeInfoList.begin(), changeInfoList.end()),
+            1.5f,
+            node -> prefixCnt == 0 ? ChangeMap() : ChangeMap(changeInfoList.begin(), changeInfoList.end()),
             PseudocodeSection::TRIE_SEARCH,
-            {4, 5}
+            {4}
         );
 
+        if (node -> prefixCnt == 0) return false;
         return true;
     }
 
@@ -317,7 +302,7 @@ bool Trie::search(TrieNode* node, const std::string& value, int idx, std::vector
         0.3f,
         ChangeMap(changeInfoList.begin(), changeInfoList.end()),
         PseudocodeSection::TRIE_SEARCH,
-        {6, 7}
+        {5, 6}
     );
 
     int numID = value[idx] - '0';

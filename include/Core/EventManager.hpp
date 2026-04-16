@@ -10,7 +10,7 @@ struct CommandPattern {
     std::string section = "";
     std::string property = "";
     std::string operation = "";
-    std::string value = "";
+    std::vector <std::string> value;
 };
 
 /// @brief Event Management

@@ -34,7 +34,7 @@ void AppLoop::init() {
     CoreFonts::load();
 
     options = {"AVL_Tree", "Trie", "Linked_List", "Hash_Table", "Dijkstra", "Kruskal"};
-    appSection = "AVL_Tree";
+    appSection = options[2];
 
     // Core Managers
     uiManager = new UIManager();
@@ -57,6 +57,12 @@ void AppLoop::init() {
         new Trie(),
         new TrieUI()
     };
+    DSPackage[options[2]] = {
+        camera,
+        new LinkedList(),
+        new LinkedListUI()
+    };
+    
     for (auto& it : DSPackage) {
         it.second.DataStructure -> setStateManager(stateManager);
         it.second.DataStructureUI -> setUIManager(uiManager);
@@ -128,22 +134,25 @@ void AppLoop::VisualizerInputHandling() {
     // Input Updates 
     while (inputManager -> hasEvents()) {
         RawInputEvent nextInput = inputManager -> pollEvent();
-    
+        
+        if (DataStructureUI -> getNavPhase() == IDataStructureUI::NavPhase::NAV_CLOSED) {
+            // Playback Controller Input
+            if (playbackController -> processInput(nextInput)) continue;
+
+            // Pseudocode Panel Input
+            if (pseudocodePanel -> processInput(nextInput)) continue;
+
+            if (nextInput.keySignal == KeyboardKey::KEY_SPACE) {
+                camera.target = {0.0f, 0.0f};
+                continue;
+            }
+        }
+
         // Data Structure operation signal request
         CommandPattern commandRequest = DataStructureUI -> processInput(nextInput); 
         if (!commandRequest.prefix.empty()) {
             eventManager -> pushToQueue(commandRequest);
             continue;
-        }
-
-        if (DataStructureUI -> getNavPhase() == IDataStructureUI::NavPhase::NAV_CLOSED) {
-            // Playback Controller Input
-            playbackController -> processInput(nextInput);
-            // Pseudocode Panel Input
-            pseudocodePanel -> processInput(nextInput);
-            if (nextInput.keySignal == KeyboardKey::KEY_SPACE) {
-                camera.target = {0.0f, 0.0f};
-            }
         }
     }
 }

@@ -18,7 +18,7 @@ public:
     void render(std::string DSTarget);
     void update();
 
-    void processInput(RawInputEvent nextInput);
+    bool processInput(RawInputEvent nextInput);
 private:
     AnimationManager* animationManager = nullptr;
     UIManager* uiManager = nullptr;

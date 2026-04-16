@@ -37,17 +37,17 @@ void EventManager::handleModification(CommandPattern commandRequest) {
 
         if (DataStructure == "AVL_Tree") {
             const std::string& operation = commandRequest.operation;
-            const std::string& rawValue = commandRequest.value;
+            const std::vector <std::string>& rawValue = commandRequest.value;
             
             if (!animationManager -> isPaused())
                 animationManager -> resetAnimationTimer();
                 
             if (operation == "INSERT") {
-                DSPointer -> insertNode(rawValue);
+                DSPointer -> insertNode(rawValue[0]);
                 return;
             }
             if (operation == "REMOVE") {
-                DSPointer -> removeNode(rawValue);
+                DSPointer -> removeNode(rawValue[0]);
                 return;
             }
             if (operation == "CLEAR") {
@@ -60,17 +60,17 @@ void EventManager::handleModification(CommandPattern commandRequest) {
 
         if (DataStructure == "Trie") {
             const std::string& operation = commandRequest.operation;
-            const std::string& rawValue = commandRequest.value;
+            const std::vector <std::string>& rawValue = commandRequest.value;
             
             if (!animationManager -> isPaused())
                 animationManager -> resetAnimationTimer();
                 
             if (operation == "INSERT") {
-                DSPointer -> insertNode(rawValue);
+                DSPointer -> insertNode(rawValue[0]);
                 return;
             }
             if (operation == "REMOVE") {
-                DSPointer -> removeNode(rawValue);
+                DSPointer -> removeNode(rawValue[0]);
                 return;
             }
             if (operation == "CLEAR") {
@@ -81,8 +81,30 @@ void EventManager::handleModification(CommandPattern commandRequest) {
             throw std::runtime_error("Invalid Trie function");
         }
         if (DataStructure == "Linked_List") {
+            const std::string& operation = commandRequest.operation;
+            const std::vector <std::string>& rawValue = commandRequest.value;
+            
+            if (!animationManager -> isPaused())
+                animationManager -> resetAnimationTimer();
+                
+            if (operation == "INSERT") {
+                DSPointer -> insertNode(rawValue[0]);
+                return;
+            }
+            if (operation == "REMOVE") {
+                DSPointer -> removeNode(rawValue[0]);
+                return;
+            }
+            if (operation == "CLEAR") {
+                DSPointer -> clearAll();
+                return;
+            }
+            if (operation == "UPDATE") {
+                DSPointer -> updateNode(rawValue[0], rawValue[1]);
+                return;
+            }   
 
-            return;
+            throw std::runtime_error("Invalid Linked List function");
         }   
         if (DataStructure == "Hash_Table") {
 
@@ -110,13 +132,13 @@ void EventManager::handleQuery(CommandPattern commandRequest) {
 
         if (DataStructure == "AVL_Tree") {
             const std::string& operation = commandRequest.operation;
-            const std::string& rawValue = commandRequest.value;
+            const std::vector <std::string>& rawValue = commandRequest.value;
             
             if (!animationManager -> isPaused())
                 animationManager -> resetAnimationTimer();
                 
             if (operation == "SEARCH") {
-                DSPointer -> searchNode(rawValue);
+                DSPointer -> searchNode(rawValue[0]);
                 return;
             }
 
@@ -125,21 +147,31 @@ void EventManager::handleQuery(CommandPattern commandRequest) {
 
         if (DataStructure == "Trie") {
             const std::string& operation = commandRequest.operation;
-            const std::string& rawValue = commandRequest.value;
+            const std::vector <std::string>& rawValue = commandRequest.value;
             
             if (!animationManager -> isPaused())
                 animationManager -> resetAnimationTimer();
                 
             if (operation == "SEARCH") {
-                DSPointer -> searchNode(rawValue);
+                DSPointer -> searchNode(rawValue[0]);
                 return;
             }
 
             throw std::runtime_error("Invalid Trie function");
         }
         if (DataStructure == "Linked_List") {
-            
-            return;
+            const std::string& operation = commandRequest.operation;
+            const std::vector <std::string>& rawValue = commandRequest.value;
+
+            if (!animationManager -> isPaused())
+                animationManager -> resetAnimationTimer();
+                
+            if (operation == "SEARCH") {
+                DSPointer -> searchNode(rawValue[0]);
+                return;
+            }
+
+            throw std::runtime_error("Invalid Linked List function");
         }   
         if (DataStructure == "Hash_Table") {
 

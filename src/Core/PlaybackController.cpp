@@ -17,8 +17,11 @@ void PlaybackController::setAnimationManager(AnimationManager* source) {
 }
 
 /// @brief Processing inputs for Playback Controller core 
-void PlaybackController::processInput(RawInputEvent nextInput) {
-    if (nextInput.inputType != RawInputEvent::InputType::LEFT_MOUSE_CLICKED) return;
+///        Returns true if any of the playback controls is clicked
+bool PlaybackController::processInput(RawInputEvent nextInput) {
+    if (nextInput.inputType != RawInputEvent::InputType::LEFT_MOUSE_CLICKED) return false;
+
+    bool triggered = false;
 
     // The "PLAY" button is triggered.
     // If the animation is paused, it will start going forward
@@ -32,15 +35,17 @@ void PlaybackController::processInput(RawInputEvent nextInput) {
             animationManager -> setTransitionCoeff(0);
             playbackState = PlaybackState::PAUSED;
         }
+        triggered = true;
     }
 
     animationManager -> setPauseToggle(playbackState == PlaybackState::PAUSED);
-    if (playbackState == PlaybackState::PLAYING) return;
-    if (animationManager -> getTransitionCoeff() != 0) return;
+    if (playbackState == PlaybackState::PLAYING) return triggered;
+    if (animationManager -> getTransitionCoeff() != 0) return triggered;
 
     // SKIP_START is triggered => Return back to the empty state
     if (touchPlaybackHitbox(playbackScreenPosition[PlaybackIcon::SKIP_START], nextInput.position)) {
         animationManager -> setSnapshotIdx(DSOption, 0);
+        return true;
     }
     
     // If we want to go backward, the database is required to have a previous snapshot.
@@ -49,18 +54,23 @@ void PlaybackController::processInput(RawInputEvent nextInput) {
     if (touchPlaybackHitbox(playbackScreenPosition[PlaybackIcon::STEP_BACKWARD], nextInput.position) && isGoingBackwardValid()) {
         animationManager -> setTransitionCoeff(-1);
         animationManager -> resetAnimationTimer();
+        return true;
     }
 
     // Similar case also with going forward.
     if (touchPlaybackHitbox(playbackScreenPosition[PlaybackIcon::STEP_FORWARD], nextInput.position) && isGoingForwardValid()) {
         animationManager -> setTransitionCoeff(+1);
         animationManager -> resetAnimationTimer();
+        return true;
     }
 
     // SKIP_END is triggered => Fast forward to the current snapshot
     if (touchPlaybackHitbox(playbackScreenPosition[PlaybackIcon::SKIP_END], nextInput.position)) {
         animationManager -> setSnapshotIdx(DSOption, animationManager -> getSize(DSOption) - 1);
+        return true;
     }
+
+    return false;
 }
 
 /// @brief Update Data Structure Option 

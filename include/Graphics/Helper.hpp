@@ -46,7 +46,8 @@ namespace Helper {
     std::string nodeStringBuffer(int value);
     std::string nodeStringBuffer(std::string value);
     std::string rectangleStringBuffer(std::string shapeID);
-
+    std::string rectangleStringBuffer(int value);
+    
     Rectangle createRaylibRectangle(Vector2 upperLeft, Vector2 lowerRight);
 
     std::string upperString(std::string str);

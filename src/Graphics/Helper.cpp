@@ -273,6 +273,9 @@ std::string Helper::nodeStringBuffer(int value) {
 std::string Helper::nodeStringBuffer(std::string value) {
     return "node_" + value;
 }
+std::string Helper::rectangleStringBuffer(int value) {
+    return rectangleStringBuffer(std::to_string(value));
+}
 std::string Helper::rectangleStringBuffer(std::string shapeID) {
     return "rect_" + shapeID;
 }

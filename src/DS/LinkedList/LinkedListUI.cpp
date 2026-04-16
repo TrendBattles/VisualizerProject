@@ -1,7 +1,7 @@
-#include <DS/Tree/AVL/AVLUI.hpp>
+#include <DS/LinkedList/LinkedListUI.hpp>
 #include <Graphics/Helper.hpp>
 
-AVLUI::AVLUI() {
+LinkedListUI::LinkedListUI() {
     createNavbar();
     
     createField();
@@ -12,7 +12,7 @@ AVLUI::AVLUI() {
 ///////////////////////////
 
 /// @brief Input processing 
-CommandPattern AVLUI::processInput(RawInputEvent nextInput) {
+CommandPattern LinkedListUI::processInput(RawInputEvent nextInput) {
     CommandPattern navbarSignal = navbarListenerRequest(nextInput);
     if (!navbarSignal.prefix.empty()) return navbarSignal;
     
@@ -25,7 +25,7 @@ CommandPattern AVLUI::processInput(RawInputEvent nextInput) {
     return CommandPattern();
 }
 
-void AVLUI::disableOption(const std::string& optionName) {
+void LinkedListUI::disableOption(const std::string& optionName) {
     for (auto& it : navbarMap) {
         ButtonController* targetController = it.second.getButtonController(optionName);
         if (targetController != nullptr) {
@@ -33,7 +33,7 @@ void AVLUI::disableOption(const std::string& optionName) {
         }
     }
 }
-void AVLUI::enableOption(const std::string& optionName) {
+void LinkedListUI::enableOption(const std::string& optionName) {
     for (auto& it : navbarMap) {
         ButtonController* targetController = it.second.getButtonController(optionName);
         if (targetController != nullptr) {
@@ -41,7 +41,7 @@ void AVLUI::enableOption(const std::string& optionName) {
         }
     }
 }
-void AVLUI::disableAllOperations() {
+void LinkedListUI::disableAllOperations() {
     for (const std::string& buttonID : operationList) {
         ButtonController* targetController = navbarMap[NavPhase::NAV_OPERATIONS].getButtonController(buttonID);
         
@@ -50,7 +50,7 @@ void AVLUI::disableAllOperations() {
         }
     }
 }
-void AVLUI::enableAllOperations() {
+void LinkedListUI::enableAllOperations() {
     for (const std::string& buttonID : operationList) {
         ButtonController* targetController = navbarMap[NavPhase::NAV_OPERATIONS].getButtonController(buttonID);
         if (targetController != nullptr) {
@@ -64,29 +64,44 @@ void AVLUI::enableAllOperations() {
 /////////////////////////
 
 /// @brief UI updates before rendering
-void AVLUI::update() {
+void LinkedListUI::update() {
     if (!operationPlaceholder.empty()) {
         ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
         ShapeState targetBackground = targetController -> getButtonShape().getBackground();
-        Vector2 rootPos = {20.0f + BUTTON_WIDTH, targetBackground.startPosition.y};
+        Vector2 rootPos = {FIELD_GAP + BUTTON_WIDTH, targetBackground.startPosition.y};
 
-        if (fieldRandom.getButtonShape().contains(GetMousePosition() - rootPos)) {
-            fieldRandom.setButtonState(ButtonState::HOVERED);
+        if (operationPlaceholder == "Update") {
+            rootPos += Vector2{FIELD_GAP + updateHolderSize[0].x, 0.0f};
+            if (fieldSubmit.getButtonShape().contains(GetMousePosition() - (rootPos - Vector2{FIELD_RANDOM_WIDTH + FIELD_GAP, 0.0f}))) {
+                fieldSubmit.setButtonState(ButtonState::HOVERED);
+            } else {
+                fieldSubmit.setButtonState(ButtonState::ACTIVE);
+            }
         } else {
-            fieldRandom.setButtonState(ButtonState::ACTIVE);
+            if (fieldRandom.getButtonShape().contains(GetMousePosition() - rootPos)) {
+                fieldRandom.setButtonState(ButtonState::HOVERED);
+            } else {
+                fieldRandom.setButtonState(ButtonState::ACTIVE);
+            }
+
+            if (fieldSubmit.getButtonShape().contains(GetMousePosition() - rootPos)) {
+                fieldSubmit.setButtonState(ButtonState::HOVERED);
+            } else {
+                fieldSubmit.setButtonState(ButtonState::ACTIVE);
+            }
         }
 
-        if (fieldSubmit.getButtonShape().contains(GetMousePosition() - rootPos)) {
-            fieldSubmit.setButtonState(ButtonState::HOVERED);
-        } else {
-            fieldSubmit.setButtonState(ButtonState::ACTIVE);
+
+        bool hoveredTextbox = false;
+        for (int i = 0; i < activeFieldCount(); ++i) {
+            if (fieldTextbox[i].contains(GetMousePosition() - rootPos)) {
+                hoveredTextbox = true;
+                break;
+            }
         }
 
-        if (fieldTextbox.contains(GetMousePosition() - rootPos)) {
-            SetMouseCursor(MOUSE_CURSOR_IBEAM);
-        } else {
-            SetMouseCursor(MOUSE_CURSOR_DEFAULT);
-        }
+        if (hoveredTextbox) SetMouseCursor(MOUSE_CURSOR_IBEAM);
+        else SetMouseCursor(MOUSE_CURSOR_DEFAULT);
     } else {
         SetMouseCursor(MOUSE_CURSOR_DEFAULT);
     }
@@ -96,7 +111,40 @@ void AVLUI::update() {
     navbar.hoverButtonTrigger();
 }
 /// @brief UI rendering
-void AVLUI::render() {
+void LinkedListUI::updateFuncRender() {
+    ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
+    ShapeState targetBackground = targetController -> getButtonShape().getBackground();
+    Vector2 rootPos = {FIELD_GAP + BUTTON_WIDTH, targetBackground.startPosition.y};
+
+    Vector2 origin[2];
+    for (int i = 0; i < 2; ++i) {
+        origin[i] = updateHolderSize[i];
+
+        Textbox tmp = fieldTextbox[i];
+        ShapeState background = tmp.getBackground();
+            
+        origin[i].y = (background.endPosition.y - background.startPosition.y - origin[i].y) * 0.5f;
+        origin[i] += Vector2{0.0f, i * (FIELD_TEXTBOX_HEIGHT + FIELD_TEXTBOX_GAP)};
+
+        DrawTextEx(CoreFonts::CascadiaMonoRegular, updateHolder[i].c_str(), rootPos + Vector2{0.0f, origin[i].y}, 20.0f, 2.0f, WHITE);
+
+        tmp.positionTransitAllBy(rootPos + Vector2{FIELD_GAP + origin[i].x, 0.0f});
+
+        if (i == textboxFocusID) {
+            background = tmp.getBackground();
+            background.setColor(GetColor(0x3B4252FF), GetColor(0x81A1C1FF));
+            tmp.setBackground(background);
+        }
+
+        drawTextbox(tmp);
+    }
+
+    rootPos += Vector2{FIELD_GAP + origin[0].x, 0.0f};
+    Button tempSubmit = fieldSubmit.getButtonShape();
+    tempSubmit.positionTransitAllBy(rootPos - Vector2{FIELD_GAP + FIELD_RANDOM_WIDTH, 0.0f});
+    drawButton(tempSubmit);
+}
+void LinkedListUI::render() {
     if (navPhase != NavPhase::NAV_CLOSED) {
         DrawRectangle(BUTTON_WIDTH, 0, GetScreenWidth() - BUTTON_WIDTH, GetScreenHeight(), Fade(GetColor(0x2E3440FF), 0.5f));
     }
@@ -105,12 +153,17 @@ void AVLUI::render() {
     if (operationPlaceholder.empty()) {
         return;
     }
-    
+
+    if (operationPlaceholder == "Update") {
+        updateFuncRender();
+        return;
+    }
+
     ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
     ShapeState targetBackground = targetController -> getButtonShape().getBackground();
-    Vector2 rootPos = {20.0f + BUTTON_WIDTH, targetBackground.startPosition.y};
+    Vector2 rootPos = {FIELD_GAP + BUTTON_WIDTH, targetBackground.startPosition.y};
 
-    Textbox tempTextbox = fieldTextbox;
+    Textbox tempTextbox = fieldTextbox[0];
     Button tempRandom = fieldRandom.getButtonShape();
     Button tempSubmit = fieldSubmit.getButtonShape();
     
@@ -118,7 +171,7 @@ void AVLUI::render() {
     tempRandom.positionTransitAllBy(rootPos);
     tempSubmit.positionTransitAllBy(rootPos);
 
-    if (isFieldTextboxFocused) {
+    if (textboxFocusID == 0) {
         ShapeState background = tempTextbox.getBackground();
         background.setColor(GetColor(0x3B4252FF), GetColor(0x81A1C1FF));
         tempTextbox.setBackground(background);
@@ -128,14 +181,19 @@ void AVLUI::render() {
     drawButton(tempRandom);
     drawButton(tempSubmit);
 }
-std::string AVLUI::getDSName() const { return "AVL_Tree"; }
+std::string LinkedListUI::getDSName() const { return "Linked_List"; }
 
 ///////////////////////////////
 ///     INITIALIZATION      ///
 ///////////////////////////////
 
+int LinkedListUI::activeFieldCount() const {
+    if (Helper::upperString(operationPlaceholder) == "UPDATE") return 2;
+    return 1;
+}
+
 /// @brief Creating the nagivation sidebar
-void AVLUI::createNavbar() {
+void LinkedListUI::createNavbar() {
     NavigationBar& phase0 = navbarMap[NavPhase::NAV_CLOSED];
     Vector2 navigationHiddenSize = {BUTTON_WIDTH / 2, (float) GetScreenHeight()};
     phase0.setBackground(Helper::createRectangle(
@@ -161,7 +219,7 @@ void AVLUI::createNavbar() {
     createNavbarToggle();
 }
 
-NavigationBar AVLUI::createNavBar(const std::vector <std::string>& buttonList) {
+NavigationBar LinkedListUI::createNavBar(const std::vector <std::string>& buttonList) {
     NavigationBar tempoNav;
     Vector2 navigationSize = {BUTTON_WIDTH, (float) GetScreenHeight()};
     tempoNav.setBackground(Helper::createRectangle(
@@ -185,7 +243,7 @@ NavigationBar AVLUI::createNavBar(const std::vector <std::string>& buttonList) {
     return tempoNav;
 }
 
-ButtonController AVLUI::createNavbarButtons(const std::string& buttonID, float x, float y) {
+ButtonController LinkedListUI::createNavbarButtons(const std::string& buttonID, float x, float y) {
     auto createButton = [&] (std::string suffix, Font font, Color backgroundColor, Color outlineColor, Color textColor) -> Button {
         return Helper::createButton(
             Helper::createRectangle(
@@ -208,7 +266,7 @@ ButtonController AVLUI::createNavbarButtons(const std::string& buttonID, float x
     return addedButton;
 }
 
-void AVLUI::createNavbarToggle() {
+void LinkedListUI::createNavbarToggle() {
     ButtonController openToggle, closedToggle;
     Vector2 toggleSize = {70.0f, 40.0f};
     Vector2 startPos = {0.0f, 60.0f};
@@ -256,19 +314,25 @@ void AVLUI::createNavbarToggle() {
 }
 
 /// @brief Field Inputs
-void AVLUI::createField() {
+void LinkedListUI::createField() {
     Vector2 nextPos = {0.0f, 0.0f};
 
-    fieldTextbox = Helper::createTextbox(
-        Helper::createRectangle(
-            getDSName() + "_" + Helper::rectangleStringBuffer("Field_Textbox"),
-            nextPos, nextPos + Vector2{FIELD_TEXTBOX_WIDTH, FIELD_TEXTBOX_HEIGHT}, 
-            2.0f, 
-            GetColor(0x3B4252FF), BLACK,
-            1
-        ),
-        Helper::createText("", GetFontDefault(), 20.0f, 5.0f, {0, 0}, WHITE)
-    );
+    for (int i = 0; i < 2; ++i) {
+        Vector2 newPos = nextPos + Vector2{0.0f, i * (FIELD_TEXTBOX_HEIGHT + FIELD_TEXTBOX_GAP)};
+
+        fieldTextbox[i] = Helper::createTextbox(
+            Helper::createRectangle(
+                getDSName() + "_" + Helper::rectangleStringBuffer("Field_Textbox_" + std::to_string(i)),
+                newPos, newPos + Vector2{FIELD_TEXTBOX_WIDTH, FIELD_TEXTBOX_HEIGHT}, 
+                FIELD_TEXTBOX_OUTLINE,
+                GetColor(0x3B4252FF), BLACK, 1
+            ),
+            Helper::createText("", GetFontDefault(), 20.0f, 5.0f, {0, 0}, WHITE)
+        );
+
+        updateHolderSize[i] = MeasureTextEx(CoreFonts::CascadiaMonoRegular, updateHolder[i].c_str(), 20.0f, 2.0f);
+    }
+    
 
     auto createButton = [&] (std::string buttonID, std::string text, Color bgColor, Font font) -> Button {
         return Helper::createButton(
@@ -289,7 +353,7 @@ void AVLUI::createField() {
     fieldRandom.setButtonSettings(ButtonState::ACTIVE, createButton("Field_Random", "Random", GetColor(0xC9AE8AFF), CoreFonts::Aptos));
     fieldRandom.setButtonSettings(ButtonState::HOVERED, createButton("Field_Random_hovered", "Random", GetColor(0x81A1C1FF), CoreFonts::AptosBold));
 
-    nextPos += Vector2{FIELD_SUBMIT_WIDTH + FIELD_GAP, 0};
+    nextPos += Vector2{FIELD_RANDOM_WIDTH + FIELD_GAP, 0};
 
     fieldSubmit.setButtonSettings(ButtonState::ACTIVE, createButton("Field_Submit", "Submit", GetColor(0xC9AE8AFF), CoreFonts::Aptos));
     fieldSubmit.setButtonSettings(ButtonState::HOVERED, createButton("Field_Submit_hovered", "Submit", GetColor(0x81A1C1FF), CoreFonts::AptosBold));
@@ -300,7 +364,7 @@ void AVLUI::createField() {
 ///     SUPPORTIVE FUNCTIONS     ///
 ////////////////////////////////////
 
-CommandPattern AVLUI::navbarListenerRequest(RawInputEvent nextInput) {
+CommandPattern LinkedListUI::navbarListenerRequest(RawInputEvent nextInput) {
     std::string signal = navbarMap[navPhase].processInput(nextInput);
     if (signal == "Clear") {
         navPhase = NavPhase::NAV_CLOSED;
@@ -308,7 +372,7 @@ CommandPattern AVLUI::navbarListenerRequest(RawInputEvent nextInput) {
         changeField();
         return CommandPattern{"MODIFY", "INTERACT", getDSName(), "CLEAR", {}};
     }
-    
+
     if (find(DSList.begin(), DSList.end(), signal) != DSList.end()) {
         navPhase = NavPhase::NAV_CLOSED;
         operationPlaceholder = "";
@@ -320,7 +384,7 @@ CommandPattern AVLUI::navbarListenerRequest(RawInputEvent nextInput) {
 }
 
 /// @brief Navbar Interactions
-void AVLUI::updateNavbar(RawInputEvent nextInput) {
+void LinkedListUI::updateNavbar(RawInputEvent nextInput) {
     std::string signal = navbarMap[navPhase].processInput(nextInput);
     if (signal == "TOGGLE") {
         // When the toggle button is triggered, the navigation bar will change its status.
@@ -355,7 +419,7 @@ void AVLUI::updateNavbar(RawInputEvent nextInput) {
         navPhase = NavPhase::NAV_OPERATIONS;
         return;
     }
-    
+
     if (!signal.empty() && signal != operationPlaceholder) {
         // DS Operation chosen
         
@@ -363,35 +427,50 @@ void AVLUI::updateNavbar(RawInputEvent nextInput) {
         changeField();
     }
 }
+
  
 /// @brief Field Interaction Change
-void AVLUI::changeField() {
-    fieldTextbox.clearLabelBuffer();
-    isFieldTextboxFocused = false;
+void LinkedListUI::changeField() {
+    fieldTextbox[0].clearLabelBuffer();
+    fieldTextbox[1].clearLabelBuffer();
+
+    textboxFocusID = operationPlaceholder == "Update" ? 0 : -1;
 }
 
 /// @brief Field Input
-void AVLUI::updateField(RawInputEvent nextInput) {
+void LinkedListUI::updateField(RawInputEvent nextInput) {
     if (operationPlaceholder.empty()) return;
     
     ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
     ShapeState targetBackground = targetController -> getButtonShape().getBackground();
-    Vector2 rootPos = {20.0f + BUTTON_WIDTH, targetBackground.startPosition.y};
+    Vector2 rootPos = {FIELD_GAP + BUTTON_WIDTH, targetBackground.startPosition.y};
+
+    if (operationPlaceholder == "Update") rootPos += Vector2{FIELD_GAP + updateHolderSize[0].x, 0.0f};
 
     if (nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED) {
-        isFieldTextboxFocused = fieldTextbox.contains(nextInput.position - rootPos);
+        textboxFocusID = -1;
+        for (int i = 0; i < activeFieldCount(); ++i) {
+            if (fieldTextbox[i].contains(nextInput.position - rootPos)) {
+                textboxFocusID = i;
+                break;
+            }
+        }
     } else if (nextInput.inputType == RawInputEvent::InputType::RIGHT_MOUSE_CLICKED) {
-        isFieldTextboxFocused = false;
+        textboxFocusID = -1;
+    } else if (nextInput.inputType == RawInputEvent::InputType::KEY_PRESSED
+            && nextInput.keySignal == KeyboardKey::KEY_TAB) {
+        
+        if (textboxFocusID != -1) textboxFocusID = (textboxFocusID + 1) % activeFieldCount();
     }
 
-    if (!isFieldTextboxFocused || nextInput.inputType != RawInputEvent::InputType::KEY_PRESSED) return;
+    if (textboxFocusID == -1 || nextInput.inputType != RawInputEvent::InputType::KEY_PRESSED) return;
 
     // If the field is being focused, we crawl the key input
     // If that key is a number and the string hasn't reached its limit, insert that key to the buffer.
     // If KEY_BACKSPACE is triggered, remove the last character in the buffer.
     int keyID = (int) nextInput.keySignal;
 
-    std::string inputStr = fieldTextbox.getLabelBuffer();
+    std::string inputStr = fieldTextbox[textboxFocusID].getLabelBuffer();
     if (keyID >= '0' && keyID <= '9' && (int) inputStr.length() < TEXTBOX_LENGTH_LIMIT) {
         inputStr.push_back(keyID);
     }
@@ -400,16 +479,54 @@ void AVLUI::updateField(RawInputEvent nextInput) {
         inputStr.pop_back();
     }
 
-    fieldTextbox.setLabelBuffer(inputStr);
+    fieldTextbox[textboxFocusID].setLabelBuffer(inputStr);
 }
 
 /// @brief Responds requests to Data Structure  
-CommandPattern AVLUI::fieldListenerRequest(RawInputEvent nextInput) {
+CommandPattern LinkedListUI::updateFuncListenerRequest(RawInputEvent nextInput) {
+    bool submitEnter = nextInput.inputType == RawInputEvent::InputType::KEY_PRESSED
+                    && nextInput.keySignal == KeyboardKey::KEY_ENTER;
+    
+    ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
+    ShapeState targetBackground = targetController -> getButtonShape().getBackground();
+    Vector2 rootPos = {FIELD_GAP + BUTTON_WIDTH, targetBackground.startPosition.y};
+
+    Vector2 origin[2];
+    for (int i = 0; i < 2; ++i) {
+        origin[i] = updateHolderSize[i];
+    }
+
+    rootPos += Vector2{FIELD_GAP + origin[0].x, 0.0f};
+    bool submitClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
+                    && fieldSubmit.getButtonShape().contains(nextInput.position - (rootPos - Vector2{FIELD_GAP + FIELD_RANDOM_WIDTH, 0.0f}));
+
+    if (!submitEnter && !submitClick) return CommandPattern();
+
+    std::string rawValue = fieldTextbox[0].getLabelBuffer();
+    std::string rawValue2 = fieldTextbox[1].getLabelBuffer();
+    if (rawValue.empty()) rawValue = "0";
+    if (rawValue2.empty()) rawValue2 = "0";
+
+    operationPlaceholder = "";
+    navPhase = NavPhase::NAV_CLOSED;
+    changeField();
+
+    return CommandPattern {
+        "MODIFY",
+        "INTERACT",
+        getDSName(),
+        "UPDATE",
+        {rawValue, rawValue2}
+    };
+}
+CommandPattern LinkedListUI::fieldListenerRequest(RawInputEvent nextInput) {
     if (operationPlaceholder.empty()) return CommandPattern();
+
+    if (operationPlaceholder == "Update") return updateFuncListenerRequest(nextInput);
 
     ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
     ShapeState targetBackground = targetController -> getButtonShape().getBackground();
-    Vector2 rootPos = {20.0f + BUTTON_WIDTH, targetBackground.startPosition.y};
+    Vector2 rootPos = {FIELD_GAP + BUTTON_WIDTH, targetBackground.startPosition.y};
 
     bool submitEnter = nextInput.inputType == RawInputEvent::InputType::KEY_PRESSED
                     && nextInput.keySignal == KeyboardKey::KEY_ENTER;
@@ -418,9 +535,9 @@ CommandPattern AVLUI::fieldListenerRequest(RawInputEvent nextInput) {
     bool randomClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
                     && fieldRandom.getButtonShape().contains(nextInput.position - rootPos);
 
-    // When the random request is required, set a random value from 0 to 9999 for the input box
+    // When the random request is required, set a random value from 0 to 99999 for the input box
     if (randomClick) {
-        fieldTextbox.setLabelBuffer(std::to_string(Helper::random_gen(0, 9999)));
+        fieldTextbox[0].setLabelBuffer(std::to_string(Helper::random_gen(0, 99999)));
         return CommandPattern();
     }
     if (!submitEnter && !submitClick) return CommandPattern();
@@ -428,7 +545,7 @@ CommandPattern AVLUI::fieldListenerRequest(RawInputEvent nextInput) {
     // If the Submit button is triggered, the value from the input field is crawled
     // After that, the input buffer will be removed, and the navigation sidebar will close.
     // Solving edge cases: when the input is empty
-    std::string rawValue = fieldTextbox.getLabelBuffer();
+    std::string rawValue = fieldTextbox[0].getLabelBuffer();
     std::string chosenOperation = operationPlaceholder;
 
     operationPlaceholder = "";

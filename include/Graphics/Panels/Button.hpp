@@ -24,12 +24,11 @@ private:
 };
 
 enum class ButtonState {
-    CLICKED,
-    HOLD,
     ACTIVE,
     INACTIVE,
     DISABLED,
     HOVERED,
+    FOCUSED,
     HIDDEN,
 };
 

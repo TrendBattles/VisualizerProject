@@ -109,10 +109,11 @@ void PseudocodePanel::init() {
         "  return node"
     };
 
+    // Trie
     pseudocodeContent[PseudocodeSection::TRIE_INSERT] = {
         "insert(node, str, idx):",
-        "  node.count += 1",
         "  if idx == length(str):",
+        "    node.count += 1",
         "    return",
         "  nxtNode = node.child[str[idx]]",
         "  if nxtNode is null:",
@@ -123,7 +124,7 @@ void PseudocodePanel::init() {
     pseudocodeContent[PseudocodeSection::TRIE_REMOVE] = {
         "remove(node, str, idx):",
         "  if node is null:",
-        "    return",
+        "    return null",
         "  if idx == length(str):",
         "    node.count -= 1",
         "    return node",
@@ -132,8 +133,6 @@ void PseudocodePanel::init() {
         "    return node",
         "  nxtNode = remove(nxtNode, str, idx + 1)",
         "  if nxtNode is truncated:",
-        "    node.Count -= 1",
-        "    if nxtNode is empty:",
         "       delete nxtNode",
         "  return node"
     };
@@ -141,13 +140,50 @@ void PseudocodePanel::init() {
     pseudocodeContent[PseudocodeSection::TRIE_SEARCH] = {
         "search(node, str, idx):",
         "  if node is null:",
-        "    return",
+        "    return false",
         "  if idx == length(str):",
-        "    searching succeeded",
-        "    return",
+        "    return succeeded if node.count > 0",
         "  nxtNode = node.child[str[idx]]",
-        "  nxtNode = remove(nxtNode, str, idx + 1)",
-        "  search(node, str + 1, idx)"
+        "  return search(nxtNode, str + 1, idx)"
+    };
+
+    // Linked_List
+    pseudocodeContent[PseudocodeSection::LINKED_LIST_INSERT] = {
+        "insert(value):",
+        "  newNode = createNode(value)",
+        "  newNode.next = head",
+        "  head = newNode"
+    };
+    pseudocodeContent[PseudocodeSection::LINKED_LIST_REMOVE] = {
+        "remove(value):",
+        "  if head is null:",
+        "    return",
+        "  if head.value == value:",
+        "    head = head.next",
+        "    return",
+        "  iter = head",
+        "  while iter.next != null and iter.next.value != value:",
+        "    iter = iter.next",
+        "  if iter.next != null:",
+        "    iter.next = iter.next.next"
+    };
+    pseudocodeContent[PseudocodeSection::LINKED_LIST_SEARCH] = {
+        "search(value):",
+        "  iter = head",
+        "  while iter != null:",
+        "    if iter.value == value:",
+        "      return true",
+        "    iter = iter.next",
+        "  return false"
+    };
+    pseudocodeContent[PseudocodeSection::LINKED_LIST_UPDATE] = {
+        "update(oldValue, newValue):",
+        "  iter = head",
+        "  while iter != null:",
+        "    if iter.value == oldValue:",
+        "      iter.value = newValue",
+        "      break",
+        "    iter = iter.next",
     };
 }
 
@@ -189,15 +225,20 @@ void PseudocodePanel::update() {
 }
 
 /// @brief User Input processing 
-void PseudocodePanel::processInput(RawInputEvent nextInput) {
-    if (nextInput.inputType != RawInputEvent::InputType::LEFT_MOUSE_CLICKED) return;
+///        Returns true if the toggle button is triggered
+bool PseudocodePanel::processInput(RawInputEvent nextInput) {
+    if (nextInput.inputType != RawInputEvent::InputType::LEFT_MOUSE_CLICKED) return false;
     
     // Opening / Closing the panel
     if (panelStatus == PanelStatus::OPEN && activeButton.contains(nextInput.position - ORIGIN_POS)) {
         panelStatus = PanelStatus::CLOSED;
+        return true;
     } else if (panelStatus == PanelStatus::CLOSED && inactiveButton.contains(nextInput.position - ORIGIN_POS)) {
         panelStatus = PanelStatus::OPEN;
+        return true;
     }
+
+    return false;
 }
 
 // Rendering pseudocode on the panel

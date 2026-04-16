@@ -21,7 +21,7 @@ public:
     bool searchNode(std::string value) override;
     void clearAll() override;
 
-    virtual void generateSnapshot(float duration, ChangeMap changeMap = ChangeMap(), PseudocodeSection pseudoFrame = PseudocodeSection::NONE, std::vector <int> pseudoActiveLines = {}) override;
+    void generateSnapshot(float duration, ChangeMap changeMap = ChangeMap(), PseudocodeSection pseudoFrame = PseudocodeSection::NONE, std::vector <int> pseudoActiveLines = {}) override;
     std::string getDSID() const override;
 private:
     TrieNode* root = nullptr;

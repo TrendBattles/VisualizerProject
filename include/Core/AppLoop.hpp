@@ -10,6 +10,8 @@
 #include <DS/Tree/AVL/AVLUI.hpp>
 #include <DS/Tree/Trie/Trie.hpp>
 #include <DS/Tree/Trie/TrieUI.hpp>
+#include <DS/LinkedList/LinkedList.hpp>
+#include <DS/LinkedList/LinkedListUI.hpp>
 
 #include <Graphics/UIManager.hpp>
 

@@ -42,6 +42,8 @@ target_sources(${PROJECT_NAME} PRIVATE
 	"src/DS/Tree/AVL/AVLUI.cpp"
 	"src/DS/Tree/Trie/Trie.cpp"
 	"src/DS/Tree/Trie/TrieUI.cpp"
+	"src/DS/LinkedList/LinkedList.cpp"
+	"src/DS/LinkedList/LinkedListUI.cpp"
 )
 
 # Graphics

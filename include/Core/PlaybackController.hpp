@@ -26,7 +26,7 @@ public:
     ~PlaybackController();
     void setAnimationManager(AnimationManager* source);
 
-    void processInput(RawInputEvent nextInput);
+    bool processInput(RawInputEvent nextInput);
     void update(std::string DSTarget);
     void render();
 private:

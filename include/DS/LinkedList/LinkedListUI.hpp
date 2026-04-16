@@ -1,11 +1,11 @@
-#ifndef TRIEUI_HPP
-#define TRIEUI_HPP
+#ifndef LINKEDLISTUI_HPP
+#define LINKEDLISTUI_HPP
 
 #include <DS/IDataStructureUI.hpp>
 
-class TrieUI: public IDataStructureUI {
+class LinkedListUI: public IDataStructureUI {
 public:
-    TrieUI();
+    LinkedListUI();
     
     CommandPattern processInput(RawInputEvent nextInput) override;
 
@@ -18,7 +18,10 @@ public:
     void render() override;
     std::string getDSName() const override;
 private:
-    const std::vector <std::string> operationList = {"Insert", "Remove", "Search", "Clear"};
+    int activeFieldCount() const;
+    void updateFuncRender();
+
+    const std::vector <std::string> operationList = {"Insert", "Remove", "Search", "Update", "Clear"};
     const std::vector <std::string> DSList = {"AVL Tree", "Trie", "Linked List", "Hash Table", "Dijkstra", "Kruskal"};
     const std::vector <std::string> optionList = {"Main Menu", "Data Structures", "Operations"};
 
@@ -40,18 +43,23 @@ private:
     const float FIELD_GAP = 30.0f;
     const float FIELD_TEXTBOX_WIDTH = 120.0f;
     const float FIELD_TEXTBOX_HEIGHT = 60.0f;
+    const float FIELD_TEXTBOX_OUTLINE = 2.0f, FIELD_TEXTBOX_GAP = 30.0f;
+
     const float FIELD_RANDOM_WIDTH = 120.0f;
     const float FIELD_RANDOM_HEIGHT = 60.0f;
     const float FIELD_SUBMIT_WIDTH = 120.0f;
     const float FIELD_SUBMIT_HEIGHT = 60.0f;
 
-    Textbox fieldTextbox;
-    bool isFieldTextboxFocused = false;
+    Textbox fieldTextbox[2];
+    std::string updateHolder[2] = {"Old:", "New:"};
+    Vector2 updateHolderSize[2];
+    int textboxFocusID = -1;
     ButtonController fieldRandom, fieldSubmit;
     
     void createField();
     void changeField();
     void updateField(RawInputEvent nextInput);
+    CommandPattern updateFuncListenerRequest(RawInputEvent nextInput);
     CommandPattern fieldListenerRequest(RawInputEvent nextInput);
 };
 #endif
