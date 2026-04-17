@@ -1,7 +1,7 @@
-#include <DS/Tree/AVL/AVLUI.hpp>
+#include <DS/HashTable/HashTableUI.hpp>
 #include <Graphics/Helper.hpp>
 
-AVLUI::AVLUI() {
+HashTableUI::HashTableUI() {
     createNavbar();
     
     createField();
@@ -12,7 +12,7 @@ AVLUI::AVLUI() {
 ///////////////////////////
 
 /// @brief Input processing 
-CommandPattern AVLUI::processInput(RawInputEvent nextInput) {
+CommandPattern HashTableUI::processInput(RawInputEvent nextInput) {
     CommandPattern navbarSignal = navbarListenerRequest(nextInput);
     if (!navbarSignal.prefix.empty()) return navbarSignal;
     
@@ -25,7 +25,7 @@ CommandPattern AVLUI::processInput(RawInputEvent nextInput) {
     return CommandPattern();
 }
 
-void AVLUI::disableOption(const std::string& optionName) {
+void HashTableUI::disableOption(const std::string& optionName) {
     for (auto& it : navbarMap) {
         ButtonController* targetController = it.second.getButtonController(optionName);
         if (targetController != nullptr) {
@@ -33,7 +33,7 @@ void AVLUI::disableOption(const std::string& optionName) {
         }
     }
 }
-void AVLUI::enableOption(const std::string& optionName) {
+void HashTableUI::enableOption(const std::string& optionName) {
     for (auto& it : navbarMap) {
         ButtonController* targetController = it.second.getButtonController(optionName);
         if (targetController != nullptr) {
@@ -41,7 +41,7 @@ void AVLUI::enableOption(const std::string& optionName) {
         }
     }
 }
-void AVLUI::disableAllOperations() {
+void HashTableUI::disableAllOperations() {
     for (const std::string& buttonID : operationList) {
         ButtonController* targetController = navbarMap[NavPhase::NAV_OPERATIONS].getButtonController(buttonID);
         
@@ -50,7 +50,7 @@ void AVLUI::disableAllOperations() {
         }
     }
 }
-void AVLUI::enableAllOperations() {
+void HashTableUI::enableAllOperations() {
     for (const std::string& buttonID : operationList) {
         ButtonController* targetController = navbarMap[NavPhase::NAV_OPERATIONS].getButtonController(buttonID);
         if (targetController != nullptr) {
@@ -64,7 +64,7 @@ void AVLUI::enableAllOperations() {
 /////////////////////////
 
 /// @brief UI updates before rendering
-void AVLUI::update() {
+void HashTableUI::update() {
     if (!operationPlaceholder.empty()) {
         ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
         ShapeState targetBackground = targetController -> getButtonShape().getBackground();
@@ -91,12 +91,12 @@ void AVLUI::update() {
         SetMouseCursor(MOUSE_CURSOR_DEFAULT);
     }
     
-
+    
     NavigationBar& navbar = navbarMap[navPhase];
     navbar.hoverButtonTrigger();
 }
 /// @brief UI rendering
-void AVLUI::render() {
+void HashTableUI::render() {
     if (navPhase != NavPhase::NAV_CLOSED) {
         DrawRectangle(BUTTON_WIDTH, 0, GetScreenWidth() - BUTTON_WIDTH, GetScreenHeight(), Fade(GetColor(0x2E3440FF), 0.5f));
     }
@@ -123,19 +123,19 @@ void AVLUI::render() {
         background.setColor(GetColor(0x3B4252FF), GetColor(0x81A1C1FF));
         tempTextbox.setBackground(background);
     }
-    
+
     drawTextbox(tempTextbox);
     drawButton(tempRandom);
     drawButton(tempSubmit);
 }
-std::string AVLUI::getDSName() const { return "AVL_Tree"; }
+std::string HashTableUI::getDSName() const { return "Hash_Table"; }
 
 ///////////////////////////////
 ///     INITIALIZATION      ///
 ///////////////////////////////
 
 /// @brief Creating the nagivation sidebar
-void AVLUI::createNavbar() {
+void HashTableUI::createNavbar() {
     NavigationBar& phase0 = navbarMap[NavPhase::NAV_CLOSED];
     Vector2 navigationHiddenSize = {BUTTON_WIDTH / 2, (float) GetScreenHeight()};
     phase0.setBackground(Helper::createRectangle(
@@ -161,7 +161,7 @@ void AVLUI::createNavbar() {
     createNavbarToggle();
 }
 
-NavigationBar AVLUI::createNavBar(const std::vector <std::string>& buttonList) {
+NavigationBar HashTableUI::createNavBar(const std::vector <std::string>& buttonList) {
     NavigationBar tempoNav;
     Vector2 navigationSize = {BUTTON_WIDTH, (float) GetScreenHeight()};
     tempoNav.setBackground(Helper::createRectangle(
@@ -185,7 +185,7 @@ NavigationBar AVLUI::createNavBar(const std::vector <std::string>& buttonList) {
     return tempoNav;
 }
 
-ButtonController AVLUI::createNavbarButtons(const std::string& buttonID, float x, float y) {
+ButtonController HashTableUI::createNavbarButtons(const std::string& buttonID, float x, float y) {
     auto createButton = [&] (std::string suffix, Font font, Color backgroundColor, Color outlineColor, Color textColor) -> Button {
         return Helper::createButton(
             Helper::createRectangle(
@@ -208,7 +208,7 @@ ButtonController AVLUI::createNavbarButtons(const std::string& buttonID, float x
     return addedButton;
 }
 
-void AVLUI::createNavbarToggle() {
+void HashTableUI::createNavbarToggle() {
     ButtonController openToggle, closedToggle;
     Vector2 toggleSize = {70.0f, 40.0f};
     Vector2 startPos = {0.0f, 60.0f};
@@ -256,7 +256,7 @@ void AVLUI::createNavbarToggle() {
 }
 
 /// @brief Field Inputs
-void AVLUI::createField() {
+void HashTableUI::createField() {
     Vector2 nextPos = {0.0f, 0.0f};
 
     fieldTextbox = Helper::createTextbox(
@@ -300,7 +300,7 @@ void AVLUI::createField() {
 ///     SUPPORTIVE FUNCTIONS     ///
 ////////////////////////////////////
 
-CommandPattern AVLUI::navbarListenerRequest(RawInputEvent nextInput) {
+CommandPattern HashTableUI::navbarListenerRequest(RawInputEvent nextInput) {
     std::string signal = navbarMap[navPhase].processInput(nextInput);
     if (signal == "Clear") {
         navPhase = NavPhase::NAV_CLOSED;
@@ -308,7 +308,7 @@ CommandPattern AVLUI::navbarListenerRequest(RawInputEvent nextInput) {
         changeField();
         return CommandPattern{"MODIFY", "INTERACT", getDSName(), "CLEAR", {}};
     }
-    
+
     if (find(DSList.begin(), DSList.end(), signal) != DSList.end()) {
         navPhase = NavPhase::NAV_CLOSED;
         operationPlaceholder = "";
@@ -320,7 +320,7 @@ CommandPattern AVLUI::navbarListenerRequest(RawInputEvent nextInput) {
 }
 
 /// @brief Navbar Interactions
-void AVLUI::updateNavbar(RawInputEvent nextInput) {
+void HashTableUI::updateNavbar(RawInputEvent nextInput) {
     std::string signal = navbarMap[navPhase].processInput(nextInput);
     if (signal == "TOGGLE") {
         // When the toggle button is triggered, the navigation bar will change its status.
@@ -355,7 +355,7 @@ void AVLUI::updateNavbar(RawInputEvent nextInput) {
         navPhase = NavPhase::NAV_OPERATIONS;
         return;
     }
-    
+
     if (!signal.empty() && signal != operationPlaceholder) {
         // DS Operation chosen
         
@@ -363,15 +363,16 @@ void AVLUI::updateNavbar(RawInputEvent nextInput) {
         changeField();
     }
 }
+
  
 /// @brief Field Interaction Change
-void AVLUI::changeField() {
+void HashTableUI::changeField() {
     fieldTextbox.clearLabelBuffer();
     isFieldTextboxFocused = false;
 }
 
 /// @brief Field Input
-void AVLUI::updateField(RawInputEvent nextInput) {
+void HashTableUI::updateField(RawInputEvent nextInput) {
     if (operationPlaceholder.empty()) return;
     
     ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
@@ -381,11 +382,11 @@ void AVLUI::updateField(RawInputEvent nextInput) {
     bool randomClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
                     && fieldRandom.getButtonShape().contains(nextInput.position - rootPos);
 
-    // When the random request is required, set a random value from 0 to 9999 for the input box
+    // When the random request is required, set a random value with a random length [1, TEXTBOX_LENGTH]
     if (randomClick) {
         if (!isFieldTextboxFocused) return;
         
-        fieldTextbox.setLabelBuffer(std::to_string(Helper::random_gen(0, 9999)));
+        fieldTextbox.setLabelBuffer(std::to_string(Helper::random_gen(0, 99999)));
         return;
     }
 
@@ -415,7 +416,7 @@ void AVLUI::updateField(RawInputEvent nextInput) {
 }
 
 /// @brief Responds requests to Data Structure  
-CommandPattern AVLUI::fieldListenerRequest(RawInputEvent nextInput) {
+CommandPattern HashTableUI::fieldListenerRequest(RawInputEvent nextInput) {
     if (operationPlaceholder.empty()) return CommandPattern();
 
     ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);

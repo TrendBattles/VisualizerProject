@@ -72,23 +72,18 @@ void LinkedListUI::update() {
 
         if (operationPlaceholder == "Update") {
             rootPos += Vector2{FIELD_GAP + updateHolderSize[0].x, 0.0f};
-            if (fieldSubmit.getButtonShape().contains(GetMousePosition() - (rootPos - Vector2{FIELD_RANDOM_WIDTH + FIELD_GAP, 0.0f}))) {
-                fieldSubmit.setButtonState(ButtonState::HOVERED);
-            } else {
-                fieldSubmit.setButtonState(ButtonState::ACTIVE);
-            }
-        } else {
-            if (fieldRandom.getButtonShape().contains(GetMousePosition() - rootPos)) {
-                fieldRandom.setButtonState(ButtonState::HOVERED);
-            } else {
-                fieldRandom.setButtonState(ButtonState::ACTIVE);
-            }
+        }
 
-            if (fieldSubmit.getButtonShape().contains(GetMousePosition() - rootPos)) {
-                fieldSubmit.setButtonState(ButtonState::HOVERED);
-            } else {
-                fieldSubmit.setButtonState(ButtonState::ACTIVE);
-            }
+        if (fieldRandom.getButtonShape().contains(GetMousePosition() - rootPos)) {
+            fieldRandom.setButtonState(ButtonState::HOVERED);
+        } else {
+            fieldRandom.setButtonState(ButtonState::ACTIVE);
+        }
+
+        if (fieldSubmit.getButtonShape().contains(GetMousePosition() - rootPos)) {
+            fieldSubmit.setButtonState(ButtonState::HOVERED);
+        } else {
+            fieldSubmit.setButtonState(ButtonState::ACTIVE);
         }
 
 
@@ -140,8 +135,12 @@ void LinkedListUI::updateFuncRender() {
     }
 
     rootPos += Vector2{FIELD_GAP + origin[0].x, 0.0f};
+    Button tempRandom = fieldRandom.getButtonShape();
     Button tempSubmit = fieldSubmit.getButtonShape();
-    tempSubmit.positionTransitAllBy(rootPos - Vector2{FIELD_GAP + FIELD_RANDOM_WIDTH, 0.0f});
+
+    tempRandom.positionTransitAllBy(rootPos);
+    tempSubmit.positionTransitAllBy(rootPos);
+    drawButton(tempRandom);
     drawButton(tempSubmit);
 }
 void LinkedListUI::render() {
@@ -447,6 +446,16 @@ void LinkedListUI::updateField(RawInputEvent nextInput) {
 
     if (operationPlaceholder == "Update") rootPos += Vector2{FIELD_GAP + updateHolderSize[0].x, 0.0f};
 
+    bool randomClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
+                    && fieldRandom.getButtonShape().contains(nextInput.position - rootPos);
+
+    // When the random request is required, set a random value from 0 to 99999 for the input box
+    if (randomClick) {
+        if (textboxFocusID != -1)
+            fieldTextbox[textboxFocusID].setLabelBuffer(std::to_string(Helper::random_gen(0, 99999)));
+        return;
+    }
+    
     if (nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED) {
         textboxFocusID = -1;
         for (int i = 0; i < activeFieldCount(); ++i) {
@@ -483,82 +492,51 @@ void LinkedListUI::updateField(RawInputEvent nextInput) {
 }
 
 /// @brief Responds requests to Data Structure  
-CommandPattern LinkedListUI::updateFuncListenerRequest(RawInputEvent nextInput) {
-    bool submitEnter = nextInput.inputType == RawInputEvent::InputType::KEY_PRESSED
-                    && nextInput.keySignal == KeyboardKey::KEY_ENTER;
-    
-    ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
-    ShapeState targetBackground = targetController -> getButtonShape().getBackground();
-    Vector2 rootPos = {FIELD_GAP + BUTTON_WIDTH, targetBackground.startPosition.y};
-
-    Vector2 origin[2];
-    for (int i = 0; i < 2; ++i) {
-        origin[i] = updateHolderSize[i];
-    }
-
-    rootPos += Vector2{FIELD_GAP + origin[0].x, 0.0f};
-    bool submitClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
-                    && fieldSubmit.getButtonShape().contains(nextInput.position - (rootPos - Vector2{FIELD_GAP + FIELD_RANDOM_WIDTH, 0.0f}));
-
-    if (!submitEnter && !submitClick) return CommandPattern();
-
-    std::string rawValue = fieldTextbox[0].getLabelBuffer();
-    std::string rawValue2 = fieldTextbox[1].getLabelBuffer();
-    if (rawValue.empty()) rawValue = "0";
-    if (rawValue2.empty()) rawValue2 = "0";
-
-    operationPlaceholder = "";
-    navPhase = NavPhase::NAV_CLOSED;
-    changeField();
-
-    return CommandPattern {
-        "MODIFY",
-        "INTERACT",
-        getDSName(),
-        "UPDATE",
-        {rawValue, rawValue2}
-    };
-}
 CommandPattern LinkedListUI::fieldListenerRequest(RawInputEvent nextInput) {
     if (operationPlaceholder.empty()) return CommandPattern();
 
-    if (operationPlaceholder == "Update") return updateFuncListenerRequest(nextInput);
-
     ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
     ShapeState targetBackground = targetController -> getButtonShape().getBackground();
     Vector2 rootPos = {FIELD_GAP + BUTTON_WIDTH, targetBackground.startPosition.y};
+
+    if (operationPlaceholder == "Update") rootPos += Vector2{FIELD_GAP + updateHolderSize[0].x, 0.0f};
 
     bool submitEnter = nextInput.inputType == RawInputEvent::InputType::KEY_PRESSED
                     && nextInput.keySignal == KeyboardKey::KEY_ENTER;
     bool submitClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
                     && fieldSubmit.getButtonShape().contains(nextInput.position - rootPos);
-    bool randomClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
-                    && fieldRandom.getButtonShape().contains(nextInput.position - rootPos);
-
-    // When the random request is required, set a random value from 0 to 99999 for the input box
-    if (randomClick) {
-        fieldTextbox[0].setLabelBuffer(std::to_string(Helper::random_gen(0, 99999)));
-        return CommandPattern();
-    }
+    
     if (!submitEnter && !submitClick) return CommandPattern();
     
     // If the Submit button is triggered, the value from the input field is crawled
     // After that, the input buffer will be removed, and the navigation sidebar will close.
     // Solving edge cases: when the input is empty
-    std::string rawValue = fieldTextbox[0].getLabelBuffer();
-    std::string chosenOperation = operationPlaceholder;
 
+    CommandPattern commandReturn;
+    if (operationPlaceholder == "Update") {
+        std::string rawValue = fieldTextbox[0].getLabelBuffer();
+        std::string rawValue2 = fieldTextbox[1].getLabelBuffer();
+        if (rawValue.empty()) rawValue = "0";
+        if (rawValue2.empty()) rawValue2 = "0";
+
+        commandReturn = CommandPattern { "MODIFY", "INTERACT", getDSName(), "UPDATE", {rawValue, rawValue2} };
+    } else {
+        std::string rawValue = fieldTextbox[0].getLabelBuffer();
+        std::string chosenOperation = operationPlaceholder;
+        if (rawValue.empty()) rawValue = "0";
+
+        commandReturn = CommandPattern {
+            Helper::upperString(chosenOperation) == "SEARCH" ? "QUERY" : "MODIFY",
+            "INTERACT",
+            getDSName(),
+            Helper::upperString(chosenOperation),
+            {rawValue}
+        };
+    }
+    
     operationPlaceholder = "";
     navPhase = NavPhase::NAV_CLOSED;
     changeField();
 
-    if (rawValue.empty()) rawValue = "0";
-
-    return CommandPattern {
-        Helper::upperString(chosenOperation) == "SEARCH" ? "QUERY" : "MODIFY",
-        "INTERACT",
-        getDSName(),
-        Helper::upperString(chosenOperation),
-        {rawValue}
-    };
+    return commandReturn;
 }

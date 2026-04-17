@@ -107,8 +107,26 @@ void EventManager::handleModification(CommandPattern commandRequest) {
             throw std::runtime_error("Invalid Linked List function");
         }   
         if (DataStructure == "Hash_Table") {
+            const std::string& operation = commandRequest.operation;
+            const std::vector <std::string>& rawValue = commandRequest.value;
+            
+            if (!animationManager -> isPaused())
+                animationManager -> resetAnimationTimer();
+                
+            if (operation == "INSERT") {
+                DSPointer -> insertNode(rawValue[0]);
+                return;
+            }
+            if (operation == "REMOVE") {
+                DSPointer -> removeNode(rawValue[0]);
+                return;
+            }
+            if (operation == "CLEAR") {
+                DSPointer -> clearAll();
+                return;
+            }
 
-            return;
+            throw std::runtime_error("Invalid Hash Table function");
         }
         if (DataStructure == "Graph") {
 
@@ -174,8 +192,18 @@ void EventManager::handleQuery(CommandPattern commandRequest) {
             throw std::runtime_error("Invalid Linked List function");
         }   
         if (DataStructure == "Hash_Table") {
+            const std::string& operation = commandRequest.operation;
+            const std::vector <std::string>& rawValue = commandRequest.value;
+            
+            if (!animationManager -> isPaused())
+                animationManager -> resetAnimationTimer();
+                
+            if (operation == "SEARCH") {
+                DSPointer -> searchNode(rawValue[0]);
+                return;
+            }
 
-            return;
+            throw std::runtime_error("Invalid Hash Table function");
         }
         if (DataStructure == "Graph") {
 

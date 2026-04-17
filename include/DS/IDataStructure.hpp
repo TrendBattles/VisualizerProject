@@ -13,10 +13,10 @@ public:
     virtual void setStateManager(StateManager* source);
 
     virtual ~IDataStructure() = default;
-    virtual bool insertNode(std::string value) = 0;
-    virtual bool removeNode(std::string value) = 0;
-    virtual bool searchNode(std::string value) { return 1; }
-    virtual bool updateNode(std::string oldValue, std::string newValue) { return 1; }
+    virtual bool insertNode(std::string value) { return true; }
+    virtual bool removeNode(std::string value) { return true; }
+    virtual bool searchNode(std::string value) { return true; }
+    virtual bool updateNode(std::string oldValue, std::string newValue) { return true; }
     virtual void clearAll() = 0;
 
     virtual void generateSnapshot(float duration, ChangeMap changeMap = ChangeMap(), PseudocodeSection pseudoFrame = PseudocodeSection::NONE, std::vector <int> pseudoActiveLines = {}) = 0;

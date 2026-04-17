@@ -19,7 +19,7 @@ public:
     std::string getDSName() const override;
 private:
     const std::vector <std::string> operationList = {"Insert", "Remove", "Search", "Clear"};
-    const std::vector <std::string> DSList = {"AVL Tree", "Trie", "Linked List", "Hash Table", "Dijkstra", "Kruskal"};
+    const std::vector <std::string> DSList = {"AVL Tree", "Trie", "Linked List", "Hash Table", "Graph"};
     const std::vector <std::string> optionList = {"Main Menu", "Data Structures", "Operations"};
 
     const float BUTTON_HEIGHT = 60.0f;

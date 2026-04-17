@@ -379,6 +379,23 @@ void TrieUI::updateField(RawInputEvent nextInput) {
     ShapeState targetBackground = targetController -> getButtonShape().getBackground();
     Vector2 rootPos = {20.0f + BUTTON_WIDTH, targetBackground.startPosition.y};
 
+    bool randomClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
+                    && fieldRandom.getButtonShape().contains(nextInput.position - rootPos);
+
+    // When the random request is required, set a random value with a random length [1, TEXTBOX_LENGTH]
+    if (randomClick) {
+        if (!isFieldTextboxFocused) return;
+        
+        int randLength = Helper::random_gen(1, TEXTBOX_LENGTH_LIMIT);
+        std::string str = "";
+        for (int i = 0; i < randLength; ++i) {
+            str.push_back(Helper::random_gen('0', '9'));
+        }
+
+        fieldTextbox.setLabelBuffer(str);
+        return;
+    }
+
     if (nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED) {
         isFieldTextboxFocused = fieldTextbox.contains(nextInput.position - rootPos);
     } else if (nextInput.inputType == RawInputEvent::InputType::RIGHT_MOUSE_CLICKED) {
@@ -416,20 +433,7 @@ CommandPattern TrieUI::fieldListenerRequest(RawInputEvent nextInput) {
                     && nextInput.keySignal == KeyboardKey::KEY_ENTER;
     bool submitClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
                     && fieldSubmit.getButtonShape().contains(nextInput.position - rootPos);
-    bool randomClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
-                    && fieldRandom.getButtonShape().contains(nextInput.position - rootPos);
-
-    // When the random request is required, set a random value with a random length [1, TEXTBOX_LENGTH]
-    if (randomClick) {
-        int randLength = Helper::random_gen(1, TEXTBOX_LENGTH_LIMIT);
-        std::string str = "";
-        for (int i = 0; i < randLength; ++i) {
-            str.push_back(Helper::random_gen('0', '9'));
-        }
-
-        fieldTextbox.setLabelBuffer(str);
-        return CommandPattern();
-    }
+    
     if (!submitEnter && !submitClick) return CommandPattern();
     
     // If the Submit button is triggered, the value from the input field is crawled

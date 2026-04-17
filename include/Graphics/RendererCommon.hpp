@@ -86,7 +86,11 @@ enum class PseudocodeSection {
     LINKED_LIST_INSERT,
     LINKED_LIST_REMOVE,
     LINKED_LIST_SEARCH,
-    LINKED_LIST_UPDATE
+    LINKED_LIST_UPDATE,
+
+    HASH_TABLE_INSERT,
+    HASH_TABLE_REMOVE,
+    HASH_TABLE_SEARCH
 };
 
 /// @brief A storage designedx to keep track of different versions of DS

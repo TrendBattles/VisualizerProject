@@ -116,7 +116,7 @@ void LinkedList::insertNode(int value) {
 void LinkedList::remove(int value) {
     generateSnapshot(
         0.3f,
-        head == nullptr ? ChangeMap() : singleChange(Helper::rectangleStringBuffer(head -> shapeID), Highlight::ACTIVE),
+        ChangeMap(),
         PseudocodeSection::LINKED_LIST_REMOVE,
         {1}
     );
@@ -416,7 +416,7 @@ Snapshot LinkedList::buildSnapshot(const ChangeMap& changeMap) {
 
     iter = head;
     // Arrow Drawing
-    for (int i = 0; i + 1 <= idx; ++i) {
+    for (int i = 1; i + 1 <= idx; ++i) {
         Vector2 parentVec = RectCenter(i), childVec = RectCenter(i + 1);
         if ((i + 1) % MAX_NODE == 0) {
             storage.emplace_back(createArrow(parentVec, childVec, iter -> shapeID, RECT_HEIGHT * 0.5f + outlineSize));

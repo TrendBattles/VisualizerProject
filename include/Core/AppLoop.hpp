@@ -12,6 +12,8 @@
 #include <DS/Tree/Trie/TrieUI.hpp>
 #include <DS/LinkedList/LinkedList.hpp>
 #include <DS/LinkedList/LinkedListUI.hpp>
+#include <DS/HashTable/HashTable.hpp>
+#include <DS/HashTable/HashTableUI.hpp>
 
 #include <Graphics/UIManager.hpp>
 

@@ -162,15 +162,15 @@ void PseudocodePanel::init() {
         "    head = head.next",
         "    return",
         "  iter = head",
-        "  while iter.next != null and iter.next.value != value:",
+        "  while iter.next isn't null and iter.next.value != value:",
         "    iter = iter.next",
-        "  if iter.next != null:",
+        "  if iter.next isn't null:",
         "    iter.next = iter.next.next"
     };
     pseudocodeContent[PseudocodeSection::LINKED_LIST_SEARCH] = {
         "search(value):",
         "  iter = head",
-        "  while iter != null:",
+        "  while iter isn't null:",
         "    if iter.value == value:",
         "      return true",
         "    iter = iter.next",
@@ -179,11 +179,42 @@ void PseudocodePanel::init() {
     pseudocodeContent[PseudocodeSection::LINKED_LIST_UPDATE] = {
         "update(oldValue, newValue):",
         "  iter = head",
-        "  while iter != null:",
+        "  while iter isn't null:",
         "    if iter.value == oldValue:",
         "      iter.value = newValue",
         "      break",
         "    iter = iter.next",
+    };
+
+    // Hash_Table
+    pseudocodeContent[PseudocodeSection::HASH_TABLE_INSERT] = {
+        "insert(value):",
+        "  newNode = createNode(value)",
+        "  newNode.next = table[value % TABLE_SIZE]",
+        "  table[value % TABLE_SIZE] = newNode"
+    };
+    pseudocodeContent[PseudocodeSection::HASH_TABLE_REMOVE] = {
+        "remove(value):",
+        "  head = table[value % TABLE_SIZE]"
+        "  if head is null:",
+        "    return",
+        "  if head.value == value:",
+        "    head = head.next",
+        "    return",
+        "  iter = head",
+        "  while iter.next isn't null and iter.next.value != value:",
+        "    iter = iter.next",
+        "  if iter.next isn't null:",
+        "    iter.next = iter.next.next"
+    };
+    pseudocodeContent[PseudocodeSection::HASH_TABLE_SEARCH] = {
+        "search(value):",
+        "  iter = table[value % TABLE_SIZE]",
+        "  while iter isn't null:",
+        "    if iter.value == value:",
+        "      return true",
+        "    iter = iter.next",
+        "  return false"
     };
 }
 

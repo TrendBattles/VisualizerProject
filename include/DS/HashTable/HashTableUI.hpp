@@ -1,11 +1,13 @@
-#ifndef LINKEDLISTUI_HPP
-#define LINKEDLISTUI_HPP
+#ifndef HASHTABLEUI_HPP
+#define HASHTABLEUI_HPP
 
 #include <DS/IDataStructureUI.hpp>
 
-class LinkedListUI: public IDataStructureUI {
+#include <DS/IDataStructureUI.hpp>
+
+class HashTableUI: public IDataStructureUI {
 public:
-    LinkedListUI();
+    HashTableUI();
     
     CommandPattern processInput(RawInputEvent nextInput) override;
 
@@ -18,10 +20,7 @@ public:
     void render() override;
     std::string getDSName() const override;
 private:
-    int activeFieldCount() const;
-    void updateFuncRender();
-
-    const std::vector <std::string> operationList = {"Insert", "Remove", "Search", "Update", "Clear"};
+    const std::vector <std::string> operationList = {"Insert", "Remove", "Search", "Clear"};
     const std::vector <std::string> DSList = {"AVL Tree", "Trie", "Linked List", "Hash Table", "Graph"};
     const std::vector <std::string> optionList = {"Main Menu", "Data Structures", "Operations"};
 
@@ -43,17 +42,13 @@ private:
     const float FIELD_GAP = 30.0f;
     const float FIELD_TEXTBOX_WIDTH = 120.0f;
     const float FIELD_TEXTBOX_HEIGHT = 60.0f;
-    const float FIELD_TEXTBOX_OUTLINE = 2.0f, FIELD_TEXTBOX_GAP = 30.0f;
-
     const float FIELD_RANDOM_WIDTH = 120.0f;
     const float FIELD_RANDOM_HEIGHT = 60.0f;
     const float FIELD_SUBMIT_WIDTH = 120.0f;
     const float FIELD_SUBMIT_HEIGHT = 60.0f;
 
-    Textbox fieldTextbox[2];
-    std::string updateHolder[2] = {"Old:", "New:"};
-    Vector2 updateHolderSize[2];
-    int textboxFocusID = -1;
+    Textbox fieldTextbox;
+    bool isFieldTextboxFocused = false;
     ButtonController fieldRandom, fieldSubmit;
     
     void createField();

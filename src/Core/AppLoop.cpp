@@ -33,8 +33,8 @@ void AppLoop::init() {
 
     CoreFonts::load();
 
-    options = {"AVL_Tree", "Trie", "Linked_List", "Hash_Table", "Dijkstra", "Kruskal"};
-    appSection = options[2];
+    options = {"AVL_Tree", "Trie", "Linked_List", "Hash_Table", "Graph"};
+    appSection = options[0];
 
     // Core Managers
     uiManager = new UIManager();
@@ -61,6 +61,11 @@ void AppLoop::init() {
         camera,
         new LinkedList(),
         new LinkedListUI()
+    };
+    DSPackage[options[3]] = {
+        camera,
+        new HashTable(),
+        new HashTableUI()
     };
     
     for (auto& it : DSPackage) {
