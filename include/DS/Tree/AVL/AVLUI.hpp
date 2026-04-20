@@ -32,7 +32,7 @@ private:
     void createNavbarToggle();
     
     CommandPattern navbarListenerRequest(RawInputEvent nextInput);
-    void updateNavbar(RawInputEvent nextInput) override;
+    void processInputNavbar(RawInputEvent nextInput) override;
 
     const int TEXTBOX_LENGTH_LIMIT = 4;
     std::string operationPlaceholder = "";
@@ -51,7 +51,7 @@ private:
     
     void createField();
     void changeField();
-    void updateField(RawInputEvent nextInput);
+    void processInputField(RawInputEvent nextInput);
     CommandPattern fieldListenerRequest(RawInputEvent nextInput);
 };
 #endif

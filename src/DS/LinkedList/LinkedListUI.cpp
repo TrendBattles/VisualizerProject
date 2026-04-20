@@ -19,8 +19,8 @@ CommandPattern LinkedListUI::processInput(RawInputEvent nextInput) {
     CommandPattern fieldSignal = fieldListenerRequest(nextInput);
     if (!fieldSignal.prefix.empty()) return fieldSignal;
 
-    updateNavbar(nextInput);
-    updateField(nextInput);
+    processInputNavbar(nextInput);
+    processInputField(nextInput);
 
     return CommandPattern();
 }
@@ -127,7 +127,7 @@ void LinkedListUI::updateFuncRender() {
 
         if (i == textboxFocusID) {
             background = tmp.getBackground();
-            background.setColor(GetColor(0x3B4252FF), GetColor(0x81A1C1FF));
+            background.outlineColor = GetColor(0x81A1C1FF);
             tmp.setBackground(background);
         }
 
@@ -383,7 +383,7 @@ CommandPattern LinkedListUI::navbarListenerRequest(RawInputEvent nextInput) {
 }
 
 /// @brief Navbar Interactions
-void LinkedListUI::updateNavbar(RawInputEvent nextInput) {
+void LinkedListUI::processInputNavbar(RawInputEvent nextInput) {
     std::string signal = navbarMap[navPhase].processInput(nextInput);
     if (signal == "TOGGLE") {
         // When the toggle button is triggered, the navigation bar will change its status.
@@ -437,7 +437,7 @@ void LinkedListUI::changeField() {
 }
 
 /// @brief Field Input
-void LinkedListUI::updateField(RawInputEvent nextInput) {
+void LinkedListUI::processInputField(RawInputEvent nextInput) {
     if (operationPlaceholder.empty()) return;
     
     ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);

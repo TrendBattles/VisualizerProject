@@ -90,7 +90,10 @@ enum class PseudocodeSection {
 
     HASH_TABLE_INSERT,
     HASH_TABLE_REMOVE,
-    HASH_TABLE_SEARCH
+    HASH_TABLE_SEARCH,
+
+    DIJKSTRA,
+    KRUSKAL
 };
 
 /// @brief A storage designedx to keep track of different versions of DS

@@ -67,5 +67,11 @@ namespace Highlight {
         GetColor(0x8D99AEFF), // Muted Blue-Grey outline
         GetColor(0xEDF2F4FF)  // Off-white text (Soft on the eyes)
     };
+
+    inline const ChangeInfo PINNED = {
+        GetColor(0x2B2D42FF), // Deep Navy/Charcoal
+        RED, // Muted Blue-Grey outline
+        GetColor(0xEDF2F4FF)  // Off-white text (Soft on the eyes)
+    };
 }
 #endif

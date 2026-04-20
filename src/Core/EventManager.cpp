@@ -129,8 +129,28 @@ void EventManager::handleModification(CommandPattern commandRequest) {
             throw std::runtime_error("Invalid Hash Table function");
         }
         if (DataStructure == "Graph") {
+            const std::string& operation = commandRequest.operation;
+            const std::vector <std::string>& rawValue = commandRequest.value;
 
-            return;
+            if (operation == "INSERT EDGE") {
+                DSPointer -> insertEdge(rawValue[0], rawValue[1], rawValue[2]);
+                return;
+            }
+            if (operation == "REMOVE EDGE") {
+                DSPointer -> removeEdge(rawValue[0], rawValue[1]);
+                return;
+            }
+            if (operation == "REMOVE NODE") {
+                DSPointer -> removeNode(rawValue[0]);
+                return;
+            }
+        
+            if (operation == "CLEAR") {
+                DSPointer -> clearAll();
+                return;
+            }
+            
+            throw std::runtime_error("Invalid Graph function");
         }
 
         throw std::runtime_error("Data Structure not found");
@@ -206,8 +226,22 @@ void EventManager::handleQuery(CommandPattern commandRequest) {
             throw std::runtime_error("Invalid Hash Table function");
         }
         if (DataStructure == "Graph") {
+            const std::string& operation = commandRequest.operation;
+            const std::vector <std::string>& rawValue = commandRequest.value;
 
-            return;
+            if (!animationManager -> isPaused())
+                    animationManager -> resetAnimationTimer();
+
+            if (operation == "DIJKSTRA") {
+                DSPointer -> runDijkstra(rawValue[0], rawValue[1]);
+                return;
+            }
+            if (operation == "KRUSKAL") {
+                DSPointer -> runKruskal();
+                return;
+            }
+
+            throw std::runtime_error("Invalid Graph function");
         }
 
         throw std::runtime_error("Data Structure not found");

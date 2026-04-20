@@ -14,6 +14,8 @@
 #include <DS/LinkedList/LinkedListUI.hpp>
 #include <DS/HashTable/HashTable.hpp>
 #include <DS/HashTable/HashTableUI.hpp>
+#include <DS/Graph/Graph.hpp>
+#include <DS/Graph/GraphUI.hpp>
 
 #include <Graphics/UIManager.hpp>
 
@@ -50,8 +52,8 @@ private:
     void VisualizerUpdate();
     void VisualizerCommandUpdate();
     void VisualizerRender();
-    void SwitchSection();
 
+    void SwitchSection();
     UIManager* uiManager = nullptr;
     
     InputManager* inputManager = nullptr;

@@ -216,6 +216,33 @@ void PseudocodePanel::init() {
         "    iter = iter.next",
         "  return false"
     };
+
+    // Graph
+    pseudocodeContent[PseudocodeSection::DIJKSTRA] = {
+        "dijkstra(u, v):",
+        "  initalize minDist, heap",
+        "  minDist[u] = 0",
+        "  add (minDist[u], u) to heap",
+        "  while heap isn't empty:",
+        "    d, i = heap.pop()",
+        "    if d > minDist[i]:",
+        "      continue",
+        "    for (j, w) in adjList(i):",
+        "      if minDist[j] > minDist[i] + w",
+        "         update minDist[j]",
+        "         add (minDist[j], j) to heap",
+        "  if minDist[v] != inf",
+        "     trace the path from u to v"
+    };
+    pseudocodeContent[PseudocodeSection::KRUSKAL] = {
+        "kruskal():",
+        "  sort edges in order of increasing weight",
+        "  root[MAX_NODES] = {1,2,...,MAX_NODES}",
+        "  for (u, v) in edges:",
+        "    if root[u] != root[v]:",
+        "       join edge (u, v)",
+        "       update root[]"
+    };
 }
 
 void PseudocodePanel::render(std::string DSTarget) {

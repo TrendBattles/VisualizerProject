@@ -39,7 +39,7 @@ protected:
     NavPhase navPhase = NavPhase::NAV_CLOSED;
 
     virtual void createNavbar() = 0;
-    virtual void updateNavbar(RawInputEvent nextInput) = 0;
+    virtual void processInputNavbar(RawInputEvent nextInput) = 0;
 
     UIManager* uiManager = nullptr;
 };

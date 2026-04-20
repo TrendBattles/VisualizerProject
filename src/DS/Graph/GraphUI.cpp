@@ -1,7 +1,7 @@
-#include <DS/Tree/Trie/TrieUI.hpp>
+#include <DS/Graph/GraphUI.hpp>
 #include <Graphics/Helper.hpp>
 
-TrieUI::TrieUI() {
+GraphUI::GraphUI() {
     createNavbar();
     
     createField();
@@ -12,7 +12,7 @@ TrieUI::TrieUI() {
 ///////////////////////////
 
 /// @brief Input processing 
-CommandPattern TrieUI::processInput(RawInputEvent nextInput) {
+CommandPattern GraphUI::processInput(RawInputEvent nextInput) {
     CommandPattern navbarSignal = navbarListenerRequest(nextInput);
     if (!navbarSignal.prefix.empty()) return navbarSignal;
     
@@ -25,7 +25,7 @@ CommandPattern TrieUI::processInput(RawInputEvent nextInput) {
     return CommandPattern();
 }
 
-void TrieUI::disableOption(const std::string& optionName) {
+void GraphUI::disableOption(const std::string& optionName) {
     for (auto& it : navbarMap) {
         ButtonController* targetController = it.second.getButtonController(optionName);
         if (targetController != nullptr) {
@@ -33,7 +33,7 @@ void TrieUI::disableOption(const std::string& optionName) {
         }
     }
 }
-void TrieUI::enableOption(const std::string& optionName) {
+void GraphUI::enableOption(const std::string& optionName) {
     for (auto& it : navbarMap) {
         ButtonController* targetController = it.second.getButtonController(optionName);
         if (targetController != nullptr) {
@@ -41,7 +41,7 @@ void TrieUI::enableOption(const std::string& optionName) {
         }
     }
 }
-void TrieUI::disableAllOperations() {
+void GraphUI::disableAllOperations() {
     for (const std::string& buttonID : operationList) {
         ButtonController* targetController = navbarMap[NavPhase::NAV_OPERATIONS].getButtonController(buttonID);
         
@@ -50,7 +50,7 @@ void TrieUI::disableAllOperations() {
         }
     }
 }
-void TrieUI::enableAllOperations() {
+void GraphUI::enableAllOperations() {
     for (const std::string& buttonID : operationList) {
         ButtonController* targetController = navbarMap[NavPhase::NAV_OPERATIONS].getButtonController(buttonID);
         if (targetController != nullptr) {
@@ -60,43 +60,70 @@ void TrieUI::enableAllOperations() {
 }
 
 /////////////////////////
-///     UI DESIGN     ///
+///     UI UPDATE     ///
 /////////////////////////
 
 /// @brief UI updates before rendering
-void TrieUI::update() {
-    if (!operationPlaceholder.empty()) {
-        ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
-        ShapeState targetBackground = targetController -> getButtonShape().getBackground();
-        Vector2 rootPos = {20.0f + BUTTON_WIDTH, targetBackground.startPosition.y};
+void GraphUI::update() {
+    NavigationBar& navbar = navbarMap[navPhase];
+    navbar.hoverButtonTrigger();
 
-        if (fieldRandom.getButtonShape().contains(GetMousePosition() - rootPos)) {
-            fieldRandom.setButtonState(ButtonState::HOVERED);
-        } else {
-            fieldRandom.setButtonState(ButtonState::ACTIVE);
-        }
+    if (operationPlaceholder.empty()) {
+        SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+        return;
+    }
 
-        if (fieldSubmit.getButtonShape().contains(GetMousePosition() - rootPos)) {
-            fieldSubmit.setButtonState(ButtonState::HOVERED);
-        } else {
-            fieldSubmit.setButtonState(ButtonState::ACTIVE);
-        }
+    ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
+    ShapeState targetBackground = targetController -> getButtonShape().getBackground();
+    Vector2 rootPos = {FIELD_GAP_X + BUTTON_WIDTH, targetBackground.startPosition.y};
 
-        if (fieldTextbox.contains(GetMousePosition() - rootPos)) {
-            SetMouseCursor(MOUSE_CURSOR_IBEAM);
-        } else {
-            SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+    hoverTextboxTrigger(rootPos);
+
+    if (operationPlaceholder == "Insert Edge") {
+        hoverButtonTrigger(rootPos + Vector2{0.0f, FIELD_GAP_Y + FIELD_TEXTBOX_HEIGHT});
+    } else if (operationPlaceholder == "Remove Edge") {
+        hoverButtonTrigger(rootPos + Vector2{0.0f, FIELD_GAP_Y + FIELD_TEXTBOX_HEIGHT});
+    } else if (operationPlaceholder == "Remove Node") {
+        hoverButtonTrigger(rootPos + Vector2{FIELD_GAP_X + FIELD_TEXTBOX_WIDTH, 0.0f});
+    } else if (operationPlaceholder == "Dijkstra") {
+        hoverButtonTrigger(rootPos + Vector2{0.0f, FIELD_GAP_Y + FIELD_TEXTBOX_HEIGHT});
+    }
+}
+void GraphUI::hoverTextboxTrigger(Vector2 rootPos) {
+    bool hoveredTextbox = false;
+    for (int i = 0; i < activeFieldCount() && !hoveredTextbox; ++i) {
+        Vector2 nextPos = rootPos + Vector2{i * (FIELD_TEXTBOX_WIDTH + FIELD_GAP_X), 0.0f};
+        if (fieldTextbox[i].contains(GetMousePosition() - nextPos)) {
+            hoveredTextbox = true;
         }
+    }
+    if (hoveredTextbox) {
+        SetMouseCursor(MOUSE_CURSOR_IBEAM);
     } else {
         SetMouseCursor(MOUSE_CURSOR_DEFAULT);
     }
-    
-    
-    NavigationBar& navbar = navbarMap[navPhase];
-    navbar.hoverButtonTrigger();
 }
-/// @brief UI rendering
-void TrieUI::render() {
+void GraphUI::hoverButtonTrigger(Vector2 rootPos) {
+    if (fieldRandom.getButtonShape().contains(GetMousePosition() - rootPos)) {
+        fieldRandom.setButtonState(ButtonState::HOVERED);
+    } else {
+        fieldRandom.setButtonState(ButtonState::ACTIVE);
+    }
+
+    rootPos += Vector2{FIELD_GAP_X + FIELD_BUTTON_WIDTH, 0.0f};
+
+    if (fieldSubmit.getButtonShape().contains(GetMousePosition() - rootPos)) {
+        fieldSubmit.setButtonState(ButtonState::HOVERED);
+    } else {
+        fieldSubmit.setButtonState(ButtonState::ACTIVE);
+    }
+}
+
+/////////////////////////
+///     UI RENDER     ///
+/////////////////////////
+
+void GraphUI::render() {
     if (navPhase != NavPhase::NAV_CLOSED) {
         DrawRectangle(BUTTON_WIDTH, 0, GetScreenWidth() - BUTTON_WIDTH, GetScreenHeight(), Fade(GetColor(0x2E3440FF), 0.5f));
     }
@@ -105,37 +132,74 @@ void TrieUI::render() {
     if (operationPlaceholder.empty()) {
         return;
     }
-    
+
     ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
     ShapeState targetBackground = targetController -> getButtonShape().getBackground();
-    Vector2 rootPos = {20.0f + BUTTON_WIDTH, targetBackground.startPosition.y};
+    Vector2 rootPos = {FIELD_GAP_X + BUTTON_WIDTH, targetBackground.startPosition.y};
 
-    Textbox tempTextbox = fieldTextbox;
+    renderTextbox(rootPos);
+
+    if (operationPlaceholder == "Insert Edge") {
+        renderButton(rootPos + Vector2{0.0f, FIELD_GAP_Y + FIELD_TEXTBOX_HEIGHT});
+    } else if (operationPlaceholder == "Remove Edge") {
+        renderButton(rootPos + Vector2{0.0f, FIELD_GAP_Y + FIELD_TEXTBOX_HEIGHT});
+    } else if (operationPlaceholder == "Remove Node") {
+        renderButton(rootPos + Vector2{FIELD_GAP_X + FIELD_TEXTBOX_WIDTH, 0.0f});
+    } else if (operationPlaceholder == "Dijkstra") {
+        renderButton(rootPos + Vector2{0.0f, FIELD_GAP_Y + FIELD_TEXTBOX_HEIGHT});
+    }
+}
+void GraphUI::renderTextbox(Vector2 rootPos) {
+    for (int i = 0; i < activeFieldCount(); ++i) {
+        Vector2 nextPos = rootPos + Vector2{i * (FIELD_TEXTBOX_WIDTH + FIELD_GAP_X), 0.0f};
+
+        Textbox tempTextbox = fieldTextbox[i];
+        tempTextbox.positionTransitAllBy(nextPos);
+
+        if (textboxFocusID == i) {
+            ShapeState background = tempTextbox.getBackground();
+            background.outlineColor = GetColor(0x81A1C1FF);
+            tempTextbox.setBackground(background);
+        }
+
+        drawTextbox(tempTextbox);
+    }
+}
+void GraphUI::renderButton(Vector2 rootPos) {
     Button tempRandom = fieldRandom.getButtonShape();
-    Button tempSubmit = fieldSubmit.getButtonShape();
-    
-    tempTextbox.positionTransitAllBy(rootPos);
     tempRandom.positionTransitAllBy(rootPos);
+
+    rootPos += Vector2{FIELD_GAP_X + FIELD_BUTTON_WIDTH, 0.0f};
+    
+    Button tempSubmit = fieldSubmit.getButtonShape();
     tempSubmit.positionTransitAllBy(rootPos);
 
-    if (isFieldTextboxFocused) {
-        ShapeState background = tempTextbox.getBackground();
-        background.outlineColor = GetColor(0x81A1C1FF);
-        tempTextbox.setBackground(background);
-    }
-
-    drawTextbox(tempTextbox);
     drawButton(tempRandom);
     drawButton(tempSubmit);
 }
-std::string TrieUI::getDSName() const { return "Trie"; }
 
-///////////////////////////////
-///     INITIALIZATION      ///
-///////////////////////////////
+std::string GraphUI::getDSName() const { return "Graph"; }
 
+int GraphUI::activeFieldCount() const {
+    if (operationPlaceholder == "Insert Edge") {
+        return 3;
+    } else if (operationPlaceholder == "Remove Edge") {
+        return 2;
+    } else if (operationPlaceholder == "Remove Node") {
+        return 1;
+    } else if (operationPlaceholder == "Dijkstra") {
+        return 2;
+    }
+    
+    return 0;
+}
+
+///////////////////////
+///     NAVBAR      ///
+///////////////////////
 /// @brief Creating the nagivation sidebar
-void TrieUI::createNavbar() {
+
+void GraphUI::createNavbar() {
     NavigationBar& phase0 = navbarMap[NavPhase::NAV_CLOSED];
     Vector2 navigationHiddenSize = {BUTTON_WIDTH / 2, (float) GetScreenHeight()};
     phase0.setBackground(Helper::createRectangle(
@@ -161,7 +225,7 @@ void TrieUI::createNavbar() {
     createNavbarToggle();
 }
 
-NavigationBar TrieUI::createNavBar(const std::vector <std::string>& buttonList) {
+NavigationBar GraphUI::createNavBar(const std::vector <std::string>& buttonList) {
     NavigationBar tempoNav;
     Vector2 navigationSize = {BUTTON_WIDTH, (float) GetScreenHeight()};
     tempoNav.setBackground(Helper::createRectangle(
@@ -185,7 +249,7 @@ NavigationBar TrieUI::createNavBar(const std::vector <std::string>& buttonList) 
     return tempoNav;
 }
 
-ButtonController TrieUI::createNavbarButtons(const std::string& buttonID, float x, float y) {
+ButtonController GraphUI::createNavbarButtons(const std::string& buttonID, float x, float y) {
     auto createButton = [&] (std::string suffix, Font font, Color backgroundColor, Color outlineColor, Color textColor) -> Button {
         return Helper::createButton(
             Helper::createRectangle(
@@ -208,7 +272,7 @@ ButtonController TrieUI::createNavbarButtons(const std::string& buttonID, float 
     return addedButton;
 }
 
-void TrieUI::createNavbarToggle() {
+void GraphUI::createNavbarToggle() {
     ButtonController openToggle, closedToggle;
     Vector2 toggleSize = {70.0f, 40.0f};
     Vector2 startPos = {0.0f, 60.0f};
@@ -255,41 +319,43 @@ void TrieUI::createNavbarToggle() {
     }
 }
 
-/// @brief Field Inputs
-void TrieUI::createField() {
-    Vector2 nextPos = {0.0f, 0.0f};
+///////////////////////
+///     FIELD       ///
+///////////////////////
+/// @brief Creating input fields
 
-    fieldTextbox = Helper::createTextbox(
-        Helper::createRectangle(
-            getDSName() + "_" + Helper::rectangleStringBuffer("Field_Textbox"),
-            nextPos, nextPos + Vector2{FIELD_TEXTBOX_WIDTH, FIELD_TEXTBOX_HEIGHT}, 
-            2.0f, 
-            GetColor(0x3B4252FF), BLACK,
-            1
-        ),
-        Helper::createText("", GetFontDefault(), 20.0f, 5.0f, {0, 0}, WHITE)
-    );
+void GraphUI::createField() {
+    for (int i = 0; i < MAX_TEXTBOX; ++i) {
+        fieldTextbox[i] = Helper::createTextbox(
+            Helper::createRectangle(
+                getDSName() + "_" + Helper::rectangleStringBuffer("Field_Textbox_" + std::to_string(i)),
+                Vector2 {0.0f, 0.0f}, Vector2{FIELD_TEXTBOX_WIDTH, FIELD_TEXTBOX_HEIGHT}, 
+                FIELD_TEXTBOX_OUTLINE,
+                GetColor(0x3B4252FF), BLACK, 1
+            ),
+            Helper::createText("", GetFontDefault(), 20.0f, 5.0f, {0, 0}, WHITE)
+        );
+
+        edgeHolderSize[i] = MeasureTextEx(CoreFonts::CascadiaMonoRegular, edgeHolder[i].c_str(), FIELD_HOLDER_FONT_SIZE, 0.1f * FIELD_HOLDER_FONT_SIZE);
+    }
+    
 
     auto createButton = [&] (std::string buttonID, std::string text, Color bgColor, Font font) -> Button {
         return Helper::createButton(
             Helper::createRectangle(
                 getDSName() + "_" + Helper::rectangleStringBuffer(buttonID),
-                nextPos, nextPos + Vector2{FIELD_SUBMIT_WIDTH, FIELD_SUBMIT_HEIGHT}, 
+                Vector2 {0.0f, 0.0f}, Vector2{FIELD_BUTTON_WIDTH, FIELD_BUTTON_HEIGHT}, 
                 2.0f, 
                 bgColor, BLACK,
                 1
             ),
             
-            Helper::createText(text, font, 25.0f, 2.5f, {0, 0}, BLACK)
+            Helper::createText(text, font, FIELD_BUTTON_FONT_SIZE, 0.1f * FIELD_BUTTON_FONT_SIZE, {0, 0}, BLACK)
         );
     };
 
-    nextPos += Vector2{FIELD_TEXTBOX_WIDTH + FIELD_GAP, 0};
-
     fieldRandom.setButtonSettings(ButtonState::ACTIVE, createButton("Field_Random", "Random", GetColor(0xC9AE8AFF), CoreFonts::Aptos));
     fieldRandom.setButtonSettings(ButtonState::HOVERED, createButton("Field_Random_hovered", "Random", GetColor(0x81A1C1FF), CoreFonts::AptosBold));
-
-    nextPos += Vector2{FIELD_SUBMIT_WIDTH + FIELD_GAP, 0};
 
     fieldSubmit.setButtonSettings(ButtonState::ACTIVE, createButton("Field_Submit", "Submit", GetColor(0xC9AE8AFF), CoreFonts::Aptos));
     fieldSubmit.setButtonSettings(ButtonState::HOVERED, createButton("Field_Submit_hovered", "Submit", GetColor(0x81A1C1FF), CoreFonts::AptosBold));
@@ -300,8 +366,9 @@ void TrieUI::createField() {
 ///     SUPPORTIVE FUNCTIONS     ///
 ////////////////////////////////////
 
-CommandPattern TrieUI::navbarListenerRequest(RawInputEvent nextInput) {
+CommandPattern GraphUI::navbarListenerRequest(RawInputEvent nextInput) {
     std::string signal = navbarMap[navPhase].processInput(nextInput);
+    
     if (signal == "Clear") {
         navPhase = NavPhase::NAV_CLOSED;
         operationPlaceholder = "";
@@ -316,12 +383,22 @@ CommandPattern TrieUI::navbarListenerRequest(RawInputEvent nextInput) {
         return CommandPattern{"NAVIGATE", "DS_SWITCH", signal, "", {}};
     }
 
+    if (signal == "Kruskal") {
+        navPhase = NavPhase::NAV_CLOSED;
+        operationPlaceholder = "";
+        changeField();
+        
+        return CommandPattern{"QUERY", "INTERACT", getDSName(), "KRUSKAL", {}};
+    }
+
     return CommandPattern();
 }
 
 /// @brief Navbar Interactions
-void TrieUI::processInputNavbar(RawInputEvent nextInput) {
+void GraphUI::processInputNavbar(RawInputEvent nextInput) {
     std::string signal = navbarMap[navPhase].processInput(nextInput);
+    if (signal.empty()) return;
+    
     if (signal == "TOGGLE") {
         // When the toggle button is triggered, the navigation bar will change its status.
         // And the input buffer will be cleared just to assure emptyness.
@@ -355,8 +432,8 @@ void TrieUI::processInputNavbar(RawInputEvent nextInput) {
         navPhase = NavPhase::NAV_OPERATIONS;
         return;
     }
-
-    if (!signal.empty() && signal != operationPlaceholder) {
+    
+    if (signal != operationPlaceholder) {
         // DS Operation chosen
         
         operationPlaceholder = signal;
@@ -366,50 +443,64 @@ void TrieUI::processInputNavbar(RawInputEvent nextInput) {
 
  
 /// @brief Field Interaction Change
-void TrieUI::changeField() {
-    fieldTextbox.clearLabelBuffer();
-    isFieldTextboxFocused = false;
+void GraphUI::changeField() {
+    for (int i = 0; i < MAX_TEXTBOX; ++i) {
+        fieldTextbox[i].clearLabelBuffer();
+    }
+
+    textboxFocusID = -1;
 }
 
 /// @brief Field Input
-void TrieUI::processInputField(RawInputEvent nextInput) {
+void GraphUI::processInputField(RawInputEvent nextInput) {
     if (operationPlaceholder.empty()) return;
     
     ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
     ShapeState targetBackground = targetController -> getButtonShape().getBackground();
-    Vector2 rootPos = {20.0f + BUTTON_WIDTH, targetBackground.startPosition.y};
+    Vector2 rootPos = {FIELD_GAP_X + BUTTON_WIDTH, targetBackground.startPosition.y};
 
-    bool randomClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
-                    && fieldRandom.getButtonShape().contains(nextInput.position - rootPos);
+    bool randomClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED;
+    if (operationPlaceholder == "Insert Edge" || operationPlaceholder == "Remove Edge" || operationPlaceholder == "Dijkstra") {
+        randomClick &= fieldRandom.getButtonShape().contains(nextInput.position - rootPos - Vector2{0.0f, FIELD_GAP_Y + FIELD_TEXTBOX_HEIGHT});
+    } else if (operationPlaceholder == "Remove Node") {
+        randomClick &= fieldRandom.getButtonShape().contains(nextInput.position - rootPos - Vector2{FIELD_GAP_X + FIELD_TEXTBOX_WIDTH, 0.0f});
+    } else {
+        randomClick = false;
+    }
 
-    // When the random request is required, set a random value with a random length [1, TEXTBOX_LENGTH]
+    // When the random request is required, set a random value from 0 to 99999 for the input box
     if (randomClick) {
-        if (!isFieldTextboxFocused) return;
-        
-        int randLength = Helper::random_gen(1, TEXTBOX_LENGTH_LIMIT);
-        std::string str = "";
-        for (int i = 0; i < randLength; ++i) {
-            str.push_back(Helper::random_gen('0', '9'));
-        }
-
-        fieldTextbox.setLabelBuffer(str);
+        if (textboxFocusID != -1)
+            fieldTextbox[textboxFocusID].setLabelBuffer(std::to_string(Helper::random_gen(textboxFocusID < 2, textboxFocusID >= 2 ? 99 : 10)));
         return;
     }
-
+    
     if (nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED) {
-        isFieldTextboxFocused = fieldTextbox.contains(nextInput.position - rootPos);
+        textboxFocusID = -1;
+
+        for (int i = 0; i < activeFieldCount(); ++i) {
+            Vector2 nextPos = rootPos + Vector2{i * (FIELD_TEXTBOX_WIDTH + FIELD_GAP_X), 0.0f};
+            if (fieldTextbox[i].contains(nextInput.position - nextPos)) {
+                textboxFocusID = i;
+                break;
+            }
+        }
     } else if (nextInput.inputType == RawInputEvent::InputType::RIGHT_MOUSE_CLICKED) {
-        isFieldTextboxFocused = false;
+        textboxFocusID = -1;
+    } else if (nextInput.inputType == RawInputEvent::InputType::KEY_PRESSED
+            && nextInput.keySignal == KeyboardKey::KEY_TAB) {
+        
+        if (textboxFocusID != -1) textboxFocusID = (textboxFocusID + 1) % activeFieldCount();
     }
 
-    if (!isFieldTextboxFocused || nextInput.inputType != RawInputEvent::InputType::KEY_PRESSED) return;
+    if (textboxFocusID == -1 || nextInput.inputType != RawInputEvent::InputType::KEY_PRESSED) return;
 
     // If the field is being focused, we crawl the key input
     // If that key is a number and the string hasn't reached its limit, insert that key to the buffer.
     // If KEY_BACKSPACE is triggered, remove the last character in the buffer.
     int keyID = (int) nextInput.keySignal;
 
-    std::string inputStr = fieldTextbox.getLabelBuffer();
+    std::string inputStr = fieldTextbox[textboxFocusID].getLabelBuffer();
     if (keyID >= '0' && keyID <= '9' && (int) inputStr.length() < TEXTBOX_LENGTH_LIMIT) {
         inputStr.push_back(keyID);
     }
@@ -418,41 +509,60 @@ void TrieUI::processInputField(RawInputEvent nextInput) {
         inputStr.pop_back();
     }
 
-    fieldTextbox.setLabelBuffer(inputStr);
+    fieldTextbox[textboxFocusID].setLabelBuffer(inputStr);
 }
 
 /// @brief Responds requests to Data Structure  
-CommandPattern TrieUI::fieldListenerRequest(RawInputEvent nextInput) {
+CommandPattern GraphUI::fieldListenerRequest(RawInputEvent nextInput) {
     if (operationPlaceholder.empty()) return CommandPattern();
 
     ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
     ShapeState targetBackground = targetController -> getButtonShape().getBackground();
-    Vector2 rootPos = {20.0f + BUTTON_WIDTH, targetBackground.startPosition.y};
-
+    Vector2 rootPos = {FIELD_GAP_X + BUTTON_WIDTH, targetBackground.startPosition.y};
+    
     bool submitEnter = nextInput.inputType == RawInputEvent::InputType::KEY_PRESSED
                     && nextInput.keySignal == KeyboardKey::KEY_ENTER;
-    bool submitClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
-                    && fieldSubmit.getButtonShape().contains(nextInput.position - rootPos);
+    bool submitClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED;
+    if (operationPlaceholder == "Insert Edge" || operationPlaceholder == "Remove Edge" || operationPlaceholder == "Dijkstra") {
+        submitClick &= fieldRandom.getButtonShape().contains(nextInput.position - rootPos - Vector2{FIELD_GAP_X + FIELD_BUTTON_WIDTH, FIELD_GAP_Y + FIELD_TEXTBOX_HEIGHT});
+    } else if (operationPlaceholder == "Remove Node") {
+        submitClick &= fieldRandom.getButtonShape().contains(nextInput.position - rootPos - Vector2{FIELD_GAP_X * 2 + FIELD_BUTTON_WIDTH + FIELD_TEXTBOX_WIDTH, 0.0f});
+    } else {
+        submitClick = false;
+    }
     
     if (!submitEnter && !submitClick) return CommandPattern();
     
     // If the Submit button is triggered, the value from the input field is crawled
     // After that, the input buffer will be removed, and the navigation sidebar will close.
     // Solving edge cases: when the input is empty
-    std::string rawValue = fieldTextbox.getLabelBuffer();
-    std::string chosenOperation = operationPlaceholder;
 
+    std::vector <std::string> rawValue;
+    for (int i = 0; i < activeFieldCount(); ++i) {
+        rawValue.push_back(fieldTextbox[i].getLabelBuffer());
+
+        if (rawValue[i].empty()) rawValue[i] = "0";
+    }
+    std::string chosenOperation = operationPlaceholder;
+    
     operationPlaceholder = "";
     navPhase = NavPhase::NAV_CLOSED;
     changeField();
 
-    if (rawValue.empty()) rawValue = "0";
-
-    return CommandPattern {
-        Helper::upperString(chosenOperation) == "SEARCH" ? "QUERY" : "MODIFY",
-        "INTERACT",
-        getDSName(),
-        Helper::upperString(chosenOperation),
-        {rawValue}
-    };
+    if (chosenOperation.find("Insert") != std::string::npos || chosenOperation.find("Remove") != std::string::npos)
+        return CommandPattern {
+            "MODIFY",
+            "INTERACT",
+            getDSName(),
+            Helper::upperString(chosenOperation),
+            rawValue
+        };
+    else 
+        return CommandPattern {
+            "QUERY",
+            "INTERACT",
+            getDSName(),
+            Helper::upperString(chosenOperation),
+            rawValue
+        };
 }

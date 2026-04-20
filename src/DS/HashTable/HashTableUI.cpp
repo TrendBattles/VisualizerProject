@@ -19,8 +19,8 @@ CommandPattern HashTableUI::processInput(RawInputEvent nextInput) {
     CommandPattern fieldSignal = fieldListenerRequest(nextInput);
     if (!fieldSignal.prefix.empty()) return fieldSignal;
 
-    updateNavbar(nextInput);
-    updateField(nextInput);
+    processInputNavbar(nextInput);
+    processInputField(nextInput);
 
     return CommandPattern();
 }
@@ -120,7 +120,7 @@ void HashTableUI::render() {
 
     if (isFieldTextboxFocused) {
         ShapeState background = tempTextbox.getBackground();
-        background.setColor(GetColor(0x3B4252FF), GetColor(0x81A1C1FF));
+        background.outlineColor = GetColor(0x81A1C1FF);
         tempTextbox.setBackground(background);
     }
 
@@ -320,7 +320,7 @@ CommandPattern HashTableUI::navbarListenerRequest(RawInputEvent nextInput) {
 }
 
 /// @brief Navbar Interactions
-void HashTableUI::updateNavbar(RawInputEvent nextInput) {
+void HashTableUI::processInputNavbar(RawInputEvent nextInput) {
     std::string signal = navbarMap[navPhase].processInput(nextInput);
     if (signal == "TOGGLE") {
         // When the toggle button is triggered, the navigation bar will change its status.
@@ -372,7 +372,7 @@ void HashTableUI::changeField() {
 }
 
 /// @brief Field Input
-void HashTableUI::updateField(RawInputEvent nextInput) {
+void HashTableUI::processInputField(RawInputEvent nextInput) {
     if (operationPlaceholder.empty()) return;
     
     ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);

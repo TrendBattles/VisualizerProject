@@ -67,6 +67,11 @@ void AppLoop::init() {
         new HashTable(),
         new HashTableUI()
     };
+    DSPackage[options[4]] = {
+        camera,
+        new Graph(),
+        new GraphUI()
+    };
     
     for (auto& it : DSPackage) {
         it.second.DataStructure -> setStateManager(stateManager);
@@ -151,6 +156,11 @@ void AppLoop::VisualizerInputHandling() {
                 camera.target = {0.0f, 0.0f};
                 continue;
             }
+
+            if (animationManager -> allowsOperations(getScreenSection())
+            &&  DataStructure -> processInput(nextInput)) {
+                continue;
+            }
         }
 
         // Data Structure operation signal request
@@ -190,7 +200,8 @@ void AppLoop::VisualizerUpdate() {
     
     // Playback Update
     playbackController -> update(getScreenSection());
-    // Data Structure UI update
+    // Data Structure update
+    DataStructure -> update();
     DataStructureUI -> update();
     // Pseudocode Panel update
     pseudocodePanel -> update();
@@ -216,6 +227,7 @@ void AppLoop::VisualizerCommandUpdate() {
     }
 }
 
+/// @brief Rendering visualizations
 void AppLoop::VisualizerRender() {
     Camera2D& camera = DSPackage[appSection].camera;
     IDataStructure* DataStructure = DSPackage[appSection].DataStructure;
@@ -226,7 +238,11 @@ void AppLoop::VisualizerRender() {
         
         // Animated Data Structures
         BeginMode2D(camera);
-            uiManager -> renderSnapshot(animationManager -> requestCurrentSnapshot(getScreenSection()));
+            if (getScreenSection() != "Graph" || !animationManager -> allowsOperations(getScreenSection())) {
+                uiManager -> renderSnapshot(animationManager -> requestCurrentSnapshot(getScreenSection()));
+            } else {
+                uiManager -> renderSnapshot(DataStructure -> getCurrentSnapshot());
+            }
         EndMode2D();
 
         // Overlays
@@ -256,6 +272,8 @@ void AppLoop::SwitchSection() {
 
         animationManager -> setSnapshotIdx(appSection, animationManager -> getSize(appSection) - 1);
         animationManager -> resetAnimationTimer();
+
+        DSPackage[appSection].DataStructure -> reset();
     }
 
     pendingSection = "";

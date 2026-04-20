@@ -46,6 +46,8 @@ target_sources(${PROJECT_NAME} PRIVATE
 	"src/DS/LinkedList/LinkedListUI.cpp"
 	"src/DS/HashTable/HashTable.cpp"
 	"src/DS/HashTable/HashTableUI.cpp"
+	"src/DS/Graph/Graph.cpp"
+	"src/DS/Graph/GraphUI.cpp"
 )
 
 # Graphics
