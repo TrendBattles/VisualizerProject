@@ -27,6 +27,7 @@ target_sources(${PROJECT_NAME} PRIVATE
 	"src/Core/InputManager.cpp"
 	"src/Core/EventManager.cpp"
 	"src/Core/PlaybackController.cpp"
+	"src/tinyfiledialogs.c"
 )
 
 # Data Structures

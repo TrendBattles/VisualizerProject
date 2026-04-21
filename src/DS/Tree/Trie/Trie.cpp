@@ -47,6 +47,18 @@ bool Trie::isDeadNode(TrieNode* node) {
 ////////////////////////////////////
 ///     REPONSIVE FUNCTIONS      ///
 ////////////////////////////////////
+void Trie::initDS(const std::vector <std::string>& rawValue) {
+    clearAll();
+    
+    for (std::string value : rawValue) {
+        insertNode(value);
+    }
+
+    if (stateManager != nullptr)
+        stateManager -> clearAllSnapshots(getDSID());
+    
+    generateSnapshot(0.0f);
+}
 
 bool Trie::insertNode(std::string value) {
     insertString(value);

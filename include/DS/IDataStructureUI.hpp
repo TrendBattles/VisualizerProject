@@ -8,6 +8,8 @@
 #include <Graphics/Panels/Button.hpp>
 #include <Graphics/Panels/NavigationBar.hpp>
 
+#include <tinyfiledialogs.h>
+
 /// @brief Data Structure UI Interface : Interaction
 class IDataStructureUI {
 public:

@@ -40,11 +40,16 @@ class InputManager {
 public:
     void update();
 
+    void handleBackspace();
+    
     bool hasEvents();
     RawInputEvent pollEvent();
 private:
     std::queue <RawInputEvent> inputQueue;
 
     MouseState LeftMouse, RightMouse;
+    float backspaceTime = 0.0f;
+    const float BACKSPACE_DELAY = 0.5f;    // Wait half a second before double backspacing
+    const float BACKSPACE_INTERVAL = 0.05f; // Then delete every 50ms
 };
 #endif

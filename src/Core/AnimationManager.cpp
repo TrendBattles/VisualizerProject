@@ -71,15 +71,22 @@ void AnimationManager::resetAnimationTimer() {
     timeStart = std::chrono::steady_clock::now();
 }
 
+void AnimationManager::setAnimationSpeed(float newSpeed) {
+    animationSpeed = std::max(MIN_SPEED, std::min(newSpeed, MAX_SPEED));
+}
+float AnimationManager::getAnimationSpeed() const {
+    return animationSpeed;
+}
+
 /// @brief A Snapshot request function from UIManager to draw the data structures
 ///        on the screen
 /// @return Interpolated snapshot
-Snapshot AnimationManager::requestCurrentSnapshot(const std::string& DSTarget, float speed) {
+Snapshot AnimationManager::requestCurrentSnapshot(const std::string& DSTarget) {
     if (transitionCoeff == 0 || !hasMoreSteps(DSTarget)) {
         return stateManager -> getCurrentSnapShot(DSTarget);
     }
     
-    float elapsed = elapsedSeconds() * speed;
+    float elapsed = elapsedSeconds() * animationSpeed;
 
     int currentIdx = stateManager -> getSnapshotIdx(DSTarget);
     float duration = stateManager -> getSnapshotTransitionAt(DSTarget, std::max(currentIdx, currentIdx + transitionCoeff));

@@ -47,6 +47,28 @@ void MouseState::releaseUpdate(std::queue <RawInputEvent>& inputQueue, bool isLe
     }
 }
 
+void InputManager::handleBackspace() {
+    RawInputEvent newInput;
+    newInput.inputType = RawInputEvent::InputType::KEY_PRESSED;
+    newInput.keySignal = KEY_BACKSPACE;
+
+    if (IsKeyPressed(KEY_BACKSPACE)) {
+        inputQueue.push(newInput);
+        return;
+    }
+
+    if (IsKeyDown(KEY_BACKSPACE)) {
+        backspaceTime += GetFrameTime();
+        
+        if (backspaceTime >= BACKSPACE_DELAY + BACKSPACE_INTERVAL) {
+            inputQueue.push(newInput);
+            inputQueue.push(newInput);
+            backspaceTime = BACKSPACE_DELAY;
+        }
+    } else {
+        backspaceTime = 0.0f;
+    }
+}
 /// @brief Main Input Update
 void InputManager::update() {
     if (GetMouseWheelMove() != 0) {
@@ -58,13 +80,15 @@ void InputManager::update() {
     }
 
     KeyboardKey keyGet = (KeyboardKey) GetKeyPressed();
-    if (keyGet != KEY_NULL) {
+    if (keyGet != KEY_NULL && keyGet != KEY_BACKSPACE) {
         RawInputEvent newInput;
         newInput.inputType = RawInputEvent::InputType::KEY_PRESSED;
         newInput.keySignal = keyGet;
 
         inputQueue.push(newInput);
     }
+
+    handleBackspace();
 
     if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
         LeftMouse.pressUpdate(inputQueue, true);

@@ -14,6 +14,7 @@ public:
     virtual void setStateManager(StateManager* source);
 
     virtual ~IDataStructure() = default;
+    virtual void initDS(const std::vector <std::string>& rawValue) {}
     virtual bool insertNode(std::string value) { return true; }
     virtual bool removeNode(std::string value) { return true; }
     virtual bool searchNode(std::string value) { return true; }

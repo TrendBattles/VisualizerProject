@@ -26,6 +26,19 @@ std::string AVL::getDSID() const {
 ////////////////////////////////////
 ///     REPONSIVE FUNCTIONS      ///
 ////////////////////////////////////
+void AVL::initDS(const std::vector <std::string>& rawValue) {
+    clearAll();
+    
+    for (std::string value : rawValue) {
+        insertNode(value);
+    }
+
+    if (stateManager != nullptr)
+        stateManager -> clearAllSnapshots(getDSID());
+    
+    generateSnapshot(0.0f);
+}
+
 bool AVL::insertNode(std::string value) {
     int valueParse = 0;
     try {

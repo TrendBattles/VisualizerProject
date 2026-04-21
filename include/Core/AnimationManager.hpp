@@ -26,7 +26,11 @@ public:
     int getTransitionCoeff() const;
     void setTransitionCoeff(int newCoeff);
     void resetAnimationTimer();
-    Snapshot requestCurrentSnapshot(const std::string& DSTarget, float speed = 1.0f);
+
+    void setAnimationSpeed(float newSpeed);
+    float getAnimationSpeed() const;
+
+    Snapshot requestCurrentSnapshot(const std::string& DSTarget);
 private:
     StateManager* stateManager = nullptr;
     ChronoClock timeStart, timeEnd;
@@ -34,6 +38,10 @@ private:
     float elapsedSeconds();
     const float delayTransition = 0.25f;
     bool isPauseToggle = false;
+
+    float animationSpeed = 1.0f;
+    static constexpr float MIN_SPEED = 0.25f;
+    static constexpr float MAX_SPEED = 4.0f;
 
     int transitionCoeff = +1;
 };

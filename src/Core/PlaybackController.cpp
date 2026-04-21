@@ -3,6 +3,7 @@
 
 PlaybackController::PlaybackController() {
     loadSprite();
+    loadSpeedButton();
 }
 PlaybackController::~PlaybackController() {
     UnloadTexture(playbackMap);
@@ -20,6 +21,13 @@ void PlaybackController::setAnimationManager(AnimationManager* source) {
 ///        Returns true if any of the playback controls is clicked
 bool PlaybackController::processInput(RawInputEvent nextInput) {
     if (nextInput.inputType != RawInputEvent::InputType::LEFT_MOUSE_CLICKED) return false;
+
+    // Speed cycle button — always available regardless of playback state
+    if (touchSpeedHitbox(nextInput.position)) {
+        currentSpeedIndex = (currentSpeedIndex + 1) % NUM_PRESETS;
+        animationManager -> setAnimationSpeed(SPEED_PRESETS[currentSpeedIndex]);
+        return true;
+    }
 
     bool triggered = false;
 
@@ -91,6 +99,8 @@ void PlaybackController::render() {
 
     playbackRender(PlaybackIcon::STEP_FORWARD, !isGoingForwardValid());
     playbackRender(PlaybackIcon::SKIP_END, playbackState == PlaybackState::PLAYING);
+
+    renderSpeedLabel();
 }
 
 ///////////////////////////////////////
@@ -156,5 +166,58 @@ bool PlaybackController::isGoingBackwardValid() {
 }
 bool PlaybackController::isGoingForwardValid() {
     return animationManager -> getTransitionCoeff() == 0 && animationManager -> canStepForward(DSOption);
+}
+
+///////////////////////////////////
+///     SPEED CONTROL          ///
+///////////////////////////////////
+
+/// @brief Initialize the speed button position below the last playback button
+void PlaybackController::loadSpeedButton() {
+    const float buttonWidth = 70.0f;
+    const float buttonHeight = 30.0f;
+    speedButtonPosition = {
+        (NAVBAR_WIDTH - buttonWidth) * 0.5f,
+        playbackScreenPosition[PlaybackIcon::SKIP_START].y - length * scale - buttonHeight
+    };
+}
+
+/// @brief Check if the speed button area was clicked
+bool PlaybackController::touchSpeedHitbox(Vector2 queryPosition) {
+    const float buttonWidth = 70.0f;
+    const float buttonHeight = 30.0f;
+    Rectangle hitbox = { speedButtonPosition.x, speedButtonPosition.y, buttonWidth, buttonHeight };
+    return CheckCollisionPointRec(queryPosition, hitbox);
+}
+
+/// @brief Render the speed label as a clickable button
+void PlaybackController::renderSpeedLabel() {
+    const float buttonWidth = 70.0f;
+    const float buttonHeight = 30.0f;
+
+    Rectangle btnRect = { speedButtonPosition.x, speedButtonPosition.y, buttonWidth, buttonHeight };
+    bool hovered = CheckCollisionPointRec(GetMousePosition(), btnRect);
+
+    // Draw button background
+    DrawRectangleRounded(btnRect, 0.3f, 8, hovered ? GetColor(0x81A1C1FF) : Fade(WHITE, 0.15f));
+    DrawRectangleRoundedLinesEx(btnRect, 0.3f, 8, 1.5f, hovered ? GetColor(0x88C0D0FF) : Fade(WHITE, 0.3f));
+
+    // Format speed text
+    char buf[16];
+    float speed = SPEED_PRESETS[currentSpeedIndex];
+    if (speed == (int)speed) {
+        snprintf(buf, sizeof(buf), "%dx", (int)speed);
+    } else {
+        snprintf(buf, sizeof(buf), "%.2fx", speed);
+    }
+
+    // Center the text in the button
+    Vector2 textSize = MeasureTextEx(CoreFonts::AptosBold, buf, 18.0f, 2.0f);
+    Vector2 textPos = {
+        speedButtonPosition.x + (buttonWidth - textSize.x) * 0.5f,
+        speedButtonPosition.y + (buttonHeight - textSize.y) * 0.5f
+    };
+
+    DrawTextEx(CoreFonts::AptosBold, buf, textPos, 18.0f, 2.0f, hovered ? BLACK : WHITE);
 }
 

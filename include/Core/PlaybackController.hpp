@@ -54,5 +54,14 @@ private:
     
     bool isGoingBackwardValid();
     bool isGoingForwardValid();
+
+    static constexpr float SPEED_PRESETS[] = {0.25f, 0.5f, 1.0f, 2.0f, 4.0f};
+    static constexpr int NUM_PRESETS = 5;
+    int currentSpeedIndex = 2; 
+
+    Vector2 speedButtonPosition = {0.0f, 0.0f};
+    void loadSpeedButton();
+    bool touchSpeedHitbox(Vector2 queryPosition);
+    void renderSpeedLabel();
 };
 #endif

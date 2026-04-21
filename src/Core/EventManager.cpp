@@ -41,6 +41,11 @@ void EventManager::handleModification(CommandPattern commandRequest) {
             
             if (!animationManager -> isPaused())
                 animationManager -> resetAnimationTimer();
+
+            if (operation == "INIT") {
+                DSPointer -> initDS(rawValue);
+                return;
+            }
                 
             if (operation == "INSERT") {
                 DSPointer -> insertNode(rawValue[0]);
@@ -64,7 +69,12 @@ void EventManager::handleModification(CommandPattern commandRequest) {
             
             if (!animationManager -> isPaused())
                 animationManager -> resetAnimationTimer();
-                
+            
+            if (operation == "INIT") {
+                DSPointer -> initDS(rawValue);
+                return;
+            }
+
             if (operation == "INSERT") {
                 DSPointer -> insertNode(rawValue[0]);
                 return;
