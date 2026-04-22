@@ -658,6 +658,11 @@ void HashTableUI::processInputFieldOthers(RawInputEvent nextInput) {
         inputStr.pop_back();
     }
 
+    if (!inputStr.empty()) {
+        int value = std::stoi(inputStr);
+        inputStr = std::to_string(value);
+    }
+
     fieldTextbox.setLabelBuffer(inputStr);
 }
 void HashTableUI::processInputField(RawInputEvent nextInput) {

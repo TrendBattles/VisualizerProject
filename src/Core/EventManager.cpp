@@ -151,7 +151,12 @@ void EventManager::handleModification(CommandPattern commandRequest) {
         if (DataStructure == "Graph") {
             const std::string& operation = commandRequest.operation;
             const std::vector <std::string>& rawValue = commandRequest.value;
-
+            
+            if (operation == "INIT") {
+                DSPointer -> initDS(rawValue);
+                return;
+            }
+        
             if (operation == "INSERT EDGE") {
                 DSPointer -> insertEdge(rawValue[0], rawValue[1], rawValue[2]);
                 return;
@@ -250,7 +255,7 @@ void EventManager::handleQuery(CommandPattern commandRequest) {
             const std::vector <std::string>& rawValue = commandRequest.value;
 
             if (!animationManager -> isPaused())
-                    animationManager -> resetAnimationTimer();
+                animationManager -> resetAnimationTimer();
 
             if (operation == "DIJKSTRA") {
                 DSPointer -> runDijkstra(rawValue[0], rawValue[1]);

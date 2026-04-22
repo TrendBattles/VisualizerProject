@@ -63,7 +63,14 @@ void GraphUI::enableAllOperations() {
 ///     UI UPDATE     ///
 /////////////////////////
 
-/// @brief UI updates before rendering
+void GraphUI::updateInit(Vector2 rootPos) {
+    hoverButtonTrigger(rootPos);
+}
+void GraphUI::updateOthers(Vector2 rootPos) {
+    hoverTextboxTrigger(rootPos);
+    hoverButtonTrigger(rootPos);
+}
+
 void GraphUI::update() {
     NavigationBar& navbar = navbarMap[navPhase];
     navbar.hoverButtonTrigger();
@@ -77,22 +84,18 @@ void GraphUI::update() {
     ShapeState targetBackground = targetController -> getButtonShape().getBackground();
     Vector2 rootPos = {FIELD_GAP_X + BUTTON_WIDTH, targetBackground.startPosition.y};
 
-    hoverTextboxTrigger(rootPos);
-
-    if (operationPlaceholder == "Insert Edge") {
-        hoverButtonTrigger(rootPos + Vector2{0.0f, FIELD_GAP_Y + FIELD_TEXTBOX_HEIGHT});
-    } else if (operationPlaceholder == "Remove Edge") {
-        hoverButtonTrigger(rootPos + Vector2{0.0f, FIELD_GAP_Y + FIELD_TEXTBOX_HEIGHT});
-    } else if (operationPlaceholder == "Remove Node") {
-        hoverButtonTrigger(rootPos + Vector2{FIELD_GAP_X + FIELD_TEXTBOX_WIDTH, 0.0f});
-    } else if (operationPlaceholder == "Dijkstra") {
-        hoverButtonTrigger(rootPos + Vector2{0.0f, FIELD_GAP_Y + FIELD_TEXTBOX_HEIGHT});
+    if (operationPlaceholder == "Init") {
+        updateInit(rootPos);
+        return;
     }
+
+    updateOthers(rootPos);
 }
+
 void GraphUI::hoverTextboxTrigger(Vector2 rootPos) {
     bool hoveredTextbox = false;
     for (int i = 0; i < activeFieldCount() && !hoveredTextbox; ++i) {
-        Vector2 nextPos = rootPos + Vector2{i * (FIELD_TEXTBOX_WIDTH + FIELD_GAP_X), 0.0f};
+        Vector2 nextPos = rootPos + Vector2{0.0f, i * (FIELD_TEXTBOX_HEIGHT + FIELD_GAP_Y)};
         if (fieldTextbox[i].contains(GetMousePosition() - nextPos)) {
             hoveredTextbox = true;
         }
@@ -104,13 +107,21 @@ void GraphUI::hoverTextboxTrigger(Vector2 rootPos) {
     }
 }
 void GraphUI::hoverButtonTrigger(Vector2 rootPos) {
+    if (fieldFile.getButtonShape().contains(GetMousePosition() - rootPos)) {
+        fieldFile.setButtonState(ButtonState::HOVERED);
+    } else {
+        fieldFile.setButtonState(ButtonState::ACTIVE);
+    }
+
+    rootPos += Vector2{FIELD_BUTTON_WIDTH + FIELD_GAP_X, 0.0f};
+
     if (fieldRandom.getButtonShape().contains(GetMousePosition() - rootPos)) {
         fieldRandom.setButtonState(ButtonState::HOVERED);
     } else {
         fieldRandom.setButtonState(ButtonState::ACTIVE);
     }
 
-    rootPos += Vector2{FIELD_GAP_X + FIELD_BUTTON_WIDTH, 0.0f};
+    rootPos += Vector2{FIELD_BUTTON_WIDTH + FIELD_GAP_X, 0.0f};
 
     if (fieldSubmit.getButtonShape().contains(GetMousePosition() - rootPos)) {
         fieldSubmit.setButtonState(ButtonState::HOVERED);
@@ -122,7 +133,72 @@ void GraphUI::hoverButtonTrigger(Vector2 rootPos) {
 /////////////////////////
 ///     UI RENDER     ///
 /////////////////////////
+bool GraphUI::exceedsTextboxInitRange() {
+    Vector2 textboxSize = Vector2{FIELD_BUTTON_WIDTH * 2 + FIELD_GAP_X, 300.0f};
+    Vector2 alignOffset = Vector2{10.0f, 10.0f};
+    Vector2 position = alignOffset;
 
+    std::vector <std::string> rawParseBuffer = Helper::keywordParse(initBuffer);
+    std::string tempBuffer = "";
+
+    int bufferCnt = 0;
+    for (const std::string& word : rawParseBuffer) {
+        if (position.y > textboxSize.y - alignOffset.y) return true;
+
+        std::string nextBuffer = tempBuffer + (!tempBuffer.empty() ? " "  : "") + word;
+        bufferCnt += 1;
+        if (bufferCnt % 3) continue;
+
+        tempBuffer.clear();
+        position += Vector2{0.0f, 20.0f};
+    }
+        
+    return false;
+}
+void GraphUI::renderInitInput(Vector2 textboxPos) {
+    Vector2 textboxSize = Vector2{FIELD_BUTTON_WIDTH * 2 + FIELD_GAP_X, 300.0f};
+    DrawRectangleV(textboxPos, textboxSize, Fade(BLACK, 0.3f));
+    DrawRectangleLinesEx(
+        Rectangle { textboxPos.x, textboxPos.y, textboxSize.x, textboxSize.y },
+        2.0f,
+        GetColor(0x374151FF)
+    );
+    
+    Vector2 alignOffset = Vector2{10.0f, 10.0f};
+    Vector2 position = alignOffset;
+
+    std::vector <std::string> rawParseBuffer = Helper::keywordParse(initBuffer);
+    
+    std::string tempBuffer = "";
+
+    int bufferCnt = 0;
+    for (const std::string& word : rawParseBuffer) {
+        std::string nextBuffer = tempBuffer + (!tempBuffer.empty() ? " "  : "") + word;
+        tempBuffer = nextBuffer;
+
+        bufferCnt += 1;
+        if (bufferCnt % 3) {
+            continue;
+        }
+
+        DrawTextEx(CoreFonts::Aptos, tempBuffer.c_str(), position + textboxPos, 20.0f, 2.0f, WHITE);
+        tempBuffer.clear();
+        position += Vector2{0.0f, 20.0f};
+    }
+        
+    if (!tempBuffer.empty()) {
+        if (initBuffer.back() == ' ') tempBuffer += " ";
+        DrawTextEx(CoreFonts::Aptos, tempBuffer.c_str(), position + textboxPos, 20.0f, 2.0f, WHITE);
+    }
+}
+void GraphUI::renderInit(Vector2 rootPos) {
+    renderInitInput(rootPos + Vector2{0.0f, FIELD_GAP_Y + FIELD_BUTTON_HEIGHT});
+    renderButton(rootPos, true);
+}
+void GraphUI::renderOthers(Vector2 rootPos) {
+    renderTextbox(rootPos);
+    renderButton(rootPos);
+}
 void GraphUI::render() {
     if (navPhase != NavPhase::NAV_CLOSED) {
         DrawRectangle(BUTTON_WIDTH, 0, GetScreenWidth() - BUTTON_WIDTH, GetScreenHeight(), Fade(GetColor(0x2E3440FF), 0.5f));
@@ -137,21 +213,15 @@ void GraphUI::render() {
     ShapeState targetBackground = targetController -> getButtonShape().getBackground();
     Vector2 rootPos = {FIELD_GAP_X + BUTTON_WIDTH, targetBackground.startPosition.y};
 
-    renderTextbox(rootPos);
-
-    if (operationPlaceholder == "Insert Edge") {
-        renderButton(rootPos + Vector2{0.0f, FIELD_GAP_Y + FIELD_TEXTBOX_HEIGHT});
-    } else if (operationPlaceholder == "Remove Edge") {
-        renderButton(rootPos + Vector2{0.0f, FIELD_GAP_Y + FIELD_TEXTBOX_HEIGHT});
-    } else if (operationPlaceholder == "Remove Node") {
-        renderButton(rootPos + Vector2{FIELD_GAP_X + FIELD_TEXTBOX_WIDTH, 0.0f});
-    } else if (operationPlaceholder == "Dijkstra") {
-        renderButton(rootPos + Vector2{0.0f, FIELD_GAP_Y + FIELD_TEXTBOX_HEIGHT});
+    if (operationPlaceholder == "Init") {
+        renderInit(rootPos);
+        return;
     }
+    renderOthers(rootPos);
 }
 void GraphUI::renderTextbox(Vector2 rootPos) {
     for (int i = 0; i < activeFieldCount(); ++i) {
-        Vector2 nextPos = rootPos + Vector2{i * (FIELD_TEXTBOX_WIDTH + FIELD_GAP_X), 0.0f};
+        Vector2 nextPos = rootPos + Vector2{0.0f, i * (FIELD_TEXTBOX_HEIGHT + FIELD_GAP_Y)};
 
         Textbox tempTextbox = fieldTextbox[i];
         tempTextbox.positionTransitAllBy(nextPos);
@@ -165,29 +235,46 @@ void GraphUI::renderTextbox(Vector2 rootPos) {
         drawTextbox(tempTextbox);
     }
 }
-void GraphUI::renderButton(Vector2 rootPos) {
+void GraphUI::renderButton(Vector2 rootPos, bool hasFileButton) {
+    if (hasFileButton) {
+        Button tempFile = fieldFile.getButtonShape();
+        tempFile.positionTransitAllBy(rootPos);
+        drawButton(tempFile);
+    }
+    rootPos += Vector2{FIELD_GAP_X + FIELD_BUTTON_WIDTH, 0.0f};
+
     Button tempRandom = fieldRandom.getButtonShape();
     tempRandom.positionTransitAllBy(rootPos);
+    drawButton(tempRandom);
 
     rootPos += Vector2{FIELD_GAP_X + FIELD_BUTTON_WIDTH, 0.0f};
     
     Button tempSubmit = fieldSubmit.getButtonShape();
-    tempSubmit.positionTransitAllBy(rootPos);
-
-    drawButton(tempRandom);
+    tempSubmit.positionTransitAllBy(rootPos);    
     drawButton(tempSubmit);
 }
 
 std::string GraphUI::getDSName() const { return "Graph"; }
 
 int GraphUI::activeFieldCount() const {
+    if (operationPlaceholder == "Insert" 
+     || operationPlaceholder == "Remove" 
+     || operationPlaceholder == "Search") {
+        return 1;
+    }
+    if (operationPlaceholder == "Update") {
+        return 2;
+    }
     if (operationPlaceholder == "Insert Edge") {
         return 3;
-    } else if (operationPlaceholder == "Remove Edge") {
+    }
+    if (operationPlaceholder == "Remove Edge") {
         return 2;
-    } else if (operationPlaceholder == "Remove Node") {
+    }
+    if (operationPlaceholder == "Remove Node") {
         return 1;
-    } else if (operationPlaceholder == "Dijkstra") {
+    }
+    if (operationPlaceholder == "Dijkstra") {
         return 2;
     }
     
@@ -335,9 +422,7 @@ void GraphUI::createField() {
             ),
             Helper::createText("", GetFontDefault(), 20.0f, 5.0f, {0, 0}, WHITE)
         );
-
-        edgeHolderSize[i] = MeasureTextEx(CoreFonts::CascadiaMonoRegular, edgeHolder[i].c_str(), FIELD_HOLDER_FONT_SIZE, 0.1f * FIELD_HOLDER_FONT_SIZE);
-    }
+    }   
     
 
     auto createButton = [&] (std::string buttonID, std::string text, Color bgColor, Font font) -> Button {
@@ -359,6 +444,9 @@ void GraphUI::createField() {
 
     fieldSubmit.setButtonSettings(ButtonState::ACTIVE, createButton("Field_Submit", "Submit", GetColor(0xC9AE8AFF), CoreFonts::Aptos));
     fieldSubmit.setButtonSettings(ButtonState::HOVERED, createButton("Field_Submit_hovered", "Submit", GetColor(0x81A1C1FF), CoreFonts::AptosBold));
+
+    fieldFile.setButtonSettings(ButtonState::ACTIVE, createButton("Field_File", "File", GetColor(0xC9AE8AFF), CoreFonts::Aptos));
+    fieldFile.setButtonSettings(ButtonState::HOVERED, createButton("Field_File_hovered", "File", GetColor(0x81A1C1FF), CoreFonts::AptosBold));
 }
 
 
@@ -447,60 +535,173 @@ void GraphUI::changeField() {
     for (int i = 0; i < MAX_TEXTBOX; ++i) {
         fieldTextbox[i].clearLabelBuffer();
     }
+    initBuffer.clear();
 
-    textboxFocusID = -1;
+    textboxFocusID = activeFieldCount() > 1 ? 0 : -1;
 }
 
-/// @brief Field Input
-void GraphUI::processInputField(RawInputEvent nextInput) {
-    if (operationPlaceholder.empty()) return;
-    
+///////////////////////////
+///     FIELD INPUT     ///
+///////////////////////////
+void GraphUI::handleInputFieldInit() {
+    std::vector <std::string> rawParseBuffer = Helper::keywordParse(initBuffer);
+    int bufferCnt = 0;
+    for (int i = 0; i < (int) rawParseBuffer.size(); ++i) {
+        int value = 0;
+        try {
+            value = std::stoi(rawParseBuffer[i]);
+        } catch (const std::invalid_argument& ia) {
+            continue;
+        } catch (const std::out_of_range& oor) {
+            continue;
+        } 
+
+        if (bufferCnt % 3 == 2 && value > 99) continue;
+        if (bufferCnt % 3 < 2 && (value <= 0 || value > 9)) continue; 
+
+        rawParseBuffer[bufferCnt++] = std::to_string(value);
+    }
+    bufferCnt = bufferCnt / 3 * 3;
+
+    initBuffer = "";
+    for (int i = 0; i < bufferCnt; ++i) {
+        if (!initBuffer.empty()) initBuffer += " ";
+        initBuffer += rawParseBuffer[i];
+    }
+
+    while (exceedsTextboxInitRange()) {
+        bufferCnt -= 3;
+
+        initBuffer = "";
+        for (int i = 0; i < bufferCnt; ++i) {
+            if (!initBuffer.empty()) initBuffer += " ";
+            initBuffer += rawParseBuffer[i];
+        }
+    }
+}
+void GraphUI::processInputFieldInit(RawInputEvent nextInput) {
     ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
     ShapeState targetBackground = targetController -> getButtonShape().getBackground();
     Vector2 rootPos = {FIELD_GAP_X + BUTTON_WIDTH, targetBackground.startPosition.y};
 
-    bool randomClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED;
-    if (operationPlaceholder == "Insert Edge" || operationPlaceholder == "Remove Edge" || operationPlaceholder == "Dijkstra") {
-        randomClick &= fieldRandom.getButtonShape().contains(nextInput.position - rootPos - Vector2{0.0f, FIELD_GAP_Y + FIELD_TEXTBOX_HEIGHT});
-    } else if (operationPlaceholder == "Remove Node") {
-        randomClick &= fieldRandom.getButtonShape().contains(nextInput.position - rootPos - Vector2{FIELD_GAP_X + FIELD_TEXTBOX_WIDTH, 0.0f});
-    } else {
-        randomClick = false;
-    }
+    bool fileClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
+                    && fieldFile.getButtonShape().contains(nextInput.position - rootPos);
+    rootPos += Vector2{FIELD_BUTTON_WIDTH + FIELD_GAP_X, 0.0f};
+    bool randomClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
+                    && fieldRandom.getButtonShape().contains(nextInput.position - rootPos);
 
-    // When the random request is required, set a random value from 0 to 99999 for the input box
+    if (fileClick) {
+        // Define the parameters
+        const char* title = "Select Input File";
+        const char* defaultPath = "";
+        const char* filterPatterns[1] = { "*.txt" }; // Only show text files
+        const char* filterDescription = "Text Files (.txt)";
+
+        // Open the dialog
+        // This function halts execution until the user picks a file or cancels
+        const char* selectedPath = tinyfd_openFileDialog(
+            title,
+            defaultPath,
+            1,               // Number of filter patterns
+            filterPatterns,
+            filterDescription,
+            0                // 0 = single file, 1 = multiple files
+        );
+
+        if (selectedPath == nullptr) return;
+
+        std::ifstream input(selectedPath);
+        if (!input.is_open()) return;
+
+        std::string word;
+        initBuffer = "";
+        while (input >> word) {
+            bool allDigits = true;
+            for (char c : word) allDigits &= isdigit(c);
+
+            if (!allDigits) continue;
+            if (!initBuffer.empty()) initBuffer += " ";
+            initBuffer += word;
+        }
+
+        handleInputFieldInit();
+        return;
+    }    
+    
     if (randomClick) {
-        if (textboxFocusID != -1)
-            fieldTextbox[textboxFocusID].setLabelBuffer(std::to_string(Helper::random_gen(textboxFocusID < 2, textboxFocusID >= 2 ? 99 : 10)));
+        int N = Helper::random_gen(1, 10);
+        initBuffer.clear();
+        for (int i = 1; i <= N; ++i) {
+            if (!initBuffer.empty()) initBuffer += " ";
+
+            int u = Helper::random_gen(1, 10), v = Helper::random_gen(1, 10), w = Helper::random_gen(0, 99);
+            initBuffer += std::to_string(u) + " " + std::to_string(v) + " " + std::to_string(w);
+        }
+
         return;
     }
-    
-    if (nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED) {
-        textboxFocusID = -1;
 
-        for (int i = 0; i < activeFieldCount(); ++i) {
-            Vector2 nextPos = rootPos + Vector2{i * (FIELD_TEXTBOX_WIDTH + FIELD_GAP_X), 0.0f};
-            if (fieldTextbox[i].contains(nextInput.position - nextPos)) {
-                textboxFocusID = i;
-                break;
-            }
-        }
-    } else if (nextInput.inputType == RawInputEvent::InputType::RIGHT_MOUSE_CLICKED) {
-        textboxFocusID = -1;
-    } else if (nextInput.inputType == RawInputEvent::InputType::KEY_PRESSED
-            && nextInput.keySignal == KeyboardKey::KEY_TAB) {
-        
-        if (textboxFocusID != -1) textboxFocusID = (textboxFocusID + 1) % activeFieldCount();
-    }
-
-    if (textboxFocusID == -1 || nextInput.inputType != RawInputEvent::InputType::KEY_PRESSED) return;
+    if (nextInput.inputType != RawInputEvent::InputType::KEY_PRESSED) return;
 
     // If the field is being focused, we crawl the key input
     // If that key is a number and the string hasn't reached its limit, insert that key to the buffer.
     // If KEY_BACKSPACE is triggered, remove the last character in the buffer.
     int keyID = (int) nextInput.keySignal;
 
-    std::string inputStr = fieldTextbox[textboxFocusID].getLabelBuffer();
+    std::string inputStr = initBuffer;
+    if (keyID >= '0' && keyID <= '9') {
+        inputStr.push_back(keyID);
+    } else if (keyID == (int) KeyboardKey::KEY_SPACE) {
+        if (!inputStr.empty() && inputStr.back() != ' ') inputStr.push_back(' ');
+    } else if (keyID == (int) KeyboardKey::KEY_BACKSPACE && !inputStr.empty()) {
+        inputStr.pop_back();
+    }
+
+    if (!inputStr.empty() && isdigit(inputStr.back())) {
+        std::string buffer = "";
+        while (!inputStr.empty() && isdigit(inputStr.back())) {
+            buffer.push_back(inputStr.back());
+            inputStr.pop_back();
+        }
+
+        std::reverse(buffer.begin(), buffer.end());
+        int value = std::stoi(buffer);
+        if (value > 9999) value /= 10;
+
+        if (!inputStr.empty()) inputStr.push_back(' ');
+        inputStr += std::to_string(value);
+    }
+
+    initBuffer = inputStr;
+}
+void GraphUI::processInputFieldOthers(RawInputEvent nextInput) {
+    ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
+    ShapeState targetBackground = targetController -> getButtonShape().getBackground();
+    Vector2 rootPos = {FIELD_GAP_X + BUTTON_WIDTH, targetBackground.startPosition.y};
+
+    bool randomClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
+                    && fieldRandom.getButtonShape().contains(nextInput.position - rootPos - Vector2{FIELD_GAP_X + FIELD_TEXTBOX_WIDTH, 0.0f});
+    
+    int currentTextboxID = textboxFocusID == -1 ? 0 : textboxFocusID;
+    // When the random request is required, set a random value
+    if (randomClick) {
+        fieldTextbox[currentTextboxID].setLabelBuffer(std::to_string(Helper::random_gen(textboxFocusID < 2, textboxFocusID >= 2 ? 99 : 10)));
+        return;
+    }
+    
+    if (nextInput.inputType == RawInputEvent::InputType::KEY_PRESSED
+     && nextInput.keySignal == KeyboardKey::KEY_TAB) {
+        if (textboxFocusID != -1) textboxFocusID = (textboxFocusID + 1) % activeFieldCount();
+    }
+
+    if (nextInput.inputType != RawInputEvent::InputType::KEY_PRESSED) return;
+
+    // If the field is being focused, we crawl the key input
+    // If that key is a number and the string hasn't reached its limit, insert that key to the buffer.
+    // If KEY_BACKSPACE is triggered, remove the last character in the buffer.
+    int keyID = (int) nextInput.keySignal;
+
+    std::string inputStr = fieldTextbox[currentTextboxID].getLabelBuffer();
     if (keyID >= '0' && keyID <= '9' && (int) inputStr.length() < TEXTBOX_LENGTH_LIMIT) {
         inputStr.push_back(keyID);
     }
@@ -509,27 +710,64 @@ void GraphUI::processInputField(RawInputEvent nextInput) {
         inputStr.pop_back();
     }
 
-    fieldTextbox[textboxFocusID].setLabelBuffer(inputStr);
+    if (!inputStr.empty()) {
+        int value = std::stoi(inputStr);
+        inputStr = std::to_string(value);
+    }
+
+    fieldTextbox[currentTextboxID].setLabelBuffer(inputStr);
+}
+void GraphUI::processInputField(RawInputEvent nextInput) {
+    if (operationPlaceholder.empty()) return;
+    
+    if (operationPlaceholder == "Init") {
+        processInputFieldInit(nextInput);
+        return;
+    }
+
+    processInputFieldOthers(nextInput);
 }
 
-/// @brief Responds requests to Data Structure  
-CommandPattern GraphUI::fieldListenerRequest(RawInputEvent nextInput) {
-    if (operationPlaceholder.empty()) return CommandPattern();
+/////////////////////////////////////
+///     FIELD RESPONSE REQUEST    ///
+/////////////////////////////////////
+CommandPattern GraphUI::fieldInitListenerRequest(RawInputEvent nextInput) {
+    ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
+    ShapeState targetBackground = targetController -> getButtonShape().getBackground();
+    Vector2 rootPos = {FIELD_GAP_X + BUTTON_WIDTH, targetBackground.startPosition.y};
+    
+    rootPos += Vector2{FIELD_GAP_X + FIELD_BUTTON_WIDTH, 0.0f} * 2;
+    bool submitEnter = nextInput.inputType == RawInputEvent::InputType::KEY_PRESSED
+                    && nextInput.keySignal == KeyboardKey::KEY_ENTER;
+    bool submitClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
+                    && fieldSubmit.getButtonShape().contains(nextInput.position - rootPos);
 
+    if (!submitEnter && !submitClick) return CommandPattern();
+
+    std::vector <std::string> rawValue = Helper::keywordParse(initBuffer);
+    while (getDSName() == "Graph" && (int) rawValue.size() % 3) rawValue.pop_back();
+
+    operationPlaceholder = "";
+    navPhase = NavPhase::NAV_CLOSED;
+    changeField();
+
+    return CommandPattern {
+        "MODIFY",
+        "INTERACT",
+        getDSName(),
+        "INIT",
+        rawValue
+    };
+}
+CommandPattern GraphUI::fieldOthersListenerRequest(RawInputEvent nextInput) {
     ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
     ShapeState targetBackground = targetController -> getButtonShape().getBackground();
     Vector2 rootPos = {FIELD_GAP_X + BUTTON_WIDTH, targetBackground.startPosition.y};
     
     bool submitEnter = nextInput.inputType == RawInputEvent::InputType::KEY_PRESSED
                     && nextInput.keySignal == KeyboardKey::KEY_ENTER;
-    bool submitClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED;
-    if (operationPlaceholder == "Insert Edge" || operationPlaceholder == "Remove Edge" || operationPlaceholder == "Dijkstra") {
-        submitClick &= fieldRandom.getButtonShape().contains(nextInput.position - rootPos - Vector2{FIELD_GAP_X + FIELD_BUTTON_WIDTH, FIELD_GAP_Y + FIELD_TEXTBOX_HEIGHT});
-    } else if (operationPlaceholder == "Remove Node") {
-        submitClick &= fieldRandom.getButtonShape().contains(nextInput.position - rootPos - Vector2{FIELD_GAP_X * 2 + FIELD_BUTTON_WIDTH + FIELD_TEXTBOX_WIDTH, 0.0f});
-    } else {
-        submitClick = false;
-    }
+    bool submitClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
+                    && fieldSubmit.getButtonShape().contains(nextInput.position - rootPos - Vector2{FIELD_GAP_X * 2 + FIELD_BUTTON_WIDTH + FIELD_TEXTBOX_WIDTH, 0.0f});
     
     if (!submitEnter && !submitClick) return CommandPattern();
     
@@ -565,4 +803,13 @@ CommandPattern GraphUI::fieldListenerRequest(RawInputEvent nextInput) {
             Helper::upperString(chosenOperation),
             rawValue
         };
+}
+CommandPattern GraphUI::fieldListenerRequest(RawInputEvent nextInput) {
+    if (operationPlaceholder.empty()) return CommandPattern();
+
+    if (operationPlaceholder == "Init") {
+        return fieldInitListenerRequest(nextInput);   
+    }
+
+    return fieldOthersListenerRequest(nextInput);
 }

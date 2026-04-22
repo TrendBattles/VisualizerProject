@@ -18,6 +18,7 @@ public:
     Graph();
     ~Graph();
 
+    void initDS(const std::vector <std::string>& rawValue) override;
     bool removeNode(std::string value) override;
     bool insertEdge(std::string FEdge, std::string SEdge, std::string weight) override;
     bool removeEdge(std::string FEdge, std::string SEdge) override;

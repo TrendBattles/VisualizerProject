@@ -15,16 +15,12 @@ Graph::~Graph() {
     if (stateManager != nullptr) 
         stateManager -> clearAllSnapshots(getDSID());
 }
-
-void Graph::clearAll() {
-    for (int i = 0; i < MAX_NODES; ++i) {
-        node[i].isActive = node[i].isPinned = node[i].isDragging = false;
+void Graph::initDS(const std::vector <std::string>& rawValue) {
+    clearAll();
+    
+    for (int i = 0; i + 3 <= (int) rawValue.size(); i += 3) {
+        insertEdge(rawValue[i], rawValue[i + 1], rawValue[i + 2]);
     }
-
-    memset(edgeWeight, -1, sizeof edgeWeight);
-    holdIdx = -1;
-    if (stateManager != nullptr) 
-        stateManager -> clearAllSnapshots(getDSID());
 }
 
 std::string Graph::getDSID() const { return "Graph"; }
@@ -96,6 +92,17 @@ bool Graph::runDijkstra(std::string start, std::string dest) {
 bool Graph::runKruskal() {
     Kruskal();
     return true;
+}
+
+void Graph::clearAll() {
+    for (int i = 0; i < MAX_NODES; ++i) {
+        node[i].isActive = node[i].isPinned = node[i].isDragging = false;
+    }
+
+    memset(edgeWeight, -1, sizeof edgeWeight);
+    holdIdx = -1;
+    if (stateManager != nullptr) 
+        stateManager -> clearAllSnapshots(getDSID());
 }
 
 
@@ -360,6 +367,10 @@ void Graph::Kruskal() {
             );
         }
     }
+    generateSnapshot(
+        1.0f,
+        ChangeMap(changeList.begin(), changeList.end())
+    );
 }
 
 ///////////////////////////////////

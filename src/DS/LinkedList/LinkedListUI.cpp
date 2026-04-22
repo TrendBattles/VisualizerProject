@@ -117,10 +117,10 @@ void LinkedListUI::updateInit(Vector2 rootPos) {
 }
 void LinkedListUI::updateOthers(Vector2 rootPos) {
     bool hoveredTextbox = false;
-    for (int i = 0; i < activeFieldCount(); ++i) {
-        if (fieldTextbox[i].contains(GetMousePosition() - rootPos)) {
+    for (int i = 0; i < activeFieldCount() && !hoveredTextbox; ++i) {
+        Vector2 nextPos = rootPos + Vector2{0.0f, i * (FIELD_TEXTBOX_HEIGHT + FIELD_GAP_Y)};
+        if (fieldTextbox[i].contains(GetMousePosition() - nextPos)) {
             hoveredTextbox = true;
-            break;
         }
     }
 
@@ -682,6 +682,11 @@ void LinkedListUI::processInputFieldOthers(RawInputEvent nextInput) {
         
     if (keyID == (int) KeyboardKey::KEY_BACKSPACE && !inputStr.empty()) {
         inputStr.pop_back();
+    }
+
+    if (!inputStr.empty()) {
+        int value = std::stoi(inputStr);
+        inputStr = std::to_string(value);
     }
 
     fieldTextbox[currentTextboxID].setLabelBuffer(inputStr);
