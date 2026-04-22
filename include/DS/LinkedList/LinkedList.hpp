@@ -16,6 +16,7 @@ public:
     ~LinkedList();
     
     void setStateManager(StateManager* source) override;
+    void initDS(const std::vector <std::string>& rawValue) override;
     
     bool insertNode(std::string value) override;
     bool removeNode(std::string value) override;

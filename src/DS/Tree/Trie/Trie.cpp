@@ -50,7 +50,7 @@ bool Trie::isDeadNode(TrieNode* node) {
 void Trie::initDS(const std::vector <std::string>& rawValue) {
     clearAll();
     
-    for (std::string value : rawValue) {
+    for (const std::string& value : rawValue) {
         insertNode(value);
     }
 

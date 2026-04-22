@@ -690,13 +690,7 @@ CommandPattern AVLUI::fieldInitListenerRequest(RawInputEvent nextInput) {
 
     if (!submitEnter && !submitClick) return CommandPattern();
     
-    std::stringstream ss(initBuffer);
-    std::string word;
-    std::vector <std::string> rawValue;
-    while (ss >> word) {
-        rawValue.emplace_back(word);
-    }
-
+    std::vector <std::string> rawValue = Helper::keywordParse(initBuffer);
     operationPlaceholder = "";
     navPhase = NavPhase::NAV_CLOSED;
     changeField();

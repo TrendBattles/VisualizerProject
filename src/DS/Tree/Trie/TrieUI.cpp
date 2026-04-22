@@ -572,12 +572,15 @@ void TrieUI::processInputFieldInit(RawInputEvent nextInput) {
     }    
     
     if (randomClick) {
-        int N = Helper::random_gen(1, 20);
+        int N = Helper::random_gen(1, 10);
         initBuffer.clear();
         for (int i = 1; i <= N; ++i) {
             if (!initBuffer.empty()) initBuffer += " ";
             
-            initBuffer += std::to_string(Helper::random_gen(0, 9999));
+            int length = Helper::random_gen(1, TEXTBOX_LENGTH_LIMIT);
+            for (int j = 1; j <= length; ++j) {
+                initBuffer.push_back(Helper::random_gen('0', '9'));
+            }
         }
 
         return;
@@ -677,12 +680,7 @@ CommandPattern TrieUI::fieldInitListenerRequest(RawInputEvent nextInput) {
 
     if (!submitEnter && !submitClick) return CommandPattern();
     
-    std::stringstream ss(initBuffer);
-    std::string word;
-    std::vector <std::string> rawValue;
-    while (ss >> word) {
-        rawValue.emplace_back(word);
-    }
+    std::vector <std::string> rawValue = Helper::keywordParse(initBuffer);
 
     operationPlaceholder = "";
     navPhase = NavPhase::NAV_CLOSED;

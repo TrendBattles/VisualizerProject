@@ -29,6 +29,18 @@ void LinkedList::destroyList(LLNode* node) {
 ///////////////////////////////////////
 ///     SUPPORTIVE FUNCTIONS        ///
 ///////////////////////////////////////
+void LinkedList::initDS(const std::vector <std::string>& rawValue) {
+    clearAll();
+
+    for (const std::string& value : rawValue) {
+        insertNode(value);
+    }
+
+    if (stateManager != nullptr) {
+        stateManager -> clearAllSnapshots(getDSID());
+    }
+    generateSnapshot(0.0f);
+}
 bool LinkedList::insertNode(std::string value) {
     int valueParse = 0;
     try {
@@ -416,7 +428,7 @@ Snapshot LinkedList::buildSnapshot(const ChangeMap& changeMap) {
 
     iter = head;
     // Arrow Drawing
-    for (int i = 1; i + 1 <= idx; ++i) {
+    for (int i = 0; i + 1 <= idx; ++i) {
         Vector2 parentVec = RectCenter(i), childVec = RectCenter(i + 1);
         if ((i + 1) % MAX_NODE == 0) {
             storage.emplace_back(createArrow(parentVec, childVec, iter -> shapeID, RECT_HEIGHT * 0.5f + outlineSize));

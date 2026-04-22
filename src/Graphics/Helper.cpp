@@ -8,6 +8,22 @@
 long long Helper::random_gen(long long lvalue, long long rvalue) {
     return rand_mt() % (rvalue - lvalue + 1) + lvalue;
 }
+std::vector <std::string> Helper::keywordParse(std::string rawBuffer, std::string delimeters) {
+    std::vector <std::string> result;
+    std::string tempBuffer = "";
+
+    for (char c : rawBuffer) {
+        if (delimeters.find(c) != std::string::npos) {
+            if (!tempBuffer.empty()) result.emplace_back(tempBuffer);
+            tempBuffer.clear();
+        } else {
+            tempBuffer.push_back(c);
+        }
+    }
+
+    if (!tempBuffer.empty()) result.emplace_back(tempBuffer);
+    return result;
+}
 
 ///
 /// Shape Creation

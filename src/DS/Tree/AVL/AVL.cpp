@@ -29,7 +29,7 @@ std::string AVL::getDSID() const {
 void AVL::initDS(const std::vector <std::string>& rawValue) {
     clearAll();
     
-    for (std::string value : rawValue) {
+    for (const std::string& value : rawValue) {
         insertNode(value);
     }
 

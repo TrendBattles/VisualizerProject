@@ -60,42 +60,177 @@ void HashTableUI::enableAllOperations() {
 }
 
 /////////////////////////
-///     UI DESIGN     ///
+///     UI UPDATE     ///
 /////////////////////////
+bool HashTableUI::exceedsTextboxInitRange() {
+    Vector2 textboxSize = Vector2{FIELD_BUTTON_WIDTH * 2 + FIELD_GAP_X, 300.0f};
+    Vector2 alignOffset = Vector2{10.0f, 10.0f};
+    Vector2 position = alignOffset;
 
-/// @brief UI updates before rendering
-void HashTableUI::update() {
-    if (!operationPlaceholder.empty()) {
-        ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
-        ShapeState targetBackground = targetController -> getButtonShape().getBackground();
-        Vector2 rootPos = {20.0f + BUTTON_WIDTH, targetBackground.startPosition.y};
+    std::stringstream ss(initBuffer);
+    std::string word = "", tempBuffer = "";
 
-        if (fieldRandom.getButtonShape().contains(GetMousePosition() - rootPos)) {
-            fieldRandom.setButtonState(ButtonState::HOVERED);
-        } else {
-            fieldRandom.setButtonState(ButtonState::ACTIVE);
+    while (ss >> word) {
+        std::string nextBuffer = tempBuffer + (!tempBuffer.empty() ? ", " : "") + word;
+
+        Vector2 size = MeasureTextEx(CoreFonts::Aptos, nextBuffer.c_str(), 20.0f, 2.0f);
+        if (size.x + alignOffset.x <= textboxSize.x - alignOffset.x) {
+            tempBuffer = nextBuffer;
+            continue;
         }
 
-        if (fieldSubmit.getButtonShape().contains(GetMousePosition() - rootPos)) {
-            fieldSubmit.setButtonState(ButtonState::HOVERED);
-        } else {
-            fieldSubmit.setButtonState(ButtonState::ACTIVE);
-        }
+        position += Vector2{0.0f, 20.0f};
+        tempBuffer = word;
 
-        if (fieldTextbox.contains(GetMousePosition() - rootPos)) {
-            SetMouseCursor(MOUSE_CURSOR_IBEAM);
-        } else {
-            SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+        if (position.y + 20.0f > textboxSize.y - alignOffset.y) {
+            return true;
         }
+    }
+        
+    if (tempBuffer.empty() || position.y + 20.0f <= textboxSize.y - alignOffset.y) {
+        return false;
+    }
+    return true;
+}
+void HashTableUI::updateInit(Vector2 rootPos) {
+    if (fieldFile.getButtonShape().contains(GetMousePosition() - rootPos)) {
+        fieldFile.setButtonState(ButtonState::HOVERED);
+    } else {
+        fieldFile.setButtonState(ButtonState::ACTIVE);
+    }
+
+    rootPos += Vector2{FIELD_BUTTON_WIDTH + FIELD_GAP_X, 0.0f};
+
+    if (fieldRandom.getButtonShape().contains(GetMousePosition() - rootPos)) {
+        fieldRandom.setButtonState(ButtonState::HOVERED);
+    } else {
+        fieldRandom.setButtonState(ButtonState::ACTIVE);
+    }
+
+    rootPos += Vector2{FIELD_BUTTON_WIDTH + FIELD_GAP_X, 0.0f};
+
+    if (fieldSubmit.getButtonShape().contains(GetMousePosition() - rootPos)) {
+        fieldSubmit.setButtonState(ButtonState::HOVERED);
+    } else {
+        fieldSubmit.setButtonState(ButtonState::ACTIVE);
+    }
+}
+void HashTableUI::updateOthers(Vector2 rootPos) {
+    if (fieldTextbox.contains(GetMousePosition() - rootPos)) {
+        SetMouseCursor(MOUSE_CURSOR_IBEAM);
     } else {
         SetMouseCursor(MOUSE_CURSOR_DEFAULT);
     }
-    
-    
+
+    rootPos += Vector2{FIELD_TEXTBOX_WIDTH + FIELD_GAP_X, 0.0f};
+
+    if (fieldRandom.getButtonShape().contains(GetMousePosition() - rootPos)) {
+        fieldRandom.setButtonState(ButtonState::HOVERED);
+    } else {
+        fieldRandom.setButtonState(ButtonState::ACTIVE);
+    }
+
+    rootPos += Vector2{FIELD_BUTTON_WIDTH + FIELD_GAP_X, 0.0f};
+
+    if (fieldSubmit.getButtonShape().contains(GetMousePosition() - rootPos)) {
+        fieldSubmit.setButtonState(ButtonState::HOVERED);
+    } else {
+        fieldSubmit.setButtonState(ButtonState::ACTIVE);
+    }
+}
+void HashTableUI::update() {
     NavigationBar& navbar = navbarMap[navPhase];
     navbar.hoverButtonTrigger();
+
+    if (operationPlaceholder.empty()) {
+        SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+        return;
+    }
+
+    ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
+    ShapeState targetBackground = targetController -> getButtonShape().getBackground();
+    Vector2 rootPos = {FIELD_GAP_X + BUTTON_WIDTH, targetBackground.startPosition.y};
+
+    if (operationPlaceholder == "Init") {
+        updateInit(rootPos);
+        return;
+    }
+    
+    updateOthers(rootPos);
 }
-/// @brief UI rendering
+
+/////////////////////////
+///     UI RENDER     ///
+/////////////////////////
+void HashTableUI::renderInit(Vector2 rootPos) {
+    Vector2 textboxPos = rootPos + Vector2{0.0f, FIELD_GAP_Y + FIELD_BUTTON_HEIGHT};
+    Vector2 textboxSize = Vector2{FIELD_BUTTON_WIDTH * 2 + FIELD_GAP_X, 300.0f};
+    DrawRectangleV(textboxPos, textboxSize, Fade(BLACK, 0.3f));
+    DrawRectangleLinesEx(
+        Rectangle { textboxPos.x, textboxPos.y, textboxSize.x, textboxSize.y },
+        2.0f,
+        GetColor(0x374151FF)
+    );
+    {
+        Vector2 alignOffset = Vector2{10.0f, 10.0f};
+        Vector2 position = alignOffset;
+
+        std::stringstream ss(initBuffer);
+        std::string word = "", tempBuffer = "";
+
+        while (ss >> word) {
+            std::string nextBuffer = tempBuffer + (!tempBuffer.empty() ? ", " : "") + word;
+
+            Vector2 size = MeasureTextEx(CoreFonts::Aptos, nextBuffer.c_str(), 20.0f, 2.0f);
+            if (size.x + alignOffset.x <= textboxSize.x - alignOffset.x) {
+                tempBuffer = nextBuffer;
+                continue;
+            }
+
+            tempBuffer += ",";
+            DrawTextEx(CoreFonts::Aptos, tempBuffer.c_str(), position + textboxPos, 20.0f, 2.0f, WHITE);
+            position += Vector2{0.0f, 20.0f};
+            tempBuffer = word;
+        }
+        
+        if (!tempBuffer.empty()) {
+            if (initBuffer.back() == ' ') tempBuffer += ", ";
+            DrawTextEx(CoreFonts::Aptos, tempBuffer.c_str(), position + textboxPos, 20.0f, 2.0f, WHITE);
+        }
+    }
+    
+
+    Button tempFile = fieldFile.getButtonShape();
+    Button tempRandom = fieldRandom.getButtonShape();
+    Button tempSubmit = fieldSubmit.getButtonShape();
+
+    tempFile.positionTransitAllBy(rootPos);
+    rootPos += Vector2{FIELD_BUTTON_WIDTH + FIELD_GAP_X, 0.0f};
+    tempRandom.positionTransitAllBy(rootPos);
+    rootPos += Vector2{FIELD_BUTTON_WIDTH + FIELD_GAP_X, 0.0f};
+    tempSubmit.positionTransitAllBy(rootPos);
+    
+    drawButton(tempFile);
+    drawButton(tempRandom);
+    drawButton(tempSubmit);
+}
+void HashTableUI::renderOthers(Vector2 rootPos) {
+    Textbox tempTextbox = fieldTextbox;
+    Button tempRandom = fieldRandom.getButtonShape();
+    Button tempSubmit = fieldSubmit.getButtonShape();
+    
+    tempTextbox.positionTransitAllBy(rootPos);
+    rootPos += Vector2{FIELD_TEXTBOX_WIDTH + FIELD_GAP_X, 0.0f};
+
+    tempRandom.positionTransitAllBy(rootPos);
+    rootPos += Vector2{FIELD_BUTTON_WIDTH + FIELD_GAP_X, 0.0f};
+
+    tempSubmit.positionTransitAllBy(rootPos);
+    
+    drawTextbox(tempTextbox);
+    drawButton(tempRandom);
+    drawButton(tempSubmit);
+}
 void HashTableUI::render() {
     if (navPhase != NavPhase::NAV_CLOSED) {
         DrawRectangle(BUTTON_WIDTH, 0, GetScreenWidth() - BUTTON_WIDTH, GetScreenHeight(), Fade(GetColor(0x2E3440FF), 0.5f));
@@ -108,25 +243,14 @@ void HashTableUI::render() {
     
     ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
     ShapeState targetBackground = targetController -> getButtonShape().getBackground();
-    Vector2 rootPos = {20.0f + BUTTON_WIDTH, targetBackground.startPosition.y};
+    Vector2 rootPos = {FIELD_GAP_X + BUTTON_WIDTH, targetBackground.startPosition.y};
 
-    Textbox tempTextbox = fieldTextbox;
-    Button tempRandom = fieldRandom.getButtonShape();
-    Button tempSubmit = fieldSubmit.getButtonShape();
-    
-    tempTextbox.positionTransitAllBy(rootPos);
-    tempRandom.positionTransitAllBy(rootPos);
-    tempSubmit.positionTransitAllBy(rootPos);
-
-    if (isFieldTextboxFocused) {
-        ShapeState background = tempTextbox.getBackground();
-        background.outlineColor = GetColor(0x81A1C1FF);
-        tempTextbox.setBackground(background);
+    if (operationPlaceholder == "Init") {
+        renderInit(rootPos);
+        return;
     }
 
-    drawTextbox(tempTextbox);
-    drawButton(tempRandom);
-    drawButton(tempSubmit);
+    renderOthers(rootPos);
 }
 std::string HashTableUI::getDSName() const { return "Hash_Table"; }
 
@@ -257,12 +381,10 @@ void HashTableUI::createNavbarToggle() {
 
 /// @brief Field Inputs
 void HashTableUI::createField() {
-    Vector2 nextPos = {0.0f, 0.0f};
-
     fieldTextbox = Helper::createTextbox(
         Helper::createRectangle(
             getDSName() + "_" + Helper::rectangleStringBuffer("Field_Textbox"),
-            nextPos, nextPos + Vector2{FIELD_TEXTBOX_WIDTH, FIELD_TEXTBOX_HEIGHT}, 
+            Vector2{0.0f, 0.0f}, Vector2{FIELD_TEXTBOX_WIDTH, FIELD_TEXTBOX_HEIGHT}, 
             2.0f, 
             GetColor(0x3B4252FF), BLACK,
             1
@@ -274,7 +396,7 @@ void HashTableUI::createField() {
         return Helper::createButton(
             Helper::createRectangle(
                 getDSName() + "_" + Helper::rectangleStringBuffer(buttonID),
-                nextPos, nextPos + Vector2{FIELD_SUBMIT_WIDTH, FIELD_SUBMIT_HEIGHT}, 
+                Vector2{0.0f, 0.0f}, Vector2{FIELD_BUTTON_WIDTH, FIELD_BUTTON_HEIGHT}, 
                 2.0f, 
                 bgColor, BLACK,
                 1
@@ -284,15 +406,14 @@ void HashTableUI::createField() {
         );
     };
 
-    nextPos += Vector2{FIELD_TEXTBOX_WIDTH + FIELD_GAP, 0};
-
     fieldRandom.setButtonSettings(ButtonState::ACTIVE, createButton("Field_Random", "Random", GetColor(0xC9AE8AFF), CoreFonts::Aptos));
     fieldRandom.setButtonSettings(ButtonState::HOVERED, createButton("Field_Random_hovered", "Random", GetColor(0x81A1C1FF), CoreFonts::AptosBold));
 
-    nextPos += Vector2{FIELD_SUBMIT_WIDTH + FIELD_GAP, 0};
-
     fieldSubmit.setButtonSettings(ButtonState::ACTIVE, createButton("Field_Submit", "Submit", GetColor(0xC9AE8AFF), CoreFonts::Aptos));
     fieldSubmit.setButtonSettings(ButtonState::HOVERED, createButton("Field_Submit_hovered", "Submit", GetColor(0x81A1C1FF), CoreFonts::AptosBold));
+
+    fieldFile.setButtonSettings(ButtonState::ACTIVE, createButton("Field_File", "File", GetColor(0xC9AE8AFF), CoreFonts::Aptos));
+    fieldFile.setButtonSettings(ButtonState::HOVERED, createButton("Field_File_hovered", "File", GetColor(0x81A1C1FF), CoreFonts::AptosBold));
 }
 
 
@@ -367,36 +488,161 @@ void HashTableUI::processInputNavbar(RawInputEvent nextInput) {
  
 /// @brief Field Interaction Change
 void HashTableUI::changeField() {
+    initBuffer.clear();
     fieldTextbox.clearLabelBuffer();
-    isFieldTextboxFocused = false;
 }
 
-/// @brief Field Input
-void HashTableUI::processInputField(RawInputEvent nextInput) {
-    if (operationPlaceholder.empty()) return;
-    
+///////////////////////////
+///     FIELD INPUT     ///
+///////////////////////////
+void HashTableUI::handleInputFieldInit() {
+    std::string inputStr = initBuffer;
+
+    initBuffer = "";
+    std::stringstream ss(inputStr);
+    std::string number;
+    while (ss >> number) {
+        int value = 0;
+        try {
+            value = std::stoi(number);
+        } catch (const std::invalid_argument& ia) {
+            continue;
+        } catch (const std::out_of_range& oor) {
+            continue;
+        }
+
+        if (value > 9999) {
+            continue;
+        }
+
+        if (!initBuffer.empty()) initBuffer += " ";
+        initBuffer += std::to_string(value);
+    }
+
+    while (exceedsTextboxInitRange()) {
+        if (initBuffer.back() == ' ') {
+            while (!initBuffer.empty() && initBuffer.back() == ' ') initBuffer.pop_back();
+        } else {
+            while (!initBuffer.empty() && isdigit(initBuffer.back())) initBuffer.pop_back();
+            while (!initBuffer.empty() && initBuffer.back() == ' ') initBuffer.pop_back();
+        }
+    }
+}
+void HashTableUI::processInputFieldInit(RawInputEvent nextInput) {
     ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
     ShapeState targetBackground = targetController -> getButtonShape().getBackground();
-    Vector2 rootPos = {20.0f + BUTTON_WIDTH, targetBackground.startPosition.y};
+    Vector2 rootPos = {FIELD_GAP_X + BUTTON_WIDTH, targetBackground.startPosition.y};
 
+    bool fileClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
+                    && fieldFile.getButtonShape().contains(nextInput.position - rootPos);
+    rootPos += Vector2{FIELD_BUTTON_WIDTH + FIELD_GAP_X, 0.0f};
     bool randomClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
                     && fieldRandom.getButtonShape().contains(nextInput.position - rootPos);
 
-    // When the random request is required, set a random value with a random length [1, TEXTBOX_LENGTH]
+    if (fileClick) {
+        // Define the parameters
+        const char* title = "Select Input File";
+        const char* defaultPath = "";
+        const char* filterPatterns[1] = { "*.txt" }; // Only show text files
+        const char* filterDescription = "Text Files (.txt)";
+
+        // Open the dialog
+        // This function halts execution until the user picks a file or cancels
+        const char* selectedPath = tinyfd_openFileDialog(
+            title,
+            defaultPath,
+            1,               // Number of filter patterns
+            filterPatterns,
+            filterDescription,
+            0                // 0 = single file, 1 = multiple files
+        );
+
+        if (selectedPath == nullptr) return;
+
+        std::ifstream input(selectedPath);
+        if (!input.is_open()) return;
+
+        std::string word;
+        initBuffer = "";
+        while (input >> word) {
+            bool allDigits = true;
+            for (char c : word) allDigits &= isdigit(c);
+
+            if (!allDigits) continue;
+            if (!initBuffer.empty()) initBuffer += " ";
+            initBuffer += word;
+        }
+
+        handleInputFieldInit();
+        return;
+    }    
+    
     if (randomClick) {
-        if (!isFieldTextboxFocused) return;
-        
-        fieldTextbox.setLabelBuffer(std::to_string(Helper::random_gen(0, 99999)));
+        int N = Helper::random_gen(1, 20);
+        initBuffer.clear();
+        for (int i = 1; i <= N; ++i) {
+            if (!initBuffer.empty()) initBuffer += " ";
+            
+            initBuffer += std::to_string(Helper::random_gen(0, 9999));
+        }
+
         return;
     }
 
-    if (nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED) {
-        isFieldTextboxFocused = fieldTextbox.contains(nextInput.position - rootPos);
-    } else if (nextInput.inputType == RawInputEvent::InputType::RIGHT_MOUSE_CLICKED) {
-        isFieldTextboxFocused = false;
+    if (nextInput.inputType != RawInputEvent::InputType::KEY_PRESSED) return;
+
+    // If the field is being focused, we crawl the key input
+    // If that key is a number and the string hasn't reached its limit, insert that key to the buffer.
+    // If KEY_BACKSPACE is triggered, remove the last character in the buffer.
+    int keyID = (int) nextInput.keySignal;
+
+    std::string inputStr = initBuffer;
+    if (keyID >= '0' && keyID <= '9') {
+        inputStr.push_back(keyID);
+    } else if (keyID == (int) KeyboardKey::KEY_SPACE) {
+        if (!inputStr.empty() && inputStr.back() != ' ') inputStr.push_back(' ');
+    } else if (keyID == (int) KeyboardKey::KEY_BACKSPACE && !inputStr.empty()) {
+        inputStr.pop_back();
     }
 
-    if (!isFieldTextboxFocused || nextInput.inputType != RawInputEvent::InputType::KEY_PRESSED) return;
+    if (!inputStr.empty() && isdigit(inputStr.back())) {
+        std::string buffer = "";
+        while (!inputStr.empty() && isdigit(inputStr.back())) {
+            buffer.push_back(inputStr.back());
+            inputStr.pop_back();
+        }
+
+        std::reverse(buffer.begin(), buffer.end());
+        int value = std::stoi(buffer);
+        if (value > 9999) value /= 10;
+
+        if (!inputStr.empty()) inputStr.push_back(' ');
+        inputStr += std::to_string(value);
+    }
+
+    initBuffer = inputStr;
+}
+void HashTableUI::processInputFieldOthers(RawInputEvent nextInput) {    
+    ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
+    ShapeState targetBackground = targetController -> getButtonShape().getBackground();
+    Vector2 rootPos = {FIELD_GAP_X + BUTTON_WIDTH, targetBackground.startPosition.y};
+
+    bool randomClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
+                    && fieldRandom.getButtonShape().contains(nextInput.position - rootPos - Vector2{FIELD_TEXTBOX_WIDTH + FIELD_GAP_X, 0.0f});
+
+    // When the random request is required, set a random value with a random length [1, TEXTBOX_LENGTH]
+    if (randomClick) {        
+        int randLength = Helper::random_gen(1, TEXTBOX_LENGTH_LIMIT);
+        std::string str = "";
+        for (int i = 0; i < randLength; ++i) {
+            str.push_back(Helper::random_gen('0', '9'));
+        }
+
+        fieldTextbox.setLabelBuffer(str);
+        return;
+    }
+
+    if (nextInput.inputType != RawInputEvent::InputType::KEY_PRESSED) return;
 
     // If the field is being focused, we crawl the key input
     // If that key is a number and the string hasn't reached its limit, insert that key to the buffer.
@@ -414,14 +660,54 @@ void HashTableUI::processInputField(RawInputEvent nextInput) {
 
     fieldTextbox.setLabelBuffer(inputStr);
 }
+void HashTableUI::processInputField(RawInputEvent nextInput) {
+    if (operationPlaceholder.empty()) return;
+    
+    if (operationPlaceholder == "Init") {
+        processInputFieldInit(nextInput);
+        return;
+    }
 
-/// @brief Responds requests to Data Structure  
-CommandPattern HashTableUI::fieldListenerRequest(RawInputEvent nextInput) {
-    if (operationPlaceholder.empty()) return CommandPattern();
+    processInputFieldOthers(nextInput);
+}
 
+/////////////////////////////////////
+///     FIELD RESPONSE REQUEST    ///
+/////////////////////////////////////
+CommandPattern HashTableUI::fieldInitListenerRequest(RawInputEvent nextInput) {
     ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
     ShapeState targetBackground = targetController -> getButtonShape().getBackground();
-    Vector2 rootPos = {20.0f + BUTTON_WIDTH, targetBackground.startPosition.y};
+    Vector2 rootPos = {FIELD_GAP_X + BUTTON_WIDTH, targetBackground.startPosition.y};
+
+    rootPos += Vector2{2 * (FIELD_BUTTON_WIDTH + FIELD_GAP_X), 0.0f};
+
+    bool submitEnter = nextInput.inputType == RawInputEvent::InputType::KEY_PRESSED
+                    && nextInput.keySignal == KeyboardKey::KEY_ENTER;
+    bool submitClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
+                    && fieldSubmit.getButtonShape().contains(nextInput.position - rootPos);
+
+    if (!submitEnter && !submitClick) return CommandPattern();
+    
+    std::vector <std::string> rawValue = Helper::keywordParse(initBuffer);
+
+    operationPlaceholder = "";
+    navPhase = NavPhase::NAV_CLOSED;
+    changeField();
+
+    return CommandPattern {
+        "MODIFY",
+        "INTERACT",
+        getDSName(),
+        "INIT",
+        rawValue
+    };
+}
+CommandPattern HashTableUI::fieldOthersListenerRequest(RawInputEvent nextInput) {
+    ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
+    ShapeState targetBackground = targetController -> getButtonShape().getBackground();
+    Vector2 rootPos = {FIELD_GAP_X + BUTTON_WIDTH, targetBackground.startPosition.y};
+    
+    rootPos += Vector2{FIELD_BUTTON_WIDTH + FIELD_TEXTBOX_WIDTH + 2 * FIELD_GAP_X, 0.0f};
 
     bool submitEnter = nextInput.inputType == RawInputEvent::InputType::KEY_PRESSED
                     && nextInput.keySignal == KeyboardKey::KEY_ENTER;
@@ -449,4 +735,13 @@ CommandPattern HashTableUI::fieldListenerRequest(RawInputEvent nextInput) {
         Helper::upperString(chosenOperation),
         {rawValue}
     };
+}
+CommandPattern HashTableUI::fieldListenerRequest(RawInputEvent nextInput) {
+    if (operationPlaceholder.empty()) return CommandPattern();
+
+    if (operationPlaceholder == "Init") {
+        return fieldInitListenerRequest(nextInput);
+    }
+    
+    return fieldOthersListenerRequest(nextInput);
 }

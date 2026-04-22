@@ -60,89 +60,192 @@ void LinkedListUI::enableAllOperations() {
 }
 
 /////////////////////////
-///     UI DESIGN     ///
+///     UI UPDATE     ///
 /////////////////////////
+bool LinkedListUI::exceedsTextboxInitRange() {
+    Vector2 textboxSize = Vector2{FIELD_BUTTON_WIDTH * 2 + FIELD_GAP_X, 300.0f};
+    Vector2 alignOffset = Vector2{10.0f, 10.0f};
+    Vector2 position = alignOffset;
 
-/// @brief UI updates before rendering
-void LinkedListUI::update() {
-    if (!operationPlaceholder.empty()) {
-        ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
-        ShapeState targetBackground = targetController -> getButtonShape().getBackground();
-        Vector2 rootPos = {FIELD_GAP + BUTTON_WIDTH, targetBackground.startPosition.y};
+    std::stringstream ss(initBuffer);
+    std::string word = "", tempBuffer = "";
 
-        if (operationPlaceholder == "Update") {
-            rootPos += Vector2{FIELD_GAP + updateHolderSize[0].x, 0.0f};
+    while (ss >> word) {
+        std::string nextBuffer = tempBuffer + (!tempBuffer.empty() ? ", " : "") + word;
+
+        Vector2 size = MeasureTextEx(CoreFonts::Aptos, nextBuffer.c_str(), 20.0f, 2.0f);
+        if (size.x + alignOffset.x <= textboxSize.x - alignOffset.x) {
+            tempBuffer = nextBuffer;
+            continue;
         }
 
-        if (fieldRandom.getButtonShape().contains(GetMousePosition() - rootPos)) {
-            fieldRandom.setButtonState(ButtonState::HOVERED);
-        } else {
-            fieldRandom.setButtonState(ButtonState::ACTIVE);
+        position += Vector2{0.0f, 20.0f};
+        tempBuffer = word;
+
+        if (position.y + 20.0f > textboxSize.y - alignOffset.y) {
+            return true;
         }
-
-        if (fieldSubmit.getButtonShape().contains(GetMousePosition() - rootPos)) {
-            fieldSubmit.setButtonState(ButtonState::HOVERED);
-        } else {
-            fieldSubmit.setButtonState(ButtonState::ACTIVE);
-        }
-
-
-        bool hoveredTextbox = false;
-        for (int i = 0; i < activeFieldCount(); ++i) {
-            if (fieldTextbox[i].contains(GetMousePosition() - rootPos)) {
-                hoveredTextbox = true;
-                break;
-            }
-        }
-
-        if (hoveredTextbox) SetMouseCursor(MOUSE_CURSOR_IBEAM);
-        else SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+    }
+        
+    if (tempBuffer.empty() || position.y + 20.0f <= textboxSize.y - alignOffset.y) {
+        return false;
+    }
+    return true;
+}
+void LinkedListUI::updateInit(Vector2 rootPos) {
+    if (fieldFile.getButtonShape().contains(GetMousePosition() - rootPos)) {
+        fieldFile.setButtonState(ButtonState::HOVERED);
     } else {
+        fieldFile.setButtonState(ButtonState::ACTIVE);
+    }
+
+    rootPos += Vector2{FIELD_BUTTON_WIDTH + FIELD_GAP_X, 0.0f};
+
+    if (fieldRandom.getButtonShape().contains(GetMousePosition() - rootPos)) {
+        fieldRandom.setButtonState(ButtonState::HOVERED);
+    } else {
+        fieldRandom.setButtonState(ButtonState::ACTIVE);
+    }
+
+    rootPos += Vector2{FIELD_BUTTON_WIDTH + FIELD_GAP_X, 0.0f};
+
+    if (fieldSubmit.getButtonShape().contains(GetMousePosition() - rootPos)) {
+        fieldSubmit.setButtonState(ButtonState::HOVERED);
+    } else {
+        fieldSubmit.setButtonState(ButtonState::ACTIVE);
+    }
+}
+void LinkedListUI::updateOthers(Vector2 rootPos) {
+    bool hoveredTextbox = false;
+    for (int i = 0; i < activeFieldCount(); ++i) {
+        if (fieldTextbox[i].contains(GetMousePosition() - rootPos)) {
+            hoveredTextbox = true;
+            break;
+        }
+    }
+
+    if (hoveredTextbox) SetMouseCursor(MOUSE_CURSOR_IBEAM);
+    else SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+
+    rootPos += Vector2{FIELD_TEXTBOX_WIDTH + FIELD_GAP_X, 0.0f};
+
+    if (fieldRandom.getButtonShape().contains(GetMousePosition() - rootPos)) {
+        fieldRandom.setButtonState(ButtonState::HOVERED);
+    } else {
+        fieldRandom.setButtonState(ButtonState::ACTIVE);
+    }
+
+    rootPos += Vector2{FIELD_BUTTON_WIDTH + FIELD_GAP_X, 0.0f};
+
+    if (fieldSubmit.getButtonShape().contains(GetMousePosition() - rootPos)) {
+        fieldSubmit.setButtonState(ButtonState::HOVERED);
+    } else {
+        fieldSubmit.setButtonState(ButtonState::ACTIVE);
+    }
+}
+void LinkedListUI::update() {
+    NavigationBar& navbar = navbarMap[navPhase];
+    navbar.hoverButtonTrigger();
+
+    if (operationPlaceholder.empty()) {
         SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+        return;
+    }
+
+    ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
+    ShapeState targetBackground = targetController -> getButtonShape().getBackground();
+    Vector2 rootPos = {FIELD_GAP_X + BUTTON_WIDTH, targetBackground.startPosition.y};
+
+    if (operationPlaceholder == "Init") {
+        updateInit(rootPos);
+        return;
+    }
+
+    updateOthers(rootPos);
+}
+
+///////////////////////////
+///     UI RENDER       ///
+///////////////////////////
+
+void LinkedListUI::renderInit(Vector2 rootPos) {
+    Vector2 textboxPos = rootPos + Vector2{0.0f, FIELD_GAP_Y + FIELD_BUTTON_HEIGHT};
+    Vector2 textboxSize = Vector2{FIELD_BUTTON_WIDTH * 2 + FIELD_GAP_X, 300.0f};
+    DrawRectangleV(textboxPos, textboxSize, Fade(BLACK, 0.3f));
+    DrawRectangleLinesEx(
+        Rectangle { textboxPos.x, textboxPos.y, textboxSize.x, textboxSize.y },
+        2.0f,
+        GetColor(0x374151FF)
+    );
+    {
+        Vector2 alignOffset = Vector2{10.0f, 10.0f};
+        Vector2 position = alignOffset;
+
+        std::stringstream ss(initBuffer);
+        std::string word = "", tempBuffer = "";
+
+        while (ss >> word) {
+            std::string nextBuffer = tempBuffer + (!tempBuffer.empty() ? ", " : "") + word;
+
+            Vector2 size = MeasureTextEx(CoreFonts::Aptos, nextBuffer.c_str(), 20.0f, 2.0f);
+            if (size.x + alignOffset.x <= textboxSize.x - alignOffset.x) {
+                tempBuffer = nextBuffer;
+                continue;
+            }
+
+            tempBuffer += ",";
+            DrawTextEx(CoreFonts::Aptos, tempBuffer.c_str(), position + textboxPos, 20.0f, 2.0f, WHITE);
+            position += Vector2{0.0f, 20.0f};
+            tempBuffer = word;
+        }
+        
+        if (!tempBuffer.empty()) {
+            if (initBuffer.back() == ' ') tempBuffer += ", ";
+            DrawTextEx(CoreFonts::Aptos, tempBuffer.c_str(), position + textboxPos, 20.0f, 2.0f, WHITE);
+        }
     }
     
 
-    NavigationBar& navbar = navbarMap[navPhase];
-    navbar.hoverButtonTrigger();
-}
-/// @brief UI rendering
-void LinkedListUI::updateFuncRender() {
-    ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
-    ShapeState targetBackground = targetController -> getButtonShape().getBackground();
-    Vector2 rootPos = {FIELD_GAP + BUTTON_WIDTH, targetBackground.startPosition.y};
-
-    Vector2 origin[2];
-    for (int i = 0; i < 2; ++i) {
-        origin[i] = updateHolderSize[i];
-
-        Textbox tmp = fieldTextbox[i];
-        ShapeState background = tmp.getBackground();
-            
-        origin[i].y = (background.endPosition.y - background.startPosition.y - origin[i].y) * 0.5f;
-        origin[i] += Vector2{0.0f, i * (FIELD_TEXTBOX_HEIGHT + FIELD_TEXTBOX_GAP)};
-
-        DrawTextEx(CoreFonts::CascadiaMonoRegular, updateHolder[i].c_str(), rootPos + Vector2{0.0f, origin[i].y}, 20.0f, 2.0f, WHITE);
-
-        tmp.positionTransitAllBy(rootPos + Vector2{FIELD_GAP + origin[i].x, 0.0f});
-
-        if (i == textboxFocusID) {
-            background = tmp.getBackground();
-            background.outlineColor = GetColor(0x81A1C1FF);
-            tmp.setBackground(background);
-        }
-
-        drawTextbox(tmp);
-    }
-
-    rootPos += Vector2{FIELD_GAP + origin[0].x, 0.0f};
+    Button tempFile = fieldFile.getButtonShape();
     Button tempRandom = fieldRandom.getButtonShape();
     Button tempSubmit = fieldSubmit.getButtonShape();
 
+    tempFile.positionTransitAllBy(rootPos);
+    rootPos += Vector2{FIELD_BUTTON_WIDTH + FIELD_GAP_X, 0.0f};
     tempRandom.positionTransitAllBy(rootPos);
+    rootPos += Vector2{FIELD_BUTTON_WIDTH + FIELD_GAP_X, 0.0f};
     tempSubmit.positionTransitAllBy(rootPos);
+    
+    drawButton(tempFile);
     drawButton(tempRandom);
     drawButton(tempSubmit);
 }
+void LinkedListUI::renderOthers(Vector2 rootPos) {
+    for (int i = 0; i < activeFieldCount(); ++i) {
+        Textbox tempTextbox = fieldTextbox[i];
+        tempTextbox.positionTransitAllBy(rootPos + Vector2{0.0f, i * (FIELD_BUTTON_HEIGHT + FIELD_GAP_Y)});
+        
+        if (textboxFocusID == i) {
+            ShapeState background = tempTextbox.getBackground();
+            background.outlineColor = GetColor(0x81A1C1FF);
+            tempTextbox.setBackground(background);
+        }
+
+        drawTextbox(tempTextbox);
+    }
+
+    Button tempRandom = fieldRandom.getButtonShape();
+    Button tempSubmit = fieldSubmit.getButtonShape();
+
+    rootPos += Vector2{FIELD_TEXTBOX_WIDTH + FIELD_GAP_X, 0.0f};
+    tempRandom.positionTransitAllBy(rootPos);
+    rootPos += Vector2{FIELD_BUTTON_WIDTH + FIELD_GAP_X, 0.0f};
+    tempSubmit.positionTransitAllBy(rootPos);
+    
+    drawButton(tempRandom);
+    drawButton(tempSubmit);
+}
+
 void LinkedListUI::render() {
     if (navPhase != NavPhase::NAV_CLOSED) {
         DrawRectangle(BUTTON_WIDTH, 0, GetScreenWidth() - BUTTON_WIDTH, GetScreenHeight(), Fade(GetColor(0x2E3440FF), 0.5f));
@@ -153,32 +256,16 @@ void LinkedListUI::render() {
         return;
     }
 
-    if (operationPlaceholder == "Update") {
-        updateFuncRender();
+    ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
+    ShapeState targetBackground = targetController -> getButtonShape().getBackground();
+    Vector2 rootPos = {FIELD_GAP_X + BUTTON_WIDTH, targetBackground.startPosition.y};
+
+    if (operationPlaceholder == "Init") {
+        renderInit(rootPos);
         return;
     }
 
-    ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
-    ShapeState targetBackground = targetController -> getButtonShape().getBackground();
-    Vector2 rootPos = {FIELD_GAP + BUTTON_WIDTH, targetBackground.startPosition.y};
-
-    Textbox tempTextbox = fieldTextbox[0];
-    Button tempRandom = fieldRandom.getButtonShape();
-    Button tempSubmit = fieldSubmit.getButtonShape();
-    
-    tempTextbox.positionTransitAllBy(rootPos);
-    tempRandom.positionTransitAllBy(rootPos);
-    tempSubmit.positionTransitAllBy(rootPos);
-
-    if (textboxFocusID == 0) {
-        ShapeState background = tempTextbox.getBackground();
-        background.setColor(GetColor(0x3B4252FF), GetColor(0x81A1C1FF));
-        tempTextbox.setBackground(background);
-    }
-    
-    drawTextbox(tempTextbox);
-    drawButton(tempRandom);
-    drawButton(tempSubmit);
+    renderOthers(rootPos);
 }
 std::string LinkedListUI::getDSName() const { return "Linked_List"; }
 
@@ -314,22 +401,16 @@ void LinkedListUI::createNavbarToggle() {
 
 /// @brief Field Inputs
 void LinkedListUI::createField() {
-    Vector2 nextPos = {0.0f, 0.0f};
-
     for (int i = 0; i < 2; ++i) {
-        Vector2 newPos = nextPos + Vector2{0.0f, i * (FIELD_TEXTBOX_HEIGHT + FIELD_TEXTBOX_GAP)};
-
         fieldTextbox[i] = Helper::createTextbox(
             Helper::createRectangle(
                 getDSName() + "_" + Helper::rectangleStringBuffer("Field_Textbox_" + std::to_string(i)),
-                newPos, newPos + Vector2{FIELD_TEXTBOX_WIDTH, FIELD_TEXTBOX_HEIGHT}, 
+                Vector2{0.0f, 0.0f}, Vector2{FIELD_TEXTBOX_WIDTH, FIELD_TEXTBOX_HEIGHT}, 
                 FIELD_TEXTBOX_OUTLINE,
                 GetColor(0x3B4252FF), BLACK, 1
             ),
             Helper::createText("", GetFontDefault(), 20.0f, 5.0f, {0, 0}, WHITE)
         );
-
-        updateHolderSize[i] = MeasureTextEx(CoreFonts::CascadiaMonoRegular, updateHolder[i].c_str(), 20.0f, 2.0f);
     }
     
 
@@ -337,7 +418,7 @@ void LinkedListUI::createField() {
         return Helper::createButton(
             Helper::createRectangle(
                 getDSName() + "_" + Helper::rectangleStringBuffer(buttonID),
-                nextPos, nextPos + Vector2{FIELD_SUBMIT_WIDTH, FIELD_SUBMIT_HEIGHT}, 
+                Vector2{0.0f, 0.0f}, Vector2{FIELD_BUTTON_WIDTH, FIELD_BUTTON_HEIGHT}, 
                 2.0f, 
                 bgColor, BLACK,
                 1
@@ -346,16 +427,15 @@ void LinkedListUI::createField() {
             Helper::createText(text, font, 25.0f, 2.5f, {0, 0}, BLACK)
         );
     };
-
-    nextPos += Vector2{FIELD_TEXTBOX_WIDTH + FIELD_GAP, 0};
-
+    
     fieldRandom.setButtonSettings(ButtonState::ACTIVE, createButton("Field_Random", "Random", GetColor(0xC9AE8AFF), CoreFonts::Aptos));
     fieldRandom.setButtonSettings(ButtonState::HOVERED, createButton("Field_Random_hovered", "Random", GetColor(0x81A1C1FF), CoreFonts::AptosBold));
 
-    nextPos += Vector2{FIELD_RANDOM_WIDTH + FIELD_GAP, 0};
-
     fieldSubmit.setButtonSettings(ButtonState::ACTIVE, createButton("Field_Submit", "Submit", GetColor(0xC9AE8AFF), CoreFonts::Aptos));
     fieldSubmit.setButtonSettings(ButtonState::HOVERED, createButton("Field_Submit_hovered", "Submit", GetColor(0x81A1C1FF), CoreFonts::AptosBold));
+    
+    fieldFile.setButtonSettings(ButtonState::ACTIVE, createButton("Field_File", "File", GetColor(0xC9AE8AFF), CoreFonts::Aptos));
+    fieldFile.setButtonSettings(ButtonState::HOVERED, createButton("Field_File_hovered", "File", GetColor(0x81A1C1FF), CoreFonts::AptosBold));
 }
 
 
@@ -434,52 +514,168 @@ void LinkedListUI::changeField() {
     fieldTextbox[1].clearLabelBuffer();
 
     textboxFocusID = operationPlaceholder == "Update" ? 0 : -1;
+    initBuffer = "";
 }
 
-/// @brief Field Input
-void LinkedListUI::processInputField(RawInputEvent nextInput) {
-    if (operationPlaceholder.empty()) return;
-    
+///////////////////////////
+///     FIELD INPUT     ///
+///////////////////////////
+void LinkedListUI::handleInputFieldInit() {
+    std::string inputStr = initBuffer;
+
+    initBuffer = "";
+    std::stringstream ss(inputStr);
+    std::string number;
+    while (ss >> number) {
+        int value = 0;
+        try {
+            value = std::stoi(number);
+        } catch (const std::invalid_argument& ia) {
+            continue;
+        } catch (const std::out_of_range& oor) {
+            continue;
+        }
+
+        if (value > 9999) {
+            continue;
+        }
+
+        if (!initBuffer.empty()) initBuffer += " ";
+        initBuffer += std::to_string(value);
+    }
+
+    while (exceedsTextboxInitRange()) {
+        if (initBuffer.back() == ' ') {
+            while (!initBuffer.empty() && initBuffer.back() == ' ') initBuffer.pop_back();
+        } else {
+            while (!initBuffer.empty() && isdigit(initBuffer.back())) initBuffer.pop_back();
+            while (!initBuffer.empty() && initBuffer.back() == ' ') initBuffer.pop_back();
+        }
+    }
+}
+void LinkedListUI::processInputFieldInit(RawInputEvent nextInput) {
     ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
     ShapeState targetBackground = targetController -> getButtonShape().getBackground();
-    Vector2 rootPos = {FIELD_GAP + BUTTON_WIDTH, targetBackground.startPosition.y};
+    Vector2 rootPos = {FIELD_GAP_X + BUTTON_WIDTH, targetBackground.startPosition.y};
 
-    if (operationPlaceholder == "Update") rootPos += Vector2{FIELD_GAP + updateHolderSize[0].x, 0.0f};
-
+    bool fileClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
+                    && fieldFile.getButtonShape().contains(nextInput.position - rootPos);
+    rootPos += Vector2{FIELD_BUTTON_WIDTH + FIELD_GAP_X, 0.0f};
     bool randomClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
                     && fieldRandom.getButtonShape().contains(nextInput.position - rootPos);
 
-    // When the random request is required, set a random value from 0 to 99999 for the input box
+    if (fileClick) {
+        // Define the parameters
+        const char* title = "Select Input File";
+        const char* defaultPath = "";
+        const char* filterPatterns[1] = { "*.txt" }; // Only show text files
+        const char* filterDescription = "Text Files (.txt)";
+
+        // Open the dialog
+        // This function halts execution until the user picks a file or cancels
+        const char* selectedPath = tinyfd_openFileDialog(
+            title,
+            defaultPath,
+            1,               // Number of filter patterns
+            filterPatterns,
+            filterDescription,
+            0                // 0 = single file, 1 = multiple files
+        );
+
+        if (selectedPath == nullptr) return;
+
+        std::ifstream input(selectedPath);
+        if (!input.is_open()) return;
+
+        std::string word;
+        initBuffer = "";
+        while (input >> word) {
+            bool allDigits = true;
+            for (char c : word) allDigits &= isdigit(c);
+
+            if (!allDigits) continue;
+            if (!initBuffer.empty()) initBuffer += " ";
+            initBuffer += word;
+        }
+
+        handleInputFieldInit();
+        return;
+    }    
+    
     if (randomClick) {
-        if (textboxFocusID != -1)
-            fieldTextbox[textboxFocusID].setLabelBuffer(std::to_string(Helper::random_gen(0, 99999)));
+        int N = Helper::random_gen(1, 20);
+        initBuffer.clear();
+        for (int i = 1; i <= N; ++i) {
+            if (!initBuffer.empty()) initBuffer += " ";
+            
+            initBuffer += std::to_string(Helper::random_gen(0, 9999));
+        }
+
         return;
     }
-    
-    if (nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED) {
-        textboxFocusID = -1;
-        for (int i = 0; i < activeFieldCount(); ++i) {
-            if (fieldTextbox[i].contains(nextInput.position - rootPos)) {
-                textboxFocusID = i;
-                break;
-            }
-        }
-    } else if (nextInput.inputType == RawInputEvent::InputType::RIGHT_MOUSE_CLICKED) {
-        textboxFocusID = -1;
-    } else if (nextInput.inputType == RawInputEvent::InputType::KEY_PRESSED
-            && nextInput.keySignal == KeyboardKey::KEY_TAB) {
-        
-        if (textboxFocusID != -1) textboxFocusID = (textboxFocusID + 1) % activeFieldCount();
-    }
 
-    if (textboxFocusID == -1 || nextInput.inputType != RawInputEvent::InputType::KEY_PRESSED) return;
+    if (nextInput.inputType != RawInputEvent::InputType::KEY_PRESSED) return;
 
     // If the field is being focused, we crawl the key input
     // If that key is a number and the string hasn't reached its limit, insert that key to the buffer.
     // If KEY_BACKSPACE is triggered, remove the last character in the buffer.
     int keyID = (int) nextInput.keySignal;
 
-    std::string inputStr = fieldTextbox[textboxFocusID].getLabelBuffer();
+    std::string inputStr = initBuffer;
+    if (keyID >= '0' && keyID <= '9') {
+        inputStr.push_back(keyID);
+    } else if (keyID == (int) KeyboardKey::KEY_SPACE) {
+        if (!inputStr.empty() && inputStr.back() != ' ') inputStr.push_back(' ');
+    } else if (keyID == (int) KeyboardKey::KEY_BACKSPACE && !inputStr.empty()) {
+        inputStr.pop_back();
+    }
+
+    if (!inputStr.empty() && isdigit(inputStr.back())) {
+        std::string buffer = "";
+        while (!inputStr.empty() && isdigit(inputStr.back())) {
+            buffer.push_back(inputStr.back());
+            inputStr.pop_back();
+        }
+
+        std::reverse(buffer.begin(), buffer.end());
+        int value = std::stoi(buffer);
+        if (value > 9999) value /= 10;
+
+        if (!inputStr.empty()) inputStr.push_back(' ');
+        inputStr += std::to_string(value);
+    }
+
+    initBuffer = inputStr;
+}
+
+void LinkedListUI::processInputFieldOthers(RawInputEvent nextInput) {
+    ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
+    ShapeState targetBackground = targetController -> getButtonShape().getBackground();
+    Vector2 rootPos = {FIELD_GAP_X + BUTTON_WIDTH, targetBackground.startPosition.y};
+
+    bool randomClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
+                    && fieldRandom.getButtonShape().contains(nextInput.position - rootPos - Vector2{FIELD_TEXTBOX_WIDTH + FIELD_GAP_X, 0.0f});
+    
+    int currentTextboxID = textboxFocusID == -1 ? 0: textboxFocusID;
+    // When the random request is required, set a random value from 0 to 99999 for the input box
+    if (randomClick) {
+        fieldTextbox[currentTextboxID].setLabelBuffer(std::to_string(Helper::random_gen(0, 9999)));
+        return;
+    }
+    
+    if (nextInput.inputType == RawInputEvent::InputType::KEY_PRESSED
+     && nextInput.keySignal == KeyboardKey::KEY_TAB) {
+        if (textboxFocusID != -1) textboxFocusID = (textboxFocusID + 1) % activeFieldCount();
+    }
+
+    if (nextInput.inputType != RawInputEvent::InputType::KEY_PRESSED) return;
+
+    // If the field is being focused, we crawl the key input
+    // If that key is a number and the string hasn't reached its limit, insert that key to the buffer.
+    // If KEY_BACKSPACE is triggered, remove the last character in the buffer.
+    int keyID = (int) nextInput.keySignal;
+
+    std::string inputStr = fieldTextbox[currentTextboxID].getLabelBuffer();
     if (keyID >= '0' && keyID <= '9' && (int) inputStr.length() < TEXTBOX_LENGTH_LIMIT) {
         inputStr.push_back(keyID);
     }
@@ -488,19 +684,58 @@ void LinkedListUI::processInputField(RawInputEvent nextInput) {
         inputStr.pop_back();
     }
 
-    fieldTextbox[textboxFocusID].setLabelBuffer(inputStr);
+    fieldTextbox[currentTextboxID].setLabelBuffer(inputStr);
 }
 
-/// @brief Responds requests to Data Structure  
-CommandPattern LinkedListUI::fieldListenerRequest(RawInputEvent nextInput) {
-    if (operationPlaceholder.empty()) return CommandPattern();
+void LinkedListUI::processInputField(RawInputEvent nextInput) {
+    if (operationPlaceholder.empty()) return;
+    
+    if (operationPlaceholder == "Init") {
+        processInputFieldInit(nextInput);
+        return;
+    }
 
+    processInputFieldOthers(nextInput);
+}
+
+/////////////////////////////////////
+///     FIELD RESPONSE REQUEST    ///
+/////////////////////////////////////
+CommandPattern LinkedListUI::fieldInitListenerRequest(RawInputEvent nextInput) {
     ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
     ShapeState targetBackground = targetController -> getButtonShape().getBackground();
-    Vector2 rootPos = {FIELD_GAP + BUTTON_WIDTH, targetBackground.startPosition.y};
+    Vector2 rootPos = {FIELD_GAP_X + BUTTON_WIDTH, targetBackground.startPosition.y};
 
-    if (operationPlaceholder == "Update") rootPos += Vector2{FIELD_GAP + updateHolderSize[0].x, 0.0f};
+    rootPos += Vector2{2 * (FIELD_BUTTON_WIDTH + FIELD_GAP_X), 0.0f};
 
+    bool submitEnter = nextInput.inputType == RawInputEvent::InputType::KEY_PRESSED
+                    && nextInput.keySignal == KeyboardKey::KEY_ENTER;
+    bool submitClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
+                    && fieldSubmit.getButtonShape().contains(nextInput.position - rootPos);
+
+    if (!submitEnter && !submitClick) return CommandPattern();
+    
+    std::vector <std::string> rawValue = Helper::keywordParse(initBuffer);
+
+    operationPlaceholder = "";
+    navPhase = NavPhase::NAV_CLOSED;
+    changeField();
+
+    return CommandPattern {
+        "MODIFY",
+        "INTERACT",
+        getDSName(),
+        "INIT",
+        rawValue
+    };
+}
+CommandPattern LinkedListUI::fieldOthersListenerRequest(RawInputEvent nextInput) {
+    ButtonController* targetController = navbarMap[navPhase].getButtonController(operationPlaceholder);
+    ShapeState targetBackground = targetController -> getButtonShape().getBackground();
+    Vector2 rootPos = {FIELD_GAP_X + BUTTON_WIDTH, targetBackground.startPosition.y};
+
+    rootPos += Vector2{FIELD_GAP_X * 2 + FIELD_TEXTBOX_WIDTH + FIELD_BUTTON_WIDTH, 0.0f};
+    
     bool submitEnter = nextInput.inputType == RawInputEvent::InputType::KEY_PRESSED
                     && nextInput.keySignal == KeyboardKey::KEY_ENTER;
     bool submitClick = nextInput.inputType == RawInputEvent::InputType::LEFT_MOUSE_CLICKED
@@ -513,30 +748,34 @@ CommandPattern LinkedListUI::fieldListenerRequest(RawInputEvent nextInput) {
     // Solving edge cases: when the input is empty
 
     CommandPattern commandReturn;
-    if (operationPlaceholder == "Update") {
-        std::string rawValue = fieldTextbox[0].getLabelBuffer();
-        std::string rawValue2 = fieldTextbox[1].getLabelBuffer();
-        if (rawValue.empty()) rawValue = "0";
-        if (rawValue2.empty()) rawValue2 = "0";
+    std::vector <std::string> rawValue;
+    for (int i = 0; i < activeFieldCount(); ++i) {
+        std::string rawBuffer = fieldTextbox[i].getLabelBuffer();
+        if (rawBuffer.empty()) rawBuffer = "0";
 
-        commandReturn = CommandPattern { "MODIFY", "INTERACT", getDSName(), "UPDATE", {rawValue, rawValue2} };
-    } else {
-        std::string rawValue = fieldTextbox[0].getLabelBuffer();
-        std::string chosenOperation = operationPlaceholder;
-        if (rawValue.empty()) rawValue = "0";
-
-        commandReturn = CommandPattern {
-            Helper::upperString(chosenOperation) == "SEARCH" ? "QUERY" : "MODIFY",
-            "INTERACT",
-            getDSName(),
-            Helper::upperString(chosenOperation),
-            {rawValue}
-        };
+        rawValue.push_back(rawBuffer);
     }
     
+    std::string chosenOperation = operationPlaceholder;
     operationPlaceholder = "";
     navPhase = NavPhase::NAV_CLOSED;
     changeField();
 
-    return commandReturn;
+    return CommandPattern {
+        Helper::upperString(chosenOperation) == "SEARCH" ? "QUERY" : "MODIFY",
+        "INTERACT",
+        getDSName(),
+        Helper::upperString(chosenOperation),
+        {rawValue}
+    };
+}
+
+CommandPattern LinkedListUI::fieldListenerRequest(RawInputEvent nextInput) {
+    if (operationPlaceholder.empty()) return CommandPattern();
+
+    if (operationPlaceholder == "Init") {
+        return fieldInitListenerRequest(nextInput);
+    }
+
+    return fieldOthersListenerRequest(nextInput);
 }

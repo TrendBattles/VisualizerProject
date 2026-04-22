@@ -10,6 +10,8 @@ namespace Helper {
     inline static std::mt19937_64 rand_mt(std::chrono::steady_clock::now().time_since_epoch().count());
     long long random_gen(long long lvalue, long long rvalue);
 
+    std::vector <std::string> keywordParse(std::string rawBuffer, std::string delimeters = ", ");
+    
     // Shape Creation
     ShapeState createCircle(std::string tempoID, Vector2 startPosition, float radius, float outlineSize, int layerID);
     ShapeState createCircle(std::string tempoID, Vector2 startPosition, float radius, float outlineSize, Color color, Color outlineColor, int layerID);

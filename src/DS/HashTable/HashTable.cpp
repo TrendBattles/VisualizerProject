@@ -27,18 +27,23 @@ void HashTable::destroyTable() {
         }
     }
 }
-void HashTable::clearAll() {
-    destroyTable();
-    if (stateManager != nullptr) {
-        stateManager -> clearAllSnapshots(getDSID());
-    }
-    generateSnapshot(0.0f);
-}
 std::string HashTable::getDSID() const { return "Hash_Table"; }
 
 ///////////////////////////////////
 ///     SUPPORTIVE FUNCTIONS    ///
 ///////////////////////////////////
+void HashTable::initDS(const std::vector <std::string>& rawValue) {
+    clearAll();
+
+    for (const std::string& value : rawValue) {
+        insertNode(value);
+    }
+
+    if (stateManager != nullptr) {
+        stateManager -> clearAllSnapshots(getDSID());
+    }
+    generateSnapshot(0.0f);
+}
 bool HashTable::insertNode(std::string value) {
     int valueParse = 0;
     try {
@@ -73,6 +78,13 @@ bool HashTable::searchNode(std::string value) {
     }
     
     return searchNode(valueParse);
+}
+void HashTable::clearAll() {
+    destroyTable();
+    if (stateManager != nullptr) {
+        stateManager -> clearAllSnapshots(getDSID());
+    }
+    generateSnapshot(0.0f);
 }
 
 ///////////////////////////////  
