@@ -38,4 +38,4 @@ Currently in progress...
 
 ## Licenses
 
-It’s an open educational tool—feel free to use, study, and build upon the code. See the [LICENSE](LICENSE) file for the full legal text.
+It’s an open educational tool—feel free to use, study, and build upon the code. See the [LICENSE](LICENSE.md) file for the full legal text.
