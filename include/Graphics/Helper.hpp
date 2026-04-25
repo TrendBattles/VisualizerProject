@@ -18,7 +18,7 @@ namespace Helper {
     ShapeState createRectangle(std::string tempoID, Vector2 startPosition, Vector2 endPosition, float outlineSize, int layerID);
     ShapeState createRectangle(std::string tempoID, Vector2 startPosition, Vector2 endPosition, float outlineSize, Color color, Color outlineColor, int layerID);
     ShapeState createRoundedRectangle(std::string tempoID, Vector2 startPosition, Vector2 endPosition, float outlineSize, float roundness, int layerID);
-    ShapeState createRoundedRectangle(std::string tempoID, Vector2 startPosition, Vector2 endPosition, float outlineSize, Color color, float roundness, Color outlineColor, int layerID);
+    ShapeState createRoundedRectangle(std::string tempoID, Vector2 startPosition, Vector2 endPosition, float outlineSize, float roundness, Color color, Color outlineColor, int layerID);
     ShapeState createLine(std::string tempoID, Vector2 startPosition, Vector2 endPosition, float size, float outlineSize, int layerID);
     ShapeState createLine(std::string tempoID, Vector2 startPosition, Vector2 endPosition, float size, float outlineSize, Color color, Color outlineColor, int layerID);
     ShapeState createArrow(std::string tempoID, Vector2 startPosition, Vector2 endPosition, float size, float outlineSize, int layerID);

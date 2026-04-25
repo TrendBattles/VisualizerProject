@@ -93,11 +93,13 @@ ShapeState Helper::createRectangle(std::string tempoID, Vector2 startPosition, V
 
 ShapeState Helper::createRoundedRectangle(std::string tempoID, Vector2 startPosition, Vector2 endPosition, float outlineSize, float roundness, int layerID) {
     ShapeState tempShape = createRectangle(tempoID, startPosition, endPosition, outlineSize, layerID);
+    tempShape.sType = ShapeType::ROUNDED_RECTANGLE;
     tempShape.roundness = roundness;
     return tempShape;
 }
-ShapeState Helper::createRoundedRectangle(std::string tempoID, Vector2 startPosition, Vector2 endPosition, float outlineSize, Color color, float roundness, Color outlineColor, int layerID) {
+ShapeState Helper::createRoundedRectangle(std::string tempoID, Vector2 startPosition, Vector2 endPosition, float outlineSize, float roundness, Color color, Color outlineColor, int layerID) {
     ShapeState tempShape = createRectangle(tempoID, startPosition, endPosition, outlineSize, color, outlineColor, layerID);
+    tempShape.sType = ShapeType::ROUNDED_RECTANGLE;
     tempShape.roundness = roundness;
     return tempShape;
 }
@@ -243,7 +245,7 @@ Color Helper::colorTimeLerp(Color colorA, Color colorB, float rate) {
 /// Intersection, Collision
 ///
 bool Helper::IsPointCollidedWithShape(Vector2 position, ShapeState shape) {
-    if (shape.sType == ShapeType::RECTANGLE) {
+    if (shape.sType == ShapeType::RECTANGLE || shape.sType == ShapeType::ROUNDED_RECTANGLE) {
         Vector2 boundary = {shape.outlineSize, shape.outlineSize};
 
         return CheckCollisionPointRec(position, createRaylibRectangle(shape.startPosition - boundary, shape.endPosition + boundary));

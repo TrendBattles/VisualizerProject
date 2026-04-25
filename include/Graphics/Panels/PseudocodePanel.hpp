@@ -38,6 +38,6 @@ private:
     Vector2 ORIGIN_POS;
     const float fontSize = 12.0f;
 
-    void renderPseudoInfo(std::pair <PseudocodeSection, std::vector <int>> pseudoInfo = {PseudocodeSection::NONE, {}}); 
+    void renderPseudoInfo(std::string DSTarget, std::pair <PseudocodeSection, std::vector <int>> pseudoInfo = {PseudocodeSection::NONE, {}}); 
 };
 #endif

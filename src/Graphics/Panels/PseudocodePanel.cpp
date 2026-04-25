@@ -251,7 +251,7 @@ void PseudocodePanel::render(std::string DSTarget) {
     
     // There is a limit of pseudocode demonstration when pausing / going forward
     if (coeff >= 0 && !animationManager -> canStepForward(DSTarget)) {
-        renderPseudoInfo();
+        renderPseudoInfo(DSTarget);
         return;
     }
 
@@ -266,7 +266,7 @@ void PseudocodePanel::render(std::string DSTarget) {
     pseudoTargetIdx = std::max(pseudoTargetIdx, 0);
 
     auto pseudoSignalRequest = animationManager -> getPseudoInfoAt(DSTarget, pseudoTargetIdx);
-    renderPseudoInfo(pseudoSignalRequest);
+    renderPseudoInfo(DSTarget, pseudoSignalRequest);
 }
 
 void PseudocodePanel::update() {
@@ -300,7 +300,7 @@ bool PseudocodePanel::processInput(RawInputEvent nextInput) {
 }
 
 // Rendering pseudocode on the panel
-void PseudocodePanel::renderPseudoInfo(std::pair <PseudocodeSection, std::vector <int>> pseudoInfo) {
+void PseudocodePanel::renderPseudoInfo(std::string DSTarget, std::pair <PseudocodeSection, std::vector <int>> pseudoInfo) {
     PseudocodeSection pseudoFrame = pseudoInfo.first; 
     std::vector <int> pseudoActiveLines = pseudoInfo.second;
 
@@ -322,6 +322,10 @@ void PseudocodePanel::renderPseudoInfo(std::pair <PseudocodeSection, std::vector
         1.0f,
         GetColor(0x374151FF)
     );
+
+    for (char& x : DSTarget) if (x == '_') x = ' ';
+    Vector2 DSTitleSize = MeasureTextEx(CoreFonts::AptosBold, DSTarget.c_str(), 25.0f, 2.5f);
+    DrawTextEx(CoreFonts::AptosBold, DSTarget.c_str(), ORIGIN_POS + Vector2{(panelSize.x - DSTitleSize.x) * 0.5f, 10.0f}, 25.0f, 2.5f, WHITE);
     
     // Pseudocode Toggle button
     ShapeState toggleShape = activeButton.getButtonShape().getBackground();

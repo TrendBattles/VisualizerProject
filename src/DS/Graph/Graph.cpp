@@ -383,6 +383,8 @@ void Graph::update() {
 void Graph::reset() {
     for (int u = 0; u < MAX_NODES; ++u) {
         if (!node[u].isActive) continue;
+        node[u].isDragging = node[u].isPinned = false;
+        
         node[u].position.x = Helper::random_gen(-5000, +5000) * 0.01f;
         node[u].position.y = Helper::random_gen(-5000, +5000) * 0.01f;
 

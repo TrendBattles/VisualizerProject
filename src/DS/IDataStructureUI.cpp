@@ -386,6 +386,13 @@ CommandPattern IDataStructureUI::navbarListenerRequest(RawInputEvent nextInput) 
         return CommandPattern{"QUERY", "INTERACT", getDSName(), "KRUSKAL", {}};
     }
 
+    if (signal == "Main Menu") {
+        navPhase = NavPhase::NAV_CLOSED;
+        operationPlaceholder = "";
+        changeField();
+        return CommandPattern{"NAVIGATE", "", signal, "", {}};
+    }
+
     return CommandPattern();
 }
 /// @brief Navbar Interactions
@@ -404,12 +411,6 @@ void IDataStructureUI::processInputNavbar(RawInputEvent nextInput) {
 
         operationPlaceholder = "";
         changeField();
-        return;
-    }
-    
-    if (signal == "Main Menu") {
-        // Return to the main menu
-
         return;
     }
 

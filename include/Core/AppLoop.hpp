@@ -18,6 +18,7 @@
 #include <DS/Graph/GraphUI.hpp>
 
 #include <Graphics/UIManager.hpp>
+#include <Graphics/Panels/MainMenu.hpp>
 
 #include <Common.hpp>
 
@@ -53,6 +54,8 @@ private:
     void VisualizerCommandUpdate();
     void VisualizerRender();
 
+    void MainMenuLoop();
+
     void SwitchSection();
     UIManager* uiManager = nullptr;
     
@@ -64,6 +67,7 @@ private:
 
     PlaybackController* playbackController = nullptr;
     PseudocodePanel* pseudocodePanel = nullptr;
+    MainMenu* mainMenu = nullptr;
 };
 
 #endif

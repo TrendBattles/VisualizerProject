@@ -59,6 +59,7 @@ target_sources(${PROJECT_NAME} PRIVATE
 	"src/Graphics/Panels/Button.cpp"
 	"src/Graphics/Panels/PseudocodePanel.cpp"
 	"src/Graphics/Panels/NavigationBar.cpp"
+	"src/Graphics/Panels/MainMenu.cpp"
 )
 
 # Link the libraries

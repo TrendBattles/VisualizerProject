@@ -5,6 +5,7 @@ AppLoop::AppLoop() = default;
 AppLoop::~AppLoop() {
     delete playbackController; playbackController = nullptr;
     delete pseudocodePanel;    pseudocodePanel = nullptr;
+    delete mainMenu;           mainMenu = nullptr;
 
     for (auto& it : DSPackage) {
         delete it.second.DataStructure;
@@ -34,7 +35,11 @@ void AppLoop::init() {
     CoreFonts::load();
 
     options = {"AVL_Tree", "Trie", "Linked_List", "Hash_Table", "Graph"};
-    appSection = options[0];
+    appSection = "Main_Menu";
+
+    mainMenu = new MainMenu();
+    mainMenu -> init(options);
+    mainMenu -> setUIManager(uiManager);
 
     // Core Managers
     uiManager = new UIManager();
@@ -108,6 +113,23 @@ void AppLoop::mainLoop() {
     if (isVisualizing()) {
         VisualizerLoop();
         return;
+    } else if (appSection == "Main_Menu") {
+        MainMenuLoop();
+        return;
+    }
+}
+
+void AppLoop::MainMenuLoop() {
+    mainMenu -> update();
+    
+    BeginDrawing();
+        mainMenu -> render();
+    EndDrawing();
+
+    if (!mainMenu -> getPendingSection().empty()) {
+        pendingSection = mainMenu -> getPendingSection();
+        mainMenu -> clearPendingSection();
+        SwitchSection();
     }
 }
 
@@ -234,8 +256,7 @@ void AppLoop::VisualizerRender() {
     IDataStructureUI* DataStructureUI = DSPackage[appSection].DataStructureUI;
     
     BeginDrawing();
-        ClearBackground(GetColor(0x1F2937FF)); // Modern Dark Theme
-        
+        ClearBackground(mainMenu -> getThemeColor());
         // Animated Data Structures
         BeginMode2D(camera);
             if (getScreenSection() != "Graph" || !animationManager -> allowsOperations(getScreenSection())) {
@@ -252,8 +273,8 @@ void AppLoop::VisualizerRender() {
         }
         DataStructureUI -> render();
         
-        DrawFPS(10, 10);
-        DrawText("Right-click to pan | Scroll to zoom", 10, 40, 20, WHITE);
+        // DrawFPS(10, 10);
+        // DrawText("Right-click to pan | Scroll to zoom", 10, 40, 20, WHITE);
     EndDrawing();
 }
 
@@ -266,8 +287,10 @@ void AppLoop::SwitchSection() {
         if (x == ' ') x = '_';
     }
 
-    if (DSPackage.count(pendingSection)) {
-        appSection = pendingSection;
+    appSection = pendingSection;
+    if (appSection == "Main_Menu") {
+        mainMenu -> reset();
+    } else if (DSPackage.count(pendingSection)) {
         eventManager -> setDSPointer(DSPackage[appSection].DataStructure);
 
         animationManager -> setSnapshotIdx(appSection, animationManager -> getSize(appSection) - 1);
