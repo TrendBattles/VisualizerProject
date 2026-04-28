@@ -804,7 +804,7 @@ CommandPattern IDataStructureUI::fieldOthersListenerRequest(RawInputEvent nextIn
     navPhase = NavPhase::NAV_CLOSED;
     changeField();
 
-    if (chosenOperation.find("Insert") != std::string::npos || chosenOperation.find("Remove") != std::string::npos)
+    if (chosenOperation.find("Update") != std::string::npos || chosenOperation.find("Insert") != std::string::npos || chosenOperation.find("Remove") != std::string::npos)
         return CommandPattern {
             "MODIFY",
             "INTERACT",

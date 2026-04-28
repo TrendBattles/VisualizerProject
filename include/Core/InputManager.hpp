@@ -23,7 +23,6 @@ struct RawInputEvent {
     InputType inputType = InputType::EMPTY;
     Vector2 position = {0, 0};
     KeyboardKey keySignal = KEY_NULL;
-    float scrollDelta = 0.0f;
 };
 
 /// @brief Mouse Events

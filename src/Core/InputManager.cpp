@@ -71,14 +71,6 @@ void InputManager::handleBackspace() {
 }
 /// @brief Main Input Update
 void InputManager::update() {
-    if (GetMouseWheelMove() != 0) {
-        RawInputEvent newInput;
-        newInput.inputType = RawInputEvent::InputType::MOUSE_SCROLL;
-        newInput.scrollDelta = GetMouseWheelMove();
-
-        inputQueue.push(newInput);
-    }
-
     KeyboardKey keyGet = (KeyboardKey) GetKeyPressed();
     if (keyGet != KEY_NULL && keyGet != KEY_BACKSPACE) {
         RawInputEvent newInput;
